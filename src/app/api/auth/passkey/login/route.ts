@@ -1,0 +1,104 @@
+import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { getDb, users } from "@/db";
+import { passkeyLoginOptions, passkeyLoginVerify } from "@/lib/auth/passkeys";
+import { sessionCookieName, signSessionToken } from "@/lib/jwt";
+import { getSessionCookieWriteOptions } from "@/lib/session-cookie";
+import { recordLoginEvent } from "@/lib/login-events";
+import {
+  checkRateLimit,
+  rateLimitedResponse,
+  rateLimitKeyIp,
+} from "@/lib/rate-limit";
+import { verifyTurnstileToken } from "@/lib/turnstile";
+
+const optionsZ = z.object({ email: z.string().email().optional() });
+
+export async function POST(req: Request) {
+  const parsed = optionsZ.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+
+  const { options, challengeId } = await passkeyLoginOptions(parsed.data.email);
+  return NextResponse.json({ options, challengeId });
+}
+
+const verifyZ = z.object({
+  challengeId: z.string().uuid(),
+  response: z.unknown(),
+  turnstileToken: z.string().trim().min(1).optional(),
+});
+
+export async function PUT(req: Request) {
+  const ipLimit = checkRateLimit({
+    key: rateLimitKeyIp("auth:passkey-login", req),
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!ipLimit.ok) {
+    return rateLimitedResponse(ipLimit.retryAfterSec);
+  }
+
+  const parsed = verifyZ.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "invalid_body" }, { status: 400 });
+  }
+
+  const captcha = await verifyTurnstileToken(parsed.data.turnstileToken, req);
+  if (!captcha.ok) {
+    return NextResponse.json({ error: captcha.message }, { status: captcha.status });
+  }
+
+  const result = await passkeyLoginVerify({
+    challengeId: parsed.data.challengeId,
+    response: parsed.data.response,
+  });
+
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: 401 });
+  }
+
+  const db = getDb();
+  const [user] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      role: users.role,
+      emailVerifiedAt: users.emailVerifiedAt,
+    })
+    .from(users)
+    .where(eq(users.id, result.userId))
+    .limit(1);
+  if (!user) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  const { userNeedsEmailVerification } = await import(
+    "@/lib/auth/email-verified-gate"
+  );
+  const emailVerified = !userNeedsEmailVerification({
+    email: user.email,
+    emailVerifiedAt: user.emailVerifiedAt,
+  });
+
+  const token = await signSessionToken(user.id, result.sessionVersion);
+  const res = NextResponse.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      emailVerified,
+    },
+  });
+  res.cookies.set(
+    sessionCookieName(),
+    token,
+    getSessionCookieWriteOptions(),
+  );
+  void recordLoginEvent({ userId: user.id, method: "passkey", req }).catch((err) => {
+    console.warn("[auth/passkey/login] login event", err);
+  });
+  return res;
+}

@@ -1,0 +1,928 @@
+import { and, desc, eq, inArray, notInArray, sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import {
+  getDb,
+  groupSavingsGroups,
+  groupSavingsMemberships,
+  groupSubscriptionInvoices,
+  groupAuditLog,
+  groupWalletLedgerEntries,
+  users,
+} from "@/db";
+import { writeGroupAudit } from "@/lib/group-savings-audit";
+import { ensureGroupSubscriptionUpToDate } from "@/lib/group-savings-billing";
+import { getGroupUsdtBalance } from "@/lib/group-savings-ledger";
+import { hasRole, getMyMembershipOrNull } from "@/lib/group-savings-permissions";
+import { getMemberContributionStats } from "@/lib/group-savings-member-stats";
+import {
+  AVEC_MAX_SHARES_PER_MEETING,
+  GROUP_SUBSCRIPTION_FEE_USDT,
+  type GroupSavingsType,
+} from "@/lib/group-savings-types";
+import { insertWalletLedgerLines } from "@/lib/wallet-ledger";
+import { debitUserAsset } from "@/lib/wallet-move-assets";
+import { validateSocialFundPerMeeting } from "@/lib/avec/social-fund-limits";
+import { insertGroupActivitySystemMessage } from "@/lib/group-savings-messaging";
+import { isKycApproved } from "@/lib/kyc-policy";
+import { notifyGroupMembers } from "@/lib/group-savings-notifications";
+import { createUserNotification } from "@/lib/notifications-service";
+import { userHasAvecSubscriptionWaiver } from "@/lib/group-savings-subscription-waiver";
+import { fetchGroupById } from "@/lib/group-savings-read";
+import { fundBucketMeta } from "@/lib/avec/fund-buckets";
+import { parseGranularRoles } from "@/lib/avec/governance/granular-roles";
+import { fmtWalletAmount, numFromNumeric } from "@/lib/wallet-types";
+
+function isPgMissingColumn(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /column .* does not exist|42703/.test(msg);
+}
+
+export async function createGroup(args: {
+  userId: string;
+  type?: GroupSavingsType;
+  name: string;
+  countryCode?: string | null;
+  minMembers: number;
+  maxMembers: number;
+  contributionAmountUsdt: number;
+  cycleDurationDays: number;
+  maxSharesPerMeeting?: number;
+  meetingIntervalDays?: number;
+  socialFundUsdt?: number;
+  paymentRules?: string | null;
+  publicDescription?: string | null;
+  feeConsentAuthorized?: boolean;
+}): Promise<
+  | { ok: true; groupId: string; status: string; feeWaived: boolean }
+  | { ok: false; message: string }
+> {
+  const db = getDb();
+  const type: GroupSavingsType = "avec";
+  const maxShares = Math.min(
+    AVEC_MAX_SHARES_PER_MEETING,
+    Math.max(1, Math.floor(args.maxSharesPerMeeting ?? AVEC_MAX_SHARES_PER_MEETING)),
+  );
+  const meetingDays = Math.max(1, Math.floor(args.meetingIntervalDays ?? 7));
+  const socialFund = Math.max(0, args.socialFundUsdt ?? 0);
+  const socialErr = validateSocialFundPerMeeting(
+    socialFund,
+    args.contributionAmountUsdt,
+    maxShares,
+  );
+  if (socialErr) return { ok: false, message: socialErr };
+  if (!args.name || args.name.trim().length < 2) {
+    return { ok: false, message: "group_invalid_name" };
+  }
+  if (!Number.isFinite(args.minMembers) || args.minMembers < 2) {
+    return { ok: false, message: "group_invalid_members" };
+  }
+  if (
+    !Number.isFinite(args.maxMembers) ||
+    args.maxMembers < args.minMembers ||
+    args.maxMembers > 100
+  ) {
+    return { ok: false, message: "group_invalid_members" };
+  }
+  if (
+    !Number.isFinite(args.contributionAmountUsdt) ||
+    args.contributionAmountUsdt <= 0
+  ) {
+    return { ok: false, message: "group_invalid_contribution" };
+  }
+  if (!Number.isFinite(args.cycleDurationDays) || args.cycleDurationDays < 1) {
+    return { ok: false, message: "group_invalid_cycle" };
+  }
+  if (!args.feeConsentAuthorized) {
+    return { ok: false, message: "group_fee_consent_required" };
+  }
+
+  const superAdminTest = await userHasAvecSubscriptionWaiver(args.userId);
+  const now = new Date();
+  const status = superAdminTest ? "active" : "pending";
+
+  const baseValues = {
+    type,
+    name: args.name.trim(),
+    countryCode: args.countryCode?.trim() || null,
+    minMembers: Math.floor(args.minMembers),
+    maxMembers: Math.floor(args.maxMembers),
+    contributionAmountUsdt: fmtWalletAmount(args.contributionAmountUsdt),
+    cycleDurationDays: Math.floor(args.cycleDurationDays),
+    paymentRules: args.paymentRules ?? null,
+    publicDescription: args.publicDescription?.trim().slice(0, 2000) || null,
+    status,
+    subscriptionStatus: superAdminTest ? ("active" as const) : ("overdue" as const),
+    nextBillingAt: superAdminTest ? null : undefined,
+    reviewedByUserId: superAdminTest ? args.userId : null,
+    reviewedAt: superAdminTest ? now : null,
+    createdByUserId: args.userId,
+  };
+
+  const extendedValues = {
+    ...baseValues,
+    maxSharesPerMeeting: maxShares,
+    meetingIntervalDays: meetingDays,
+    socialFundUsdt: fmtWalletAmount(socialFund),
+  };
+
+  let groupId: string;
+  try {
+    groupId = await db.transaction(async (tx) => {
+      let g: { id: string } | undefined;
+      await tx.execute(sql`SAVEPOINT group_create_insert`);
+      try {
+        [g] = await tx
+          .insert(groupSavingsGroups)
+          .values(extendedValues)
+          .returning({ id: groupSavingsGroups.id });
+        await tx.execute(sql`RELEASE SAVEPOINT group_create_insert`);
+      } catch (e) {
+        if (!isPgMissingColumn(e)) throw e;
+        await tx.execute(sql`ROLLBACK TO SAVEPOINT group_create_insert`);
+        [g] = await tx
+          .insert(groupSavingsGroups)
+          .values(baseValues)
+          .returning({ id: groupSavingsGroups.id });
+      }
+
+      if (!g?.id) throw new Error("group_insert_failed");
+
+      await tx.insert(groupSavingsMemberships).values({
+        groupId: g.id,
+        userId: args.userId,
+        role: "admin",
+        status: "approved",
+        approvedByUserId: args.userId,
+      });
+
+      return g.id;
+    });
+  } catch (err) {
+    console.error("[createGroup]", err);
+    return { ok: false, message: "group_create_failed" };
+  }
+
+  try {
+    await writeGroupAudit({
+      groupId,
+      actorUserId: args.userId,
+      action: "group_created",
+      before: null,
+      after: {
+        type,
+        name: args.name.trim(),
+        maxSharesPerMeeting: maxShares,
+        meetingIntervalDays: meetingDays,
+        subscriptionFeeUsdt: GROUP_SUBSCRIPTION_FEE_USDT,
+        feeConsentAuthorized: true,
+        ...(superAdminTest
+          ? { opsBypass: true, subscriptionWaived: true, status: "active" }
+          : {}),
+      },
+    });
+  } catch (err) {
+    console.warn("[createGroup] audit", err);
+  }
+
+  return { ok: true, groupId, status, feeWaived: superAdminTest };
+}
+
+export async function listMyGroups(args: { userId: string }) {
+  const db = getDb();
+  const rows = await db
+    .select({
+      groupId: groupSavingsGroups.id,
+      name: groupSavingsGroups.name,
+      type: groupSavingsGroups.type,
+      status: groupSavingsGroups.status,
+      subscriptionStatus: groupSavingsGroups.subscriptionStatus,
+      nextBillingAt: groupSavingsGroups.nextBillingAt,
+      role: groupSavingsMemberships.role,
+      membershipStatus: groupSavingsMemberships.status,
+      createdAt: groupSavingsGroups.createdAt,
+      logoUrl: groupSavingsGroups.logoUrl,
+      countryCode: groupSavingsGroups.countryCode,
+      maxMembers: groupSavingsGroups.maxMembers,
+      createdByUserId: groupSavingsGroups.createdByUserId,
+    })
+    .from(groupSavingsMemberships)
+    .innerJoin(
+      groupSavingsGroups,
+      eq(groupSavingsMemberships.groupId, groupSavingsGroups.id),
+    )
+    .where(eq(groupSavingsMemberships.userId, args.userId))
+    .orderBy(desc(groupSavingsGroups.createdAt))
+    .limit(200);
+
+  const avecIds = rows
+    .filter((r) => r.type === "avec" || r.type === "likelimba")
+    .map((r) => r.groupId);
+  const memberCounts = new Map<string, number>();
+  if (avecIds.length > 0) {
+    const counts = await db
+      .select({
+        groupId: groupSavingsMemberships.groupId,
+        c: sql<number>`count(*)::int`,
+      })
+      .from(groupSavingsMemberships)
+      .where(
+        and(
+          inArray(groupSavingsMemberships.groupId, avecIds),
+          eq(groupSavingsMemberships.status, "approved"),
+        ),
+      )
+      .groupBy(groupSavingsMemberships.groupId);
+    for (const row of counts) {
+      memberCounts.set(row.groupId, row.c);
+    }
+  }
+
+  return {
+    groups: rows.map((r) => ({
+      ...r,
+      nextBillingAt: r.nextBillingAt ? r.nextBillingAt.toISOString() : null,
+      createdAt: r.createdAt.toISOString(),
+      memberCount: memberCounts.get(r.groupId) ?? 0,
+      isCreator: r.createdByUserId === args.userId,
+    })),
+  };
+}
+
+/** Active AVEC groups the user is not a member of (discover / join). */
+export async function listDiscoverableGroups(args: { userId: string; limit?: number }) {
+  const db = getDb();
+  const mine = await db
+    .select({ groupId: groupSavingsMemberships.groupId })
+    .from(groupSavingsMemberships)
+    .where(eq(groupSavingsMemberships.userId, args.userId));
+  const excludeIds = mine.map((m) => m.groupId);
+
+  const limit = Math.min(Math.max(1, args.limit ?? 60), 100);
+  const whereClause = and(
+    eq(groupSavingsGroups.type, "avec"),
+    eq(groupSavingsGroups.status, "active"),
+    excludeIds.length > 0
+      ? notInArray(groupSavingsGroups.id, excludeIds)
+      : undefined,
+  );
+
+  const rows = await db
+    .select({
+      groupId: groupSavingsGroups.id,
+      name: groupSavingsGroups.name,
+      logoUrl: groupSavingsGroups.logoUrl,
+      countryCode: groupSavingsGroups.countryCode,
+      address: groupSavingsGroups.address,
+      publicDescription: groupSavingsGroups.publicDescription,
+      maxMembers: groupSavingsGroups.maxMembers,
+      contributionAmountUsdt: groupSavingsGroups.contributionAmountUsdt,
+      inviteCode: groupSavingsGroups.inviteCode,
+    })
+    .from(groupSavingsGroups)
+    .where(whereClause)
+    .orderBy(desc(groupSavingsGroups.createdAt))
+    .limit(limit);
+
+  const ids = rows.map((r) => r.groupId);
+  const memberCounts = new Map<string, number>();
+  if (ids.length > 0) {
+    const counts = await db
+      .select({
+        groupId: groupSavingsMemberships.groupId,
+        c: sql<number>`count(*)::int`,
+      })
+      .from(groupSavingsMemberships)
+      .where(
+        and(
+          inArray(groupSavingsMemberships.groupId, ids),
+          eq(groupSavingsMemberships.status, "approved"),
+        ),
+      )
+      .groupBy(groupSavingsMemberships.groupId);
+    for (const row of counts) {
+      memberCounts.set(row.groupId, row.c);
+    }
+  }
+
+  return {
+    groups: rows.map((r) => ({
+      groupId: r.groupId,
+      name: r.name,
+      logoUrl: r.logoUrl ?? null,
+      countryCode: r.countryCode ?? null,
+      address: r.address ?? null,
+      publicDescription: r.publicDescription ?? null,
+      maxMembers: r.maxMembers,
+      memberCount: memberCounts.get(r.groupId) ?? 0,
+      shareValueUsdt: numFromNumeric(r.contributionAmountUsdt?.toString()),
+      inviteCode: r.inviteCode ?? null,
+      joinHref: r.inviteCode
+        ? `/app/wallet/groups/join?code=${encodeURIComponent(r.inviteCode)}`
+        : null,
+    })),
+  };
+}
+
+export async function listMyGroupContributions(args: {
+  groupId: string;
+  userId: string;
+  limit?: number;
+}) {
+  const db = getDb();
+  const m = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
+  if (!m || m.status !== "approved") return { ok: false as const, message: "group_forbidden" };
+
+  const limit = Math.min(Math.max(1, args.limit ?? 100), 200);
+  const rows = await db
+    .select({
+      id: groupWalletLedgerEntries.id,
+      batchId: groupWalletLedgerEntries.batchId,
+      entryType: groupWalletLedgerEntries.entryType,
+      amount: groupWalletLedgerEntries.amount,
+      meta: groupWalletLedgerEntries.meta,
+      createdAt: groupWalletLedgerEntries.createdAt,
+    })
+    .from(groupWalletLedgerEntries)
+    .where(
+      and(
+        eq(groupWalletLedgerEntries.groupId, args.groupId),
+        inArray(groupWalletLedgerEntries.entryType, [
+          "group_contribution_in",
+          "group_social_contribution_in",
+        ]),
+        sql`${groupWalletLedgerEntries.meta}->>'userId' = ${args.userId}`,
+      ),
+    )
+    .orderBy(desc(groupWalletLedgerEntries.createdAt))
+    .limit(limit);
+
+  return {
+    ok: true as const,
+    contributions: rows.map((r) => ({
+      id: r.id,
+      batchId: r.batchId,
+      entryType: r.entryType,
+      amount: r.amount,
+      shares:
+        typeof r.meta === "object" && r.meta && "shares" in r.meta
+          ? Number((r.meta as { shares?: number }).shares)
+          : null,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  };
+}
+
+export async function getGroupDashboard(args: { groupId: string; userId: string }) {
+  try {
+    return await getGroupDashboardInner(args);
+  } catch (err) {
+    console.error("[getGroupDashboard]", err);
+    return { ok: false as const, message: "group_dashboard_failed" };
+  }
+}
+
+async function getGroupDashboardInner(args: { groupId: string; userId: string }) {
+  const db = getDb();
+  const g = await fetchGroupById(args.groupId);
+  if (!g) return { ok: false as const, message: "group_not_found" };
+
+  // Member can view even if subscription overdue, but actions are gated elsewhere.
+  const m = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
+  if (!m || (m.status !== "approved" && m.status !== "pending")) {
+    return { ok: false as const, message: "group_forbidden" };
+  }
+
+  try {
+    await ensureGroupSubscriptionUpToDate({ groupId: args.groupId });
+  } catch (err) {
+    console.warn("[getGroupDashboard] billing", err);
+  }
+
+  const balance = await getGroupUsdtBalance(args.groupId);
+  const [viewer] = await db
+    .select({
+      email: users.email,
+      displayName: users.displayName,
+      piUsername: users.piUsername,
+      kycStatus: users.kycStatus,
+    })
+    .from(users)
+    .where(eq(users.id, args.userId))
+    .limit(1);
+
+  let members: {
+    userId: string;
+    role: string;
+    status: string;
+    email: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    kycStatus: string;
+    granularRoles?: unknown;
+  }[];
+  try {
+    members = await db
+      .select({
+        userId: groupSavingsMemberships.userId,
+        role: groupSavingsMemberships.role,
+        status: groupSavingsMemberships.status,
+        granularRoles: groupSavingsMemberships.granularRoles,
+        email: users.email,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        kycStatus: users.kycStatus,
+      })
+      .from(groupSavingsMemberships)
+      .innerJoin(users, eq(groupSavingsMemberships.userId, users.id))
+      .where(eq(groupSavingsMemberships.groupId, args.groupId))
+      .orderBy(desc(groupSavingsMemberships.createdAt))
+      .limit(200);
+  } catch (e) {
+    if (!isPgMissingColumn(e)) throw e;
+    members = await db
+      .select({
+        userId: groupSavingsMemberships.userId,
+        role: groupSavingsMemberships.role,
+        status: groupSavingsMemberships.status,
+        email: users.email,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        kycStatus: users.kycStatus,
+      })
+      .from(groupSavingsMemberships)
+      .innerJoin(users, eq(groupSavingsMemberships.userId, users.id))
+      .where(eq(groupSavingsMemberships.groupId, args.groupId))
+      .orderBy(desc(groupSavingsMemberships.createdAt))
+      .limit(200);
+  }
+
+  const cycleStarted =
+    g.cycleStartedAt ?? g.createdAt;
+  const stats = await getMemberContributionStats(args.groupId, cycleStarted);
+  const statsByUser = new Map(stats.map((s) => [s.userId, s]));
+
+  return {
+    ok: true as const,
+    group: {
+      id: g.id,
+      type: g.type,
+      name: g.name,
+      countryCode: g.countryCode,
+      minMembers: g.minMembers,
+      maxMembers: g.maxMembers,
+      contributionAmountUsdt: g.contributionAmountUsdt?.toString() ?? "0",
+      cycleDurationDays: g.cycleDurationDays,
+      maxSharesPerMeeting: g.maxSharesPerMeeting ?? AVEC_MAX_SHARES_PER_MEETING,
+      meetingIntervalDays: g.meetingIntervalDays ?? 7,
+      socialFundUsdt: g.socialFundUsdt?.toString() ?? "0",
+      paymentRules: g.paymentRules,
+      logoUrl: g.logoUrl ?? null,
+      address: g.address ?? null,
+      contactPhone: g.contactPhone ?? null,
+      contactEmail: g.contactEmail ?? null,
+      publicDescription: g.publicDescription ?? null,
+      status: g.status,
+      subscriptionStatus: g.subscriptionStatus,
+      nextBillingAt: g.nextBillingAt ? g.nextBillingAt.toISOString() : null,
+      balanceUsdt: balance,
+      createdAt: g.createdAt.toISOString(),
+      cycleStatus: g.cycleStatus ?? "active",
+      cycleNumber: g.cycleNumber ?? 1,
+      cycleStartedAt: cycleStarted.toISOString(),
+      cycleClosedAt: g.cycleClosedAt?.toISOString() ?? null,
+      governanceMode: g.governanceMode ?? "legacy",
+      me: {
+        role: m.role,
+        status: m.status,
+        granularRoles: parseGranularRoles(m.granularRoles),
+      },
+    },
+    viewer: {
+      email: viewer?.email ?? "",
+      displayName: viewer?.displayName ?? null,
+      piUsername: viewer?.piUsername ?? null,
+      kycApproved: isKycApproved(viewer?.kycStatus),
+    },
+    members: members.map((m) => {
+      const s = statsByUser.get(m.userId);
+      return {
+        userId: m.userId,
+        role: m.role,
+        status: m.status,
+        email: m.email,
+        displayName: m.displayName,
+        avatarUrl: m.avatarUrl,
+        granularRoles: parseGranularRoles(m.granularRoles),
+        kycApproved: isKycApproved(m.kycStatus),
+        savedUsdt: s?.totalUsdt ?? 0,
+        meetingsPaid: s?.meetingCount ?? 0,
+        sharesTotal: s?.sharesTotal ?? 0,
+      };
+    }),
+    memberCount: members.filter((m) => m.status === "approved").length,
+  };
+}
+
+export async function requestJoinGroup(args: { groupId: string; userId: string }) {
+  const db = getDb();
+  const [g] = await db
+    .select()
+    .from(groupSavingsGroups)
+    .where(eq(groupSavingsGroups.id, args.groupId))
+    .limit(1);
+  if (!g) return { ok: false as const, message: "group_not_found" };
+  if (g.status === "suspended") return { ok: false as const, message: "group_suspended" };
+  if (g.status !== "active" && g.status !== "approved" && g.status !== "pending") {
+    return { ok: false as const, message: "group_closed" };
+  }
+
+  const existing = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
+  if (existing) return { ok: true as const };
+
+  await db.insert(groupSavingsMemberships).values({
+    groupId: args.groupId,
+    userId: args.userId,
+    role: "member",
+    status: "pending",
+  });
+  await writeGroupAudit({
+    groupId: args.groupId,
+    actorUserId: args.userId,
+    action: "member_requested_join",
+  });
+  await notifyGroupMembers({
+    groupId: args.groupId,
+    kind: "group_member_pending",
+    excludeUserId: args.userId,
+    onlyRoles: ["admin", "co_admin"],
+    payload: { groupId: args.groupId, userId: args.userId },
+  });
+  return { ok: true as const };
+}
+
+export async function reviewMember(args: {
+  groupId: string;
+  actorUserId: string;
+  targetUserId: string;
+  accept: boolean;
+}) {
+  const db = getDb();
+  const g = await db
+    .select()
+    .from(groupSavingsGroups)
+    .where(eq(groupSavingsGroups.id, args.groupId))
+    .limit(1)
+    .then((x) => x[0] ?? null);
+  if (!g) return { ok: false as const, message: "group_not_found" };
+  if (g.status === "suspended") return { ok: false as const, message: "group_suspended" };
+
+  const actor = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.actorUserId });
+  if (!hasRole(actor, ["admin", "co_admin"])) return { ok: false as const, message: "group_forbidden" };
+
+  const [m] = await db
+    .select()
+    .from(groupSavingsMemberships)
+    .where(
+      and(
+        eq(groupSavingsMemberships.groupId, args.groupId),
+        eq(groupSavingsMemberships.userId, args.targetUserId),
+      ),
+    )
+    .limit(1);
+  if (!m || m.status !== "pending") return { ok: false as const, message: "member_not_pending" };
+
+  const next = args.accept ? "approved" : "rejected";
+  await db
+    .update(groupSavingsMemberships)
+    .set({
+      status: next,
+      approvedByUserId: args.actorUserId,
+      updatedAt: new Date(),
+    })
+    .where(eq(groupSavingsMemberships.id, m.id));
+  await writeGroupAudit({
+    groupId: args.groupId,
+    actorUserId: args.actorUserId,
+    action: args.accept ? "member_approved" : "member_rejected",
+    before: { userId: args.targetUserId, status: m.status },
+    after: { userId: args.targetUserId, status: next },
+  });
+  if (args.accept) {
+    await createUserNotification({
+      userId: args.targetUserId,
+      kind: "group_member_approved",
+      payload: { groupId: args.groupId, groupName: g.name },
+    });
+  }
+  return { ok: true as const };
+}
+
+export async function setCoAdmins(_args: {
+  groupId: string;
+  actorUserId: string;
+  coAdminUserIds: string[];
+}) {
+  const { govCollectiveRequired } = await import("@/lib/avec/governance/enforcement");
+  return govCollectiveRequired();
+}
+
+export async function revokeMember(args: {
+  groupId: string;
+  actorUserId: string;
+  targetUserId: string;
+}) {
+  const { govCollectiveRequired } = await import("@/lib/avec/governance/enforcement");
+  return govCollectiveRequired();
+}
+
+export async function setMemberRole(args: {
+  groupId: string;
+  actorUserId: string;
+  targetUserId: string;
+  role: "member" | "co_admin";
+}) {
+  if (args.role === "co_admin") {
+    const { govCollectiveRequired } = await import("@/lib/avec/governance/enforcement");
+    return govCollectiveRequired();
+  }
+
+  const db = getDb();
+  const actor = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.actorUserId });
+  if (!hasRole(actor, ["admin"])) return { ok: false as const, message: "group_forbidden" };
+
+  const [m] = await db
+    .select()
+    .from(groupSavingsMemberships)
+    .where(
+      and(
+        eq(groupSavingsMemberships.groupId, args.groupId),
+        eq(groupSavingsMemberships.userId, args.targetUserId),
+      ),
+    )
+    .limit(1);
+  if (!m || m.status !== "approved") {
+    return { ok: false as const, message: "member_not_found" };
+  }
+  if (m.role === "admin") return { ok: false as const, message: "group_cannot_change_admin" };
+  if (m.role === "co_admin") {
+    const { govCollectiveRequired } = await import("@/lib/avec/governance/enforcement");
+    return govCollectiveRequired();
+  }
+
+  await db
+    .update(groupSavingsMemberships)
+    .set({ role: args.role, updatedAt: new Date() })
+    .where(eq(groupSavingsMemberships.id, m.id));
+  await writeGroupAudit({
+    groupId: args.groupId,
+    actorUserId: args.actorUserId,
+    action: "member_role_updated",
+    after: { userId: args.targetUserId, role: args.role },
+  });
+  return { ok: true as const };
+}
+
+export async function contributeToGroup(args: {
+  groupId: string;
+  userId: string;
+  amountUsdt?: number;
+  shares?: number;
+}) {
+  const db = getDb();
+  const m = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
+  if (!m || m.status !== "approved") return { ok: false as const, message: "group_forbidden" };
+
+  const [g] = await db
+    .select()
+    .from(groupSavingsGroups)
+    .where(eq(groupSavingsGroups.id, args.groupId))
+    .limit(1);
+  if (!g) return { ok: false as const, message: "group_not_found" };
+  if (g.status === "suspended") return { ok: false as const, message: "group_suspended" };
+  if (g.status !== "active" && g.status !== "approved") return { ok: false as const, message: "group_closed" };
+  if ((g.cycleStatus ?? "active") !== "active") {
+    return { ok: false as const, message: "group_cycle_not_active" };
+  }
+
+  const shareValue = numFromNumeric(g.contributionAmountUsdt?.toString());
+  const maxShares = g.maxSharesPerMeeting ?? AVEC_MAX_SHARES_PER_MEETING;
+  let shares: number | undefined;
+  let amt: number;
+
+  if (args.shares != null) {
+    shares = Math.floor(args.shares);
+    if (!Number.isFinite(shares) || shares < 1 || shares > maxShares) {
+      return { ok: false as const, message: "group_invalid_shares" };
+    }
+    amt = shares * shareValue;
+  } else if (args.amountUsdt != null && Number.isFinite(args.amountUsdt) && args.amountUsdt > 0) {
+    amt = args.amountUsdt;
+  } else {
+    return { ok: false as const, message: "group_invalid_amount" };
+  }
+
+  const socialPerMeeting = Math.max(0, numFromNumeric(g.socialFundUsdt?.toString()));
+  if (
+    validateSocialFundPerMeeting(socialPerMeeting, shareValue, maxShares) ===
+    "group_social_fund_too_high"
+  ) {
+    return { ok: false as const, message: "group_social_fund_misconfigured" };
+  }
+  const totalDue = amt + socialPerMeeting;
+  const amtStr = fmtWalletAmount(amt);
+  const socialStr = socialPerMeeting > 0 ? fmtWalletAmount(socialPerMeeting) : null;
+  const batchId = randomUUID();
+
+  try {
+    await db.transaction(async (tx) => {
+      const [u] = await tx
+        .select({ bal: users.balance })
+        .from(users)
+        .where(eq(users.id, args.userId))
+        .limit(1);
+      const bal = numFromNumeric(u?.bal?.toString());
+      if (bal + 1e-18 < totalDue) throw new Error("insufficient");
+
+      await debitUserAsset(tx, args.userId, "USDT", fmtWalletAmount(totalDue));
+      await tx.insert(groupWalletLedgerEntries).values({
+        batchId,
+        groupId: args.groupId,
+        entryType: "group_contribution_in",
+        asset: "USDT",
+        amount: amtStr,
+        meta: {
+          userId: args.userId,
+          ...fundBucketMeta("savings"),
+          ...(shares != null ? { shares } : {}),
+        },
+      });
+      if (socialStr && socialPerMeeting > 0) {
+        await tx.insert(groupWalletLedgerEntries).values({
+          batchId,
+          groupId: args.groupId,
+          entryType: "group_social_contribution_in",
+          asset: "USDT",
+          amount: socialStr,
+          meta: {
+            userId: args.userId,
+            ...fundBucketMeta("social"),
+          },
+        });
+      }
+      await insertWalletLedgerLines(tx, [
+        {
+          batchId,
+          userId: args.userId,
+          entryType: "group_contribution_out",
+          asset: "USDT",
+          amount: `-${fmtWalletAmount(totalDue)}`,
+          meta: { groupId: args.groupId },
+        },
+      ]);
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg === "insufficient") return { ok: false as const, message: "trade_insufficient_usdt" };
+    return { ok: false as const, message: "group_contribution_failed" };
+  }
+
+  await writeGroupAudit({
+    groupId: args.groupId,
+    actorUserId: args.userId,
+    action: "contribution_made",
+    after: { amountUsdt: amt, ...(shares != null ? { shares } : {}) },
+  });
+
+  const [u] = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.id, args.userId))
+    .limit(1);
+  const partsLabel = shares != null ? ` · ${shares} parts` : "";
+  const socialLabel =
+    socialPerMeeting > 0 ? ` · social ${socialPerMeeting.toFixed(2)} USDT` : "";
+  await insertGroupActivitySystemMessage({
+    groupId: args.groupId,
+    actorUserId: args.userId,
+    body: `${u?.email ?? "Member"} → ${amt.toFixed(2)} USDT${partsLabel}${socialLabel}`,
+  });
+  await notifyGroupMembers({
+    groupId: args.groupId,
+    kind: "group_contribution",
+    excludeUserId: args.userId,
+    payload: {
+      groupId: args.groupId,
+      amount: amt.toFixed(2),
+      asset: "USDT",
+      shares: shares ?? null,
+    },
+  });
+
+  await ensureGroupSubscriptionUpToDate({ groupId: args.groupId });
+  return { ok: true as const };
+}
+
+export {
+  proposeGroupPayout,
+  approveGroupPayout,
+  listPendingGroupPayouts,
+  payoutFromGroup,
+} from "@/lib/group-savings-payouts";
+
+export async function listGroupLedger(args: { groupId: string; userId: string; limit?: number }) {
+  const db = getDb();
+  const m = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
+  if (!m || m.status !== "approved") return { ok: false as const, message: "group_forbidden" };
+  await ensureGroupSubscriptionUpToDate({ groupId: args.groupId });
+
+  const limit = Math.min(Math.max(1, args.limit ?? 50), 100);
+  const rows = await db
+    .select({
+      id: groupWalletLedgerEntries.id,
+      batchId: groupWalletLedgerEntries.batchId,
+      entryType: groupWalletLedgerEntries.entryType,
+      asset: groupWalletLedgerEntries.asset,
+      amount: groupWalletLedgerEntries.amount,
+      meta: groupWalletLedgerEntries.meta,
+      createdAt: groupWalletLedgerEntries.createdAt,
+    })
+    .from(groupWalletLedgerEntries)
+    .where(eq(groupWalletLedgerEntries.groupId, args.groupId))
+    .orderBy(desc(groupWalletLedgerEntries.createdAt))
+    .limit(limit);
+
+  return {
+    ok: true as const,
+    entries: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+  };
+}
+
+export async function listGroupSubscriptionInvoices(args: {
+  groupId: string;
+  userId: string;
+  limit?: number;
+}) {
+  const db = getDb();
+  const m = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
+  if (!m || m.status !== "approved") return { ok: false as const, message: "group_forbidden" };
+  await ensureGroupSubscriptionUpToDate({ groupId: args.groupId });
+
+  const limit = Math.min(Math.max(1, args.limit ?? 24), 60);
+  const rows = await db
+    .select({
+      id: groupSubscriptionInvoices.id,
+      period: groupSubscriptionInvoices.period,
+      amountUsdt: groupSubscriptionInvoices.amountUsdt,
+      status: groupSubscriptionInvoices.status,
+      attemptedAt: groupSubscriptionInvoices.attemptedAt,
+      paidAt: groupSubscriptionInvoices.paidAt,
+      failureReason: groupSubscriptionInvoices.failureReason,
+      createdAt: groupSubscriptionInvoices.createdAt,
+    })
+    .from(groupSubscriptionInvoices)
+    .where(eq(groupSubscriptionInvoices.groupId, args.groupId))
+    .orderBy(desc(groupSubscriptionInvoices.createdAt))
+    .limit(limit);
+
+  return {
+    ok: true as const,
+    invoices: rows.map((r) => ({
+      ...r,
+      attemptedAt: r.attemptedAt ? r.attemptedAt.toISOString() : null,
+      paidAt: r.paidAt ? r.paidAt.toISOString() : null,
+      createdAt: r.createdAt.toISOString(),
+    })),
+  };
+}
+
+export async function listGroupAuditLog(args: {
+  groupId: string;
+  userId: string;
+  limit?: number;
+}) {
+  const db = getDb();
+  const m = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
+  if (!m || m.status !== "approved") return { ok: false as const, message: "group_forbidden" };
+  await ensureGroupSubscriptionUpToDate({ groupId: args.groupId });
+
+  const limit = Math.min(Math.max(1, args.limit ?? 50), 100);
+  const rows = await db
+    .select({
+      id: groupAuditLog.id,
+      action: groupAuditLog.action,
+      actorUserId: groupAuditLog.actorUserId,
+      before: groupAuditLog.before,
+      after: groupAuditLog.after,
+      createdAt: groupAuditLog.createdAt,
+    })
+    .from(groupAuditLog)
+    .where(eq(groupAuditLog.groupId, args.groupId))
+    .orderBy(desc(groupAuditLog.createdAt))
+    .limit(limit);
+
+  return {
+    ok: true as const,
+    audit: rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+  };
+}
+

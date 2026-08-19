@@ -1,0 +1,141 @@
+import Link from "next/link";
+import { getDictionary } from "@/i18n/messages";
+import type { Locale } from "@/i18n/locale";
+
+export type ActivityRow = {
+  id: string;
+  kind: "deposit" | "withdrawal";
+  /** e.g. USDT, PI */
+  asset: string;
+  /** Localized network description */
+  networkLabel: string;
+  amount: string | null;
+  status: string;
+  tone: "success" | "pending" | "failed";
+};
+
+export function RecentActivity({
+  locale,
+  items,
+}: {
+  locale: Locale;
+  items: ActivityRow[];
+}) {
+  const d = getDictionary(locale);
+
+  return (
+    <section className="rounded-[1.75rem] border border-stone-700/50 bg-stone-950/65 p-4 shadow-2xl shadow-black/40 backdrop-blur-xl">
+      <h2 className="mb-3 text-sm font-bold text-stone-50">{d.recent_activity}</h2>
+      {items.length === 0 ? (
+        <p className="py-6 text-center text-sm text-stone-400">
+          {d.recent_empty}
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-0">
+          {items.map((row) => (
+            <li
+              key={`${row.kind}-${row.id}`}
+              className="flex min-h-[52px] items-center gap-3 border-b border-stone-800/80 py-3 last:border-0"
+            >
+              <span
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
+                  row.kind === "deposit"
+                    ? "bg-emerald-950/50 text-emerald-200 ring-1 ring-emerald-700/30"
+                    : "bg-rose-950/40 text-rose-100 ring-1 ring-rose-700/30"
+                }`}
+              >
+                {row.kind === "deposit" ? <InIcon /> : <OutIcon />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-stone-50">
+                  {row.kind === "deposit" ? d.deposit : d.withdraw}
+                </p>
+                <p className="truncate text-[11px] text-stone-400">
+                  {row.networkLabel}
+                </p>
+                <p className="text-xs text-stone-400">
+                  <StatusBadge locale={locale} tone={row.tone} raw={row.status} />
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-semibold tabular-nums text-stone-50">
+                  {row.amount != null ? `${row.amount}` : "—"}{" "}
+                  <span className="text-xs font-medium text-stone-400">
+                    {activityAssetUnit(row.asset)}
+                  </span>
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link
+        href="/app/wallet"
+        className="mt-3 block min-h-[44px] rounded-xl border border-emerald-700/30 bg-emerald-950/30 py-3 text-center text-sm font-semibold text-emerald-200 transition hover:bg-emerald-950/45 active:scale-[0.99]"
+      >
+        {d.wallet_see_all}
+      </Link>
+    </section>
+  );
+}
+
+function activityAssetUnit(asset: string): string {
+  const u = asset.trim().toUpperCase();
+  if (u === "PI") return "PI";
+  return "USDT";
+}
+
+function StatusBadge({
+  locale,
+  tone,
+  raw,
+}: {
+  locale: Locale;
+  tone: ActivityRow["tone"];
+  raw: string;
+}) {
+  const d = getDictionary(locale);
+  const label =
+    tone === "success"
+      ? d.status_ui_success
+      : tone === "pending"
+        ? d.status_ui_pending
+        : d.status_ui_failed;
+  const cls =
+    tone === "success"
+      ? "text-emerald-600 dark:text-emerald-400"
+      : tone === "pending"
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-rose-600 dark:text-rose-400";
+  return (
+    <span className={cls}>
+      {label} · {raw}
+    </span>
+  );
+}
+
+function InIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 4v12m0 0l4-4m-4 4l-4-4M4 20h16"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function OutIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 20V8m0 0l4 4m-4-4l-4 4M4 4h16"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}

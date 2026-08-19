@@ -1,0 +1,825 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1777809121854,
+      "tag": "0000_init",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777813898501,
+      "tag": "0001_roles_manual_withdrawals",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777900000000,
+      "tag": "0002_payout_lane_assignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777950000000,
+      "tag": "0003_remove_okx_lane_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777970000000,
+      "tag": "0004_user_pi_balance",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778000000000,
+      "tag": "0005_wallet_fiat_ledger",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778100000000,
+      "tag": "0006_user_stakes",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778200000000,
+      "tag": "0007_p2p_market",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778300000000,
+      "tag": "0008_p2p_chat_disputes_fees",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1778400000000,
+      "tag": "0009_trade_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1778500000000,
+      "tag": "0010_trade_demo",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1778600000000,
+      "tag": "0011_futures_take_profit",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1778700000000,
+      "tag": "0012_group_savings_governance",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1778800000000,
+      "tag": "0013_user_country_kyc",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1778900000000,
+      "tag": "0014_referral",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1779000000000,
+      "tag": "0015_staff_scopes",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1779100000000,
+      "tag": "0016_platform_admin_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1779200000000,
+      "tag": "0017_lp_pool",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1779300000000,
+      "tag": "0018_lp_pool_payout_windows",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1779400000000,
+      "tag": "0019_loans",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1779500000000,
+      "tag": "0020_user_pi_test_balance",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1779600000000,
+      "tag": "0024_trading_bots",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1779700000000,
+      "tag": "0025_bot_instances",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1779800000001,
+      "tag": "0026_bot_credentials_futures_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1780400000000,
+      "tag": "0029_avec_model",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1780500000000,
+      "tag": "0030_avec_comms",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1780600000000,
+      "tag": "0031_avec_approved_to_active",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1780700000000,
+      "tag": "0032_avec_invite_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1780800000000,
+      "tag": "0033_group_payout_approvals",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1780900000000,
+      "tag": "0034_group_avec_loans",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1781000000000,
+      "tag": "0035_group_cycle_closure",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1781100000000,
+      "tag": "0036_avec_loan_requests_reject",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1781200000000,
+      "tag": "0037_metamap_kyc",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1781300000000,
+      "tag": "0038_didit_kyc",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1781400000000,
+      "tag": "0039_didit_session_status_drop_metamap",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1781500000000,
+      "tag": "0040_kyc_ocr_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1781600000000,
+      "tag": "0041_didit_webhook_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1781700000000,
+      "tag": "0042_account_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1781800000000,
+      "tag": "0043_avec_governance",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1781900000000,
+      "tag": "0047_usdt_wallet_sessions_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1782000000000,
+      "tag": "0048_deposit_session_amount_slot_unique",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1782100000000,
+      "tag": "0049_withdraw_fee_split",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1782200000000,
+      "tag": "0050_user_email_canonical",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1782300000000,
+      "tag": "0051_ai_assistant",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1782400000000,
+      "tag": "0052_buleli_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1782500000000,
+      "tag": "0053_reward_points_phase2",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1782600000000,
+      "tag": "0054_mcb_claims",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1782700000000,
+      "tag": "0055_training_registrations",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1782800000000,
+      "tag": "0056_academy",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1782900000000,
+      "tag": "0057_academy_phase_b",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1783000000000,
+      "tag": "0058_academy_phase_c",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1783100000000,
+      "tag": "0059_academy_modules",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1783200000000,
+      "tag": "0060_academy_pro_open",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1783300000000,
+      "tag": "0061_academy_edition_hosts",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1783400000000,
+      "tag": "0062_academy_replay_r2",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1783500000000,
+      "tag": "0063_academy_live_purchases",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1783600000000,
+      "tag": "0064_academy_live_started",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1783700000000,
+      "tag": "0065_community_hub_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1783800000000,
+      "tag": "0066_community_feed_extras",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1783900000000,
+      "tag": "0067_community_phase3_trading",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1784000000000,
+      "tag": "0068_community_discussions",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1784100000000,
+      "tag": "0069_community_profile_dm",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1784200000000,
+      "tag": "0070_community_profile_columns_fix",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1784300000000,
+      "tag": "0071_community_posts_view_count",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1784400000000,
+      "tag": "0072_community_post_views",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1784500000000,
+      "tag": "0073_community_translation_cache",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1784600000000,
+      "tag": "0074_community_posts_content_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1784700000000,
+      "tag": "0075_community_media_engagement",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1784800000000,
+      "tag": "0076_game_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1784900000000,
+      "tag": "0077_freshpay_replace_pawapay",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1785000000000,
+      "tag": "0078_freshpay_tables_init",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1785100000000,
+      "tag": "0079_deposit_launch_rewards",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1785200000000,
+      "tag": "0080_academy_training_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1785300000000,
+      "tag": "0081_academy_events_edition_link",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1785400000000,
+      "tag": "0082_community_posts_meta",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1785500000000,
+      "tag": "0083_community_stories",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1785600000000,
+      "tag": "0084_community_story_engagement",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1785700000000,
+      "tag": "0085_p2p_schema_completion",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1785800000000,
+      "tag": "0086_p2p_reports",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1785900000000,
+      "tag": "0087_p2p_auto_release",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1786000000000,
+      "tag": "0088_p2p_phase4_disputes_velocity",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1786100000000,
+      "tag": "0089_user_notification_prefs",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1786200000000,
+      "tag": "0090_profile_security_phase4",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1786300000000,
+      "tag": "0091_bot_copy_follows",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1786400000000,
+      "tag": "0092_trade_live_governance",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1786500000000,
+      "tag": "0093_top_trader_competition",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1786600000000,
+      "tag": "0094_top_trader_week_payouts",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1786700000000,
+      "tag": "0095_financial_audit_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1786800000000,
+      "tag": "0096_jitsi_access_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1786900000000,
+      "tag": "0097_kyc_identity_correction",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1787000000000,
+      "tag": "0098_builders_program",
+      "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1787100000000,
+      "tag": "0099_sug_horizon_a",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1787200000000,
+      "tag": "0100_community_post_boost",
+      "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1787300000000,
+      "tag": "0101_community_ads_horizon_b",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1787400000000,
+      "tag": "0102_mcb_custodial_ads",
+      "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1787500000000,
+      "tag": "0105_community_post_tip_totals",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1787600000000,
+      "tag": "0106_hackathon_platform",
+      "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1787700000000,
+      "tag": "0107_hackathon_pay_later",
+      "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1787800000000,
+      "tag": "0108_hackathon_polish",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1787900000000,
+      "tag": "0109_hackathon_price_100",
+      "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1788000000000,
+      "tag": "0110_partner_meets",
+      "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1788100000000,
+      "tag": "0111_hackathon_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1788200000000,
+      "tag": "0112_hackathon_promo",
+      "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1788300000000,
+      "tag": "0113_hackathon_promo_claims",
+      "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1788400000000,
+      "tag": "0114_hackathon_promo_claim_payout",
+      "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1788500000000,
+      "tag": "0115_hackathon_promo_ambassador",
+      "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1788600000000,
+      "tag": "0116_hackathon_partner_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1788700000000,
+      "tag": "0117_hackathon_partner_chat_image",
+      "breakpoints": true
+    },
+    {
+      "idx": 108,
+      "version": "7",
+      "when": 1788800000000,
+      "tag": "0118_hackathon_experience",
+      "breakpoints": true
+    },
+    {
+      "idx": 109,
+      "version": "7",
+      "when": 1788900000000,
+      "tag": "0119_hackathon_team_formation",
+      "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1789000000000,
+      "tag": "0120_partner_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 111,
+      "version": "7",
+      "when": 1789100000000,
+      "tag": "0121_hackathon_lead_gen",
+      "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1789200000000,
+      "tag": "0122_hackathon_campaign_schedule",
+      "breakpoints": true
+    },
+    {
+      "idx": 113,
+      "version": "7",
+      "when": 1789300000000,
+      "tag": "0123_hackathon_partner_chat_reads",
+      "breakpoints": true
+    },
+    {
+      "idx": 114,
+      "version": "7",
+      "when": 1789400000000,
+      "tag": "0124_hackathon_slide_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1789500000000,
+      "tag": "0125_rdpi_survey",
+      "breakpoints": true
+    },
+    {
+      "idx": 116,
+      "version": "7",
+      "when": 1789600000000,
+      "tag": "0126_safefind",
+      "breakpoints": true
+    }
+  ]
+}

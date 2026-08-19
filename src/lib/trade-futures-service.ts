@@ -1,0 +1,879 @@
+import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { getDb, tradeFuturesPositions, users } from "@/db";
+import {
+  TRADE_BEGINNER_CLOSED_TRADES,
+  TRADE_BEGINNER_MAX_LEVERAGE,
+  TRADE_FEE_RATE,
+  TRADE_LEVERAGES,
+  TRADE_MAX_OPEN_FUTURES,
+  TRADE_MIN_MARGIN_USDT,
+  isTradeSymbol,
+  tradeMaxMarginUsdt,
+} from "@/lib/trade-config";
+import {
+  feeOnNotional,
+  fmtTradeAmount,
+  liquidationPrice,
+  notionalUsdt,
+  positionQtyBase,
+  unrealizedPnlUsdt,
+} from "@/lib/trade-math";
+import { fetchSymbolTicker } from "@/lib/trade-price";
+import {
+  debitDemoTradingCollateral,
+  fetchPiUsdMark,
+} from "@/lib/trade-demo-collateral";
+import { creditTradeDemoUsdt } from "@/lib/trade-demo-balance";
+import { insertWalletLedgerLines } from "@/lib/wallet-ledger";
+import { creditUserAsset, debitUserAsset } from "@/lib/wallet-move-assets";
+import { numFromNumeric } from "@/lib/wallet-types";
+import { assertCanOpenLiveFutures } from "@/lib/trade-live-governance";
+import { assertHouseCapacityForNewPosition } from "@/lib/trade-house-risk";
+import { applyLiveWinHaircut } from "@/lib/trade-house-haircut";
+import { tradeHouseTreasuryUserId } from "@/lib/trade-house-reserve";
+import {
+  TOP_TRADER_MAX_POSITION_HOURS,
+  getTopTraderProgramInfo,
+} from "@/lib/community/top-trader-competition";
+import {
+  assertCanOpenCompetitionTrade,
+  assertAndRecordCompetitionTradeInTx,
+  isActiveTopTraderParticipant,
+} from "@/lib/community/top-trader-participant-service";
+
+const COMPETITION_MAX_AGE_MS = TOP_TRADER_MAX_POSITION_HOURS * 60 * 60 * 1000;
+
+async function countClosedFutures(
+  userId: string,
+  isDemo: boolean,
+): Promise<number> {
+  const db = getDb();
+  const rows = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(tradeFuturesPositions)
+    .where(
+      and(
+        eq(tradeFuturesPositions.userId, userId),
+        inArray(tradeFuturesPositions.status, ["closed", "liquidated"]),
+        eq(tradeFuturesPositions.isDemo, isDemo),
+      ),
+    );
+  return rows[0]?.c ?? 0;
+}
+
+export function maxLeverageForUser(closedTrades: number): number {
+  if (closedTrades < TRADE_BEGINNER_CLOSED_TRADES) {
+    return TRADE_BEGINNER_MAX_LEVERAGE;
+  }
+  return 10;
+}
+
+export async function processFuturesRiskForAllUsers(): Promise<{
+  usersWithOpenPositions: number;
+  processedOk: number;
+  processedFailed: number;
+  competitionMaxAgeClosed: number;
+}> {
+  const maxAge = await enforceTopTraderMaxAgePositions();
+  const db = getDb();
+  const open = await db
+    .select({ userId: tradeFuturesPositions.userId })
+    .from(tradeFuturesPositions)
+    .where(eq(tradeFuturesPositions.status, "open"))
+    .limit(5000);
+
+  const userIds = Array.from(new Set(open.map((r) => r.userId)));
+  let processedOk = 0;
+  let processedFailed = 0;
+  for (const userId of userIds) {
+    try {
+      await processFuturesRisk(userId);
+      processedOk += 1;
+    } catch {
+      processedFailed += 1;
+    }
+  }
+  return {
+    usersWithOpenPositions: userIds.length,
+    processedOk,
+    processedFailed,
+    competitionMaxAgeClosed: maxAge.closed,
+  };
+}
+
+export async function enforceTopTraderMaxAgePositions(): Promise<{
+  closed: number;
+  failed: number;
+}> {
+  const db = getDb();
+  const cutoff = new Date(Date.now() - COMPETITION_MAX_AGE_MS);
+
+  const stale = await db
+    .select({
+      id: tradeFuturesPositions.id,
+      userId: tradeFuturesPositions.userId,
+      symbol: tradeFuturesPositions.symbol,
+    })
+    .from(tradeFuturesPositions)
+    .where(
+      and(
+        eq(tradeFuturesPositions.status, "open"),
+        eq(tradeFuturesPositions.isDemo, true),
+        eq(tradeFuturesPositions.isCompetition, true),
+        lt(tradeFuturesPositions.openedAt, cutoff),
+      ),
+    )
+    .limit(200);
+
+  let closed = 0;
+  let failed = 0;
+  for (const p of stale) {
+    const t = await fetchSymbolTicker(p.symbol);
+    if (!t) {
+      failed += 1;
+      continue;
+    }
+    const r = await closeFuturesPositionInternal(
+      p.id,
+      p.userId,
+      t.lastPrice,
+      "tt_max_age",
+    );
+    if (r.ok) closed += 1;
+    else failed += 1;
+  }
+
+  return { closed, failed };
+}
+
+export async function processFuturesRisk(userId: string): Promise<void> {
+  const db = getDb();
+  const open = await db
+    .select()
+    .from(tradeFuturesPositions)
+    .where(
+      and(
+        eq(tradeFuturesPositions.userId, userId),
+        eq(tradeFuturesPositions.status, "open"),
+      ),
+    );
+
+  for (const p of open) {
+    if (
+      p.isCompetition &&
+      p.isDemo &&
+      Date.now() - p.openedAt.getTime() > COMPETITION_MAX_AGE_MS
+    ) {
+      const t = await fetchSymbolTicker(p.symbol);
+      if (t) {
+        await closeFuturesPositionInternal(p.id, userId, t.lastPrice, "tt_max_age");
+      }
+      continue;
+    }
+
+    const t = await fetchSymbolTicker(p.symbol);
+    if (!t) continue;
+    const mark = t.lastPrice;
+    const liq = numFromNumeric(p.liquidationPrice?.toString());
+    const side = p.side === "short" ? "short" : "long";
+
+    const crossedLiq =
+      side === "long" ? mark <= liq + 1e-12 : mark >= liq - 1e-12;
+
+    const sl = p.stopLossPrice
+      ? numFromNumeric(p.stopLossPrice.toString())
+      : null;
+    const crossedSl =
+      sl != null &&
+      (side === "long" ? mark <= sl + 1e-12 : mark >= sl - 1e-12);
+
+    const tp = p.takeProfitPrice
+      ? numFromNumeric(p.takeProfitPrice.toString())
+      : null;
+    const crossedTp =
+      tp != null &&
+      (side === "long" ? mark >= tp - 1e-12 : mark <= tp + 1e-12);
+
+    if (crossedLiq) {
+      await closeFuturesPositionInternal(p.id, userId, mark, "liquidated");
+    } else if (crossedSl) {
+      await closeFuturesPositionInternal(p.id, userId, mark, "stop_loss");
+    } else if (crossedTp) {
+      await closeFuturesPositionInternal(p.id, userId, mark, "take_profit");
+    }
+  }
+}
+
+async function closeFuturesPositionInternal(
+  positionId: string,
+  userId: string,
+  mark: number,
+  reason: "manual" | "liquidated" | "stop_loss" | "take_profit" | "tt_max_age",
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const db = getDb();
+  const feeRate = TRADE_FEE_RATE;
+
+  try {
+    await db.transaction(async (tx) => {
+      const [p] = await tx
+        .select()
+        .from(tradeFuturesPositions)
+        .where(eq(tradeFuturesPositions.id, positionId))
+        .limit(1);
+
+      if (!p || p.userId !== userId || p.status !== "open") {
+        throw new Error("invalid_position");
+      }
+
+      const margin = numFromNumeric(p.marginUsdt?.toString());
+      const qty = numFromNumeric(p.qtyBase?.toString());
+      const entry = numFromNumeric(p.entryPrice?.toString());
+      const side = p.side === "short" ? "short" : "long";
+      let unreal = unrealizedPnlUsdt({ side, qtyBase: qty, entry, mark });
+
+      if (reason === "liquidated") {
+        unreal = -margin;
+      } else {
+        const maxLoss = -margin;
+        if (unreal < maxLoss) unreal = maxLoss;
+      }
+
+      const notionalClose = qty * mark;
+      const feeClose = feeRate * notionalClose;
+      let haircutUsdt = 0;
+      let realizedPnl = unreal - feeClose;
+
+      if (!p.isDemo && reason !== "liquidated" && unreal > 0) {
+        const netWin = unreal - feeClose;
+        if (netWin > 0) {
+          const h = applyLiveWinHaircut(netWin);
+          haircutUsdt = h.haircutUsdt;
+          realizedPnl = h.netWinAfterHaircut;
+        }
+      }
+
+      const proceeds = margin + realizedPnl;
+      const credit = Math.max(0, proceeds);
+      const isDemo = Boolean(p.isDemo);
+      const priceSource = (await fetchSymbolTicker(p.symbol))?.source ?? "unknown";
+      const prevMeta =
+        p.meta && typeof p.meta === "object" ? { ...p.meta } : {};
+
+      await tx
+        .update(tradeFuturesPositions)
+        .set({
+          status: reason === "liquidated" ? "liquidated" : "closed",
+          closedAt: new Date(),
+          closePrice: fmtTradeAmount(mark),
+          realizedPnlUsdt: fmtTradeAmount(realizedPnl),
+          feeCloseUsdt: fmtTradeAmount(feeClose),
+          closeReason:
+            reason === "take_profit"
+              ? "take_profit"
+              : reason === "stop_loss"
+                ? "stop_loss"
+                : reason === "liquidated"
+                  ? "liquidated"
+                  : reason === "tt_max_age"
+                    ? "tt_max_age"
+                    : "manual",
+          meta:
+            haircutUsdt > 0
+              ? { ...prevMeta, haircutUsdt, haircutReason: "house_reserve" }
+              : p.meta,
+        })
+        .where(eq(tradeFuturesPositions.id, positionId));
+
+      if (credit > 1e-18) {
+        if (isDemo) {
+          await creditTradeDemoUsdt(tx, userId, fmtTradeAmount(credit));
+        } else {
+          await creditUserAsset(tx, userId, "USDT", fmtTradeAmount(credit));
+        }
+      }
+
+      if (!isDemo && haircutUsdt > 1e-18) {
+        const treasuryId = tradeHouseTreasuryUserId();
+        if (treasuryId) {
+          await creditUserAsset(
+            tx,
+            treasuryId,
+            "USDT",
+            fmtTradeAmount(haircutUsdt),
+          );
+          const batchId = randomUUID();
+          await insertWalletLedgerLines(tx, [
+            {
+              batchId,
+              userId: treasuryId,
+              entryType: "trade_futures_haircut",
+              asset: "USDT",
+              amount: fmtTradeAmount(haircutUsdt),
+              meta: {
+                positionId,
+                fromUserId: userId,
+                haircutUsdt,
+                mark,
+              },
+            },
+          ]);
+        }
+      }
+
+      if (!isDemo) {
+        const batchId = randomUUID();
+        await insertWalletLedgerLines(tx, [
+          {
+            batchId,
+            userId,
+            entryType:
+              reason === "liquidated"
+                ? "trade_futures_liquidated"
+                : "trade_futures_close",
+            asset: "USDT",
+            amount: fmtTradeAmount(credit),
+            meta: {
+              positionId,
+              mark,
+              unrealized: unreal,
+              feeClose,
+              haircutUsdt,
+              reason,
+              priceSource,
+            },
+          },
+        ]);
+      }
+    });
+
+    return { ok: true };
+  } catch {
+    return { ok: false, message: "trade_close_failed" };
+  }
+}
+
+export async function listFuturesPositions(
+  userId: string,
+  mode: "demo" | "live",
+): Promise<{
+  positions: Array<{
+    id: string;
+    symbol: string;
+    side: string;
+    leverage: number;
+    marginUsdt: string;
+    entryPrice: string;
+    liquidationPrice: string;
+    stopLossPrice: string | null;
+    takeProfitPrice: string | null;
+    qtyBase: string;
+    status: string;
+    unrealizedPnlUsdt: number;
+    markPrice: number;
+    openedAt: string;
+  }>;
+  maxLeverage: number;
+}> {
+  const isDemo = mode === "demo";
+  await processFuturesRisk(userId);
+
+  const db = getDb();
+  const closed = await countClosedFutures(userId, isDemo);
+  const maxLev = maxLeverageForUser(closed);
+
+  const rows = await db
+    .select()
+    .from(tradeFuturesPositions)
+    .where(
+      and(
+        eq(tradeFuturesPositions.userId, userId),
+        eq(tradeFuturesPositions.status, "open"),
+        eq(tradeFuturesPositions.isDemo, isDemo),
+      ),
+    )
+    .orderBy(desc(tradeFuturesPositions.openedAt))
+    .limit(50);
+
+  const positions = [];
+  for (const p of rows) {
+    const t = await fetchSymbolTicker(p.symbol);
+    const mark = t?.lastPrice ?? 0;
+    const qty = numFromNumeric(p.qtyBase?.toString());
+    const entry = numFromNumeric(p.entryPrice?.toString());
+    const side = p.side === "short" ? "short" : "long";
+    let unreal = unrealizedPnlUsdt({ side, qtyBase: qty, entry, mark });
+    const margin = numFromNumeric(p.marginUsdt?.toString());
+    if (unreal < -margin) unreal = -margin;
+
+    positions.push({
+      id: p.id,
+      symbol: p.symbol,
+      side: p.side,
+      leverage: p.leverage,
+      marginUsdt: p.marginUsdt?.toString() ?? "0",
+      entryPrice: p.entryPrice?.toString() ?? "0",
+      liquidationPrice: p.liquidationPrice?.toString() ?? "0",
+      stopLossPrice: p.stopLossPrice?.toString() ?? null,
+      takeProfitPrice: p.takeProfitPrice?.toString() ?? null,
+      qtyBase: p.qtyBase?.toString() ?? "0",
+      status: p.status,
+      unrealizedPnlUsdt: unreal,
+      markPrice: mark,
+      openedAt: p.openedAt.toISOString(),
+    });
+  }
+
+  return { positions, maxLeverage: maxLev };
+}
+
+export async function listFuturesHistory(
+  userId: string,
+  mode: "demo" | "live",
+  opts: { limit?: number; offset?: number } = {},
+): Promise<{
+  total: number;
+  trades: Array<{
+    id: string;
+    symbol: string;
+    side: string;
+    leverage: number;
+    marginUsdt: string;
+    entryPrice: string;
+    closePrice: string;
+    realizedPnlUsdt: string;
+    feeOpenUsdt: string;
+    feeCloseUsdt: string;
+    stopLossPrice: string | null;
+    takeProfitPrice: string | null;
+    closeReason: string | null;
+    openedAt: string;
+    closedAt: string;
+  }>;
+}> {
+  const isDemo = mode === "demo";
+  await processFuturesRisk(userId);
+
+  const limitRaw = opts.limit ?? 30;
+  const limit = [10, 20, 30].includes(limitRaw) ? limitRaw : 30;
+  const offset = Math.max(0, Math.floor(opts.offset ?? 0));
+
+  const db = getDb();
+  const whereCond = and(
+    eq(tradeFuturesPositions.userId, userId),
+    inArray(tradeFuturesPositions.status, ["closed", "liquidated"]),
+    eq(tradeFuturesPositions.isDemo, isDemo),
+  );
+
+  const [countRow] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(tradeFuturesPositions)
+    .where(whereCond);
+
+  const rows = await db
+    .select()
+    .from(tradeFuturesPositions)
+    .where(whereCond)
+    .orderBy(desc(tradeFuturesPositions.closedAt))
+    .limit(limit)
+    .offset(offset);
+
+  const trades = rows
+    .filter((r) => r.closedAt != null && r.closePrice != null && r.realizedPnlUsdt != null)
+    .map((r) => ({
+      id: r.id,
+      symbol: r.symbol,
+      side: r.side,
+      leverage: r.leverage,
+      marginUsdt: r.marginUsdt?.toString() ?? "0",
+      entryPrice: r.entryPrice?.toString() ?? "0",
+      closePrice: r.closePrice?.toString() ?? "0",
+      realizedPnlUsdt: r.realizedPnlUsdt?.toString() ?? "0",
+      feeOpenUsdt: r.feeOpenUsdt?.toString() ?? "0",
+      feeCloseUsdt: r.feeCloseUsdt?.toString() ?? "0",
+      stopLossPrice: r.stopLossPrice?.toString() ?? null,
+      takeProfitPrice: r.takeProfitPrice?.toString() ?? null,
+      closeReason: r.closeReason ?? null,
+      openedAt: r.openedAt.toISOString(),
+      closedAt: r.closedAt!.toISOString(),
+    }));
+
+  return { trades, total: countRow?.n ?? 0 };
+}
+
+export async function openFuturesPosition(args: {
+  userId: string;
+  mode: "demo" | "live";
+  symbol: string;
+  side: "long" | "short";
+  leverage: number;
+  marginUsdt: number;
+  stopLossPrice?: number | null;
+  takeProfitPrice?: number | null;
+}): Promise<
+  { ok: true; positionId: string } | { ok: false; message: string }
+> {
+  await processFuturesRisk(args.userId);
+
+  const {
+    userId,
+    mode,
+    symbol,
+    side,
+    leverage: levRaw,
+    marginUsdt: marginIn,
+    stopLossPrice,
+    takeProfitPrice,
+  } = args;
+  const isDemo = mode === "demo";
+
+  if (!isDemo) {
+    const dbCheck = getDb();
+    const [row] = await dbCheck
+      .select({ tradeLiveEnabled: users.tradeLiveEnabled })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!row?.tradeLiveEnabled) {
+      return { ok: false, message: "trade_live_not_enabled" };
+    }
+  }
+
+  if (!isTradeSymbol(symbol)) {
+    return { ok: false, message: "trade_invalid_symbol" };
+  }
+  if (!TRADE_LEVERAGES.includes(levRaw as 2 | 5 | 10)) {
+    return { ok: false, message: "trade_invalid_leverage" };
+  }
+  const closed = await countClosedFutures(userId, isDemo);
+  const maxLev = maxLeverageForUser(closed);
+  if (levRaw > maxLev) {
+    return { ok: false, message: "trade_leverage_capped_beginner" };
+  }
+
+  const marginUsdt = marginIn;
+  if (
+    !Number.isFinite(marginUsdt) ||
+    marginUsdt < TRADE_MIN_MARGIN_USDT ||
+    marginUsdt > tradeMaxMarginUsdt()
+  ) {
+    return { ok: false, message: "trade_invalid_margin" };
+  }
+
+  if (!isDemo) {
+    const liveGate = await assertCanOpenLiveFutures({
+      userId,
+      marginUsdt,
+    });
+    if (!liveGate.ok) {
+      return { ok: false, message: liveGate.message };
+    }
+  }
+
+  const ticker = await fetchSymbolTicker(symbol);
+  if (!ticker || ticker.stale) {
+    return { ok: false, message: "trade_price_unavailable" };
+  }
+  const entry = ticker.lastPrice;
+
+  const isCompetition =
+    isDemo && (await isActiveTopTraderParticipant(userId));
+  if (isCompetition) {
+    const compGate = await assertCanOpenCompetitionTrade(userId);
+    if (!compGate.ok) {
+      return { ok: false, message: compGate.message };
+    }
+  }
+
+  if (!isDemo) {
+    const houseGate = await assertHouseCapacityForNewPosition({
+      marginUsdt,
+      leverage: levRaw,
+      side,
+      entryPrice: entry,
+    });
+    if (!houseGate.ok) {
+      return { ok: false, message: houseGate.message };
+    }
+  }
+
+  const liq = liquidationPrice({ entry, side, leverage: levRaw });
+  const qty = positionQtyBase(marginUsdt, levRaw, entry);
+  const notional = notionalUsdt(marginUsdt, levRaw);
+  const feeOpen = feeOnNotional(notional);
+
+  if (stopLossPrice != null && Number.isFinite(stopLossPrice)) {
+    if (side === "long" && stopLossPrice >= entry) {
+      return { ok: false, message: "trade_invalid_stop" };
+    }
+    if (side === "short" && stopLossPrice <= entry) {
+      return { ok: false, message: "trade_invalid_stop" };
+    }
+  }
+
+  if (takeProfitPrice != null && Number.isFinite(takeProfitPrice)) {
+    if (side === "long") {
+      if (takeProfitPrice <= entry) {
+        return { ok: false, message: "trade_invalid_tp" };
+      }
+      if (
+        stopLossPrice != null &&
+        Number.isFinite(stopLossPrice) &&
+        !(stopLossPrice < entry && takeProfitPrice > entry)
+      ) {
+        return { ok: false, message: "trade_invalid_tp" };
+      }
+    } else {
+      if (takeProfitPrice >= entry) {
+        return { ok: false, message: "trade_invalid_tp" };
+      }
+      if (
+        stopLossPrice != null &&
+        Number.isFinite(stopLossPrice) &&
+        !(takeProfitPrice < entry && stopLossPrice > entry)
+      ) {
+        return { ok: false, message: "trade_invalid_tp" };
+      }
+    }
+  }
+
+  const totalDebit = marginUsdt + feeOpen;
+  const batchId = randomUUID();
+  const db = getDb();
+  const piUsdMark = isDemo ? await fetchPiUsdMark() : 0;
+
+  try {
+    const positionId = await db.transaction(async (tx) => {
+      // Serialize opens per user to avoid race conditions (open count + debit + insert).
+      await tx.execute(
+        // md5() doesn't accept uuid directly; use hashtext on userId::text.
+        sql`select pg_advisory_xact_lock(hashtext(${userId}::text))`,
+      );
+
+      const [u] = await tx
+        .select({
+          balance: users.balance,
+          tradeDemoUsdtBalance: users.tradeDemoUsdtBalance,
+          tradeLiveEnabled: users.tradeLiveEnabled,
+        })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      if (!u) throw new Error("user");
+
+      const openCountTx = await tx
+        .select({ c: sql<number>`count(*)::int` })
+        .from(tradeFuturesPositions)
+        .where(
+          and(
+            eq(tradeFuturesPositions.userId, userId),
+            eq(tradeFuturesPositions.status, "open"),
+            eq(tradeFuturesPositions.isDemo, isDemo),
+          ),
+        );
+      if ((openCountTx[0]?.c ?? 0) >= TRADE_MAX_OPEN_FUTURES) {
+        throw new Error("max_positions");
+      }
+
+      if (isDemo) {
+        await debitDemoTradingCollateral(tx, userId, totalDebit, piUsdMark);
+      } else {
+        if (!u.tradeLiveEnabled) throw new Error("live_disabled");
+        const bal = numFromNumeric(u.balance?.toString());
+        if (bal + 1e-18 < totalDebit) {
+          throw new Error("insufficient");
+        }
+        await debitUserAsset(tx, userId, "USDT", fmtTradeAmount(totalDebit));
+      }
+
+      const inserted = await tx
+        .insert(tradeFuturesPositions)
+        .values({
+          userId,
+          symbol,
+          side,
+          leverage: levRaw,
+          marginUsdt: fmtTradeAmount(marginUsdt),
+          entryPrice: fmtTradeAmount(entry),
+          liquidationPrice: fmtTradeAmount(liq),
+          stopLossPrice:
+            stopLossPrice != null && Number.isFinite(stopLossPrice)
+              ? fmtTradeAmount(stopLossPrice)
+              : null,
+          takeProfitPrice:
+            takeProfitPrice != null && Number.isFinite(takeProfitPrice)
+              ? fmtTradeAmount(takeProfitPrice)
+              : null,
+          qtyBase: fmtTradeAmount(qty),
+          feeOpenUsdt: fmtTradeAmount(feeOpen),
+          status: "open",
+          isDemo,
+          isCompetition,
+          meta: { batchOpen: batchId },
+        })
+        .returning({ id: tradeFuturesPositions.id });
+
+      const ins = inserted[0];
+      if (isCompetition) {
+        const program = getTopTraderProgramInfo();
+        await assertAndRecordCompetitionTradeInTx(
+          tx,
+          userId,
+          new Date(program.weekStartAt),
+        );
+      }
+
+      if (!isDemo) {
+        await insertWalletLedgerLines(tx, [
+          {
+            batchId,
+            userId,
+            entryType: "trade_futures_open",
+            asset: "USDT",
+            amount: `-${fmtTradeAmount(totalDebit)}`,
+            meta: {
+              symbol,
+              side,
+              leverage: levRaw,
+              margin: marginUsdt,
+              feeOpen,
+              entryPrice: entry,
+              liquidationPrice: liq,
+              qtyBase: qty,
+              notional,
+              priceSource: ticker.source,
+            },
+          },
+        ]);
+      }
+
+      return ins?.id ?? "";
+    });
+
+    if (!positionId) return { ok: false, message: "trade_open_failed" };
+    return { ok: true, positionId };
+  } catch (e) {
+    console.error("[trade/futures/open]", {
+      userId: args.userId,
+      mode: args.mode,
+      symbol: args.symbol,
+      side: args.side,
+      leverage: args.leverage,
+      marginUsdt: args.marginUsdt,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    const msg = e instanceof Error ? e.message : "";
+    if (msg === "insufficient") return { ok: false, message: "trade_insufficient_usdt" };
+    if (msg === "pi_price_unavailable")
+      return { ok: false, message: "trade_pi_price_unavailable" };
+    if (msg === "live_disabled")
+      return { ok: false, message: "trade_live_not_enabled" };
+    if (msg === "max_positions") return { ok: false, message: "trade_max_positions" };
+    if (msg === "top_trader_opt_in_required")
+      return { ok: false, message: "top_trader_opt_in_required" };
+    if (msg === "top_trader_daily_limit")
+      return { ok: false, message: "top_trader_daily_limit" };
+    return { ok: false, message: "trade_open_failed" };
+  }
+}
+
+export async function closeFuturesPosition(args: {
+  userId: string;
+  positionId: string;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  const db = getDb();
+  const [p] = await db
+    .select()
+    .from(tradeFuturesPositions)
+    .where(eq(tradeFuturesPositions.id, args.positionId))
+    .limit(1);
+
+  if (!p || p.userId !== args.userId || p.status !== "open") {
+    return { ok: false, message: "trade_invalid_position" };
+  }
+
+  const t = await fetchSymbolTicker(p.symbol);
+  if (!t) return { ok: false, message: "trade_price_unavailable" };
+
+  return closeFuturesPositionInternal(args.positionId, args.userId, t.lastPrice, "manual");
+}
+
+export async function updateFuturesSlTp(args: {
+  userId: string;
+  positionId: string;
+  stopLossPrice?: number | null;
+  takeProfitPrice?: number | null;
+}): Promise<
+  | { ok: true; stopLossPrice: string | null; takeProfitPrice: string | null }
+  | { ok: false; message: string }
+> {
+  const db = getDb();
+  const [p] = await db
+    .select()
+    .from(tradeFuturesPositions)
+    .where(eq(tradeFuturesPositions.id, args.positionId))
+    .limit(1);
+
+  if (!p || p.userId !== args.userId || p.status !== "open") {
+    return { ok: false, message: "trade_invalid_position" };
+  }
+
+  const t = await fetchSymbolTicker(p.symbol);
+  if (!t) return { ok: false, message: "trade_price_unavailable" };
+  const mark = t.lastPrice;
+  if (!Number.isFinite(mark) || mark <= 0) {
+    return { ok: false, message: "trade_price_unavailable" };
+  }
+
+  const side = p.side === "short" ? "short" : "long";
+
+  const slIn = args.stopLossPrice;
+  const tpIn = args.takeProfitPrice;
+
+  const hasAny = args.stopLossPrice !== undefined || args.takeProfitPrice !== undefined;
+  if (!hasAny) return { ok: false, message: "trade_invalid_body" };
+
+  const sl =
+    slIn == null
+      ? null
+      : Number.isFinite(slIn) && slIn > 0
+        ? slIn
+        : NaN;
+  const tp =
+    tpIn == null
+      ? null
+      : Number.isFinite(tpIn) && tpIn > 0
+        ? tpIn
+        : NaN;
+
+  if (Number.isNaN(sl) || Number.isNaN(tp)) {
+    return { ok: false, message: "trade_invalid_body" };
+  }
+
+  // Allow protecting gains: SL can be beyond entry, but must be on the safe side of *current* mark.
+  if (sl != null) {
+    if (side === "long" && sl >= mark) return { ok: false, message: "trade_invalid_stop" };
+    if (side === "short" && sl <= mark) return { ok: false, message: "trade_invalid_stop" };
+  }
+  if (tp != null) {
+    if (side === "long" && tp <= mark) return { ok: false, message: "trade_invalid_tp" };
+    if (side === "short" && tp >= mark) return { ok: false, message: "trade_invalid_tp" };
+  }
+  if (sl != null && tp != null) {
+    if (side === "long" && !(sl < tp)) return { ok: false, message: "trade_invalid_tp" };
+    if (side === "short" && !(tp < sl)) return { ok: false, message: "trade_invalid_tp" };
+  }
+
+  const nextSl = sl == null ? null : fmtTradeAmount(sl);
+  const nextTp = tp == null ? null : fmtTradeAmount(tp);
+
+  await db
+    .update(tradeFuturesPositions)
+    .set({
+      stopLossPrice: nextSl,
+      takeProfitPrice: nextTp,
+    })
+    .where(eq(tradeFuturesPositions.id, args.positionId));
+
+  return { ok: true, stopLossPrice: nextSl, takeProfitPrice: nextTp };
+}

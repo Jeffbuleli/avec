@@ -1,0 +1,647 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import type { Messages } from "@/i18n/messages";
+import { useI18n } from "@/components/i18n-provider";
+import { IconBell, IconClose, NotifKindIcon } from "@/components/icons/flow-icons";
+import { StatusPill } from "@/components/wallet/transaction-progress";
+import { formatGroupMessagePreview } from "@/lib/group-message-preview";
+import { supportInboxHref } from "@/lib/support-nav";
+
+type Row = {
+  id: string;
+  kind: string;
+  payload: Record<string, unknown> | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+function notifMeta(
+  row: Row,
+  t: (key: keyof Messages, vars?: Record<string, string | number>) => string,
+  opts?: { isSupportStaff?: boolean },
+): {
+  title: string;
+  body: string;
+  href: string;
+  pill: { variant: "success" | "failed" | "pending" | "processing"; label: string };
+} {
+  const p = row.payload ?? {};
+  const str = (k: string) => (typeof p[k] === "string" ? (p[k] as string) : "");
+  const asset = str("asset") || "—";
+  const amount = str("amount") || str("net") || "";
+  const orderId = str("orderId");
+  const p2pHref = orderId ? `/app/p2p/order/${orderId}` : "/app/p2p";
+  const p2pBody = () => {
+    const fiatAmount = str("fiatAmount");
+    const fiatCurrency = str("fiatCurrency");
+    const fiat =
+      fiatAmount && fiatCurrency ? ` · ${fiatAmount} ${fiatCurrency}` : "";
+    const crypto = amount ? `${amount} ${asset}` : asset;
+    return `${crypto}${fiat}`.trim();
+  };
+  const p2pPreviewBody = () => {
+    const preview = str("preview");
+    const base = p2pBody();
+    return preview ? `${base} — ${preview}` : base;
+  };
+
+  switch (row.kind) {
+    case "withdrawal_queued":
+      return {
+        title: t("notif_withdrawal_queued_title", { asset }),
+        body: t("notif_withdrawal_queued_body", { asset, amount }),
+        href: "/app/wallet/history",
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "withdrawal_claimed":
+      return {
+        title: t("notif_withdrawal_claimed_title", { asset }),
+        body: t("notif_withdrawal_claimed_body", { asset, amount }),
+        href: "/app/wallet/history",
+        pill: { variant: "processing", label: t("status_ui_processing") },
+      };
+    case "withdrawal_completed":
+      return {
+        title: t("notif_withdrawal_completed_title", { asset }),
+        body: t("notif_withdrawal_completed_body", { asset, amount }),
+        href: "/app/wallet/history",
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    case "withdrawal_rejected":
+      return {
+        title: t("notif_withdrawal_rejected_title", { asset }),
+        body: t("notif_withdrawal_rejected_body", {
+          asset,
+          reason: str("reason") || "—",
+        }),
+        href: "/app/wallet/history",
+        pill: { variant: "failed", label: t("status_ui_failed") },
+      };
+    case "deposit_confirmed":
+      return {
+        title: t("notif_deposit_confirmed_title", { asset }),
+        body: t("notif_deposit_confirmed_body", {
+          asset,
+          amount: amount || "—",
+        }),
+        href: "/app/wallet/history",
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    case "deposit_launch_reward":
+      return {
+        title: t("notif_deposit_launch_reward_title", {
+          rewardUsdt: str("rewardUsdt") || "5",
+        }),
+        body: t("notif_deposit_launch_reward_body"),
+        href: "/app/wallet",
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    case "event_reminder":
+      return {
+        title: str("title") || "Formation",
+        body: `McBuleli Live · ${str("reminderKind")}`,
+        href: str("href") || "/app/academy",
+        pill: { variant: "processing", label: "Live" },
+      };
+    case "deposit_validation_pending":
+      return {
+        title: t("notif_deposit_validation_pending_title", { asset }),
+        body: t("notif_deposit_validation_pending_body", { asset }),
+        href: "/app/wallet/history",
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "p2p_order_created":
+      return {
+        title: t("notif_p2p_order_created_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "p2p_order_paid":
+      return {
+        title: t("notif_p2p_order_paid_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "processing", label: t("status_ui_processing") },
+      };
+    case "p2p_order_proof":
+      return {
+        title: t("notif_p2p_order_proof_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "processing", label: t("status_ui_processing") },
+      };
+    case "p2p_order_released":
+      return {
+        title: t("notif_p2p_order_released_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    case "p2p_order_cancelled":
+      return {
+        title: t("notif_p2p_order_cancelled_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "failed", label: t("status_ui_failed") },
+      };
+    case "p2p_order_expired":
+      return {
+        title: t("notif_p2p_order_expired_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "failed", label: t("status_ui_failed") },
+      };
+    case "p2p_order_expiring":
+      return {
+        title: t("notif_p2p_order_expiring_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "p2p_release_reminder":
+      return {
+        title: t("notif_p2p_release_reminder_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "p2p_order_auto_released":
+      return {
+        title: t("notif_p2p_auto_released_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    case "p2p_order_disputed":
+      return {
+        title: t("notif_p2p_order_disputed_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "p2p_order_dispute_released":
+      return {
+        title: t("notif_p2p_order_dispute_released_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    case "p2p_order_dispute_refunded":
+      return {
+        title: t("notif_p2p_order_dispute_refunded_title", { asset }),
+        body: p2pBody(),
+        href: p2pHref,
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    case "p2p_order_message":
+      return {
+        title: t("notif_p2p_order_message_title"),
+        body: p2pPreviewBody(),
+        href: p2pHref,
+        pill: { variant: "processing", label: t("status_ui_processing") },
+      };
+    case "p2p_order_support_message":
+      return {
+        title: t("notif_p2p_order_support_message_title"),
+        body: p2pPreviewBody(),
+        href: p2pHref,
+        pill: { variant: "processing", label: t("status_ui_processing") },
+      };
+    case "support_message":
+      return {
+        title: t("notif_support_message_title"),
+        body: t("notif_support_message_body", {
+          fromLabel: str("fromLabel") || t("support_typing_agents"),
+          preview: str("preview") || "—",
+        }),
+        href: supportInboxHref({
+          isStaff: !!opts?.isSupportStaff,
+          threadId: str("threadId"),
+        }),
+        pill: { variant: "processing", label: t("status_ui_processing") },
+      };
+    case "admin_deposit_order":
+      return {
+        title: t("notif_admin_deposit_order_title"),
+        body: t("notif_admin_deposit_order_body", { asset }),
+        href: "/admin/deposits",
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "admin_deposit_review":
+      return {
+        title: t("notif_admin_deposit_review_title"),
+        body: t("notif_admin_deposit_review_body", { asset }),
+        href: str("depositId")
+          ? `/admin/deposits/${encodeURIComponent(str("depositId"))}`
+          : "/admin/deposits",
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "admin_withdrawal_order":
+      return {
+        title: t("notif_admin_withdrawal_order_title"),
+        body: t("notif_admin_withdrawal_order_body", {
+          asset,
+          amount: amount || "—",
+        }),
+        href: str("withdrawalId")
+          ? `/admin/withdrawals/${encodeURIComponent(str("withdrawalId"))}`
+          : "/admin/withdrawals",
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    case "group_message": {
+      const gid = str("groupId");
+      const human = str("humanPreview");
+      const preview = human
+        ? human
+        : formatGroupMessagePreview(
+            t,
+            str("preview") || "",
+            str("messageType"),
+          );
+      return {
+        title: t("notif_group_message_title"),
+        body: t("notif_group_message_body", { preview: preview || "—" }),
+        href: gid ? `/app/wallet/groups/${gid}` : "/app/wallet/groups",
+        pill: { variant: "processing", label: t("status_ui_processing") },
+      };
+    }
+    case "group_contribution": {
+      const gid = str("groupId");
+      return {
+        title: t("notif_group_contribution_title"),
+        body: t("notif_group_contribution_body", { amount, asset: asset || "USDT" }),
+        href: gid ? `/app/wallet/groups/${gid}` : "/app/wallet/groups",
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    }
+    case "group_payout": {
+      const gid = str("groupId");
+      return {
+        title: t("notif_group_payout_title"),
+        body: t("notif_group_payout_body", { amount, asset: asset || "USDT" }),
+        href: gid ? `/app/wallet/groups/${gid}` : "/app/wallet/groups",
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    }
+    case "group_member_pending": {
+      const gid = str("groupId");
+      return {
+        title: t("notif_group_member_pending_title"),
+        body: t("notif_group_member_pending_body"),
+        href: gid ? `/app/wallet/groups/${gid}` : "/app/wallet/groups",
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+    }
+    case "group_member_approved": {
+      const gid = str("groupId");
+      return {
+        title: t("notif_group_member_approved_title"),
+        body: t("notif_group_member_approved_body"),
+        href: gid ? `/app/wallet/groups/${gid}` : "/app/wallet/groups",
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    }
+    case "group_ops_approved": {
+      const gid = str("groupId");
+      const name = str("groupName");
+      return {
+        title: t("notif_group_ops_approved_title"),
+        body: name
+          ? t("notif_group_ops_approved_body", { name })
+          : t("notif_group_ops_approved_body_short"),
+        href: gid ? `/app/wallet/groups/${gid}` : "/app/wallet/groups",
+        pill: { variant: "success", label: t("status_ui_success") },
+      };
+    }
+    case "kyc_pending":
+      return {
+        title: t("notif_kyc_pending_title"),
+        body: t("notif_kyc_pending_body"),
+        href: "/app/profile/kyc",
+        pill: { variant: "pending", label: t("profile_kyc_pending") },
+      };
+    case "kyc_approved":
+      return {
+        title: t("notif_kyc_approved_title"),
+        body: t("notif_kyc_approved_body"),
+        href: "/app/profile/kyc",
+        pill: { variant: "success", label: t("profile_kyc_ok") },
+      };
+    case "kyc_rejected":
+      return {
+        title: t("notif_kyc_rejected_title"),
+        body: t("notif_kyc_rejected_body"),
+        href: "/app/profile/kyc",
+        pill: { variant: "failed", label: t("kyc_rejected_banner") },
+      };
+    case "kyc_manual_review":
+      return {
+        title: t("notif_kyc_manual_review_title"),
+        body: t("notif_kyc_manual_review_body"),
+        href: "/app/profile/kyc",
+        pill: { variant: "pending", label: t("profile_kyc_pending") },
+      };
+    case "academy_session_reminder": {
+      const kind = str("reminderKind");
+      const title =
+        str("sessionTitleFr") || str("sessionTitleEn") || t("academy_title");
+      const href = str("href") || "/app/academy";
+      return {
+        title:
+          kind === "1h"
+            ? t("notif_academy_session_1h_title")
+            : t("notif_academy_session_24h_title"),
+        body: t("notif_academy_session_reminder_body", { title }),
+        href,
+        pill: { variant: "pending", label: t("academy_join_live") },
+      };
+    }
+    case "academy_announcement":
+      return {
+        title: t("notif_academy_announcement_title"),
+        body: str("preview") || t("notif_academy_announcement_body"),
+        href: str("href") || "/app/academy",
+        pill: { variant: "processing", label: t("academy_title") },
+      };
+    case "academy_cohort_invite": {
+      const edition =
+        str("editionTitleFr") || str("editionTitleEn") || t("academy_title");
+      const inviter = str("inviterLabel") || "—";
+      return {
+        title: t("notif_academy_cohort_invite_title"),
+        body: t("notif_academy_cohort_invite_body", { inviter, edition }),
+        href: str("href") || "/app/academy",
+        pill: { variant: "success", label: t("academy_enrolled") },
+      };
+    }
+    case "community_comment": {
+      const preview = str("preview") || "—";
+      return {
+        title: t("notif_community_comment_title"),
+        body: preview,
+        href: `/app/community/post/${str("postId")}`,
+        pill: { variant: "success", label: t("notif_community_pill") },
+      };
+    }
+    case "community_like": {
+      return {
+        title: t("notif_community_like_title"),
+        body: t("notif_community_like_body"),
+        href: `/app/community/post/${str("postId")}`,
+        pill: { variant: "success", label: t("notif_community_pill") },
+      };
+    }
+    case "community_tip": {
+      const tipAmount = Number(amount) || Number(p.amount) || 0;
+      const from = str("fromHandle");
+      return {
+        title: t("notif_community_tip_title"),
+        body: t("notif_community_tip_body", {
+          amount: String(tipAmount),
+          handle: from ? `@${from}` : "...",
+        }),
+        href: from
+          ? `/app/community/u/${from}`
+          : `/app/community/post/${str("postId")}`,
+        pill: { variant: "success", label: t("notif_community_pill") },
+      };
+    }
+    case "community_trader_follow": {
+      return {
+        title: t("notif_community_trader_follow_title"),
+        body: t("notif_community_trader_follow_body"),
+        href: "/app/community/traders",
+        pill: { variant: "success", label: t("notif_community_pill") },
+      };
+    }
+    case "community_bot_copy_started": {
+      return {
+        title: t("notif_community_bot_copy_started_title"),
+        body: t("notif_community_bot_copy_started_body"),
+        href: "/app/community/traders",
+        pill: { variant: "success", label: t("notif_community_pill") },
+      };
+    }
+    case "top_trader_week_winner": {
+      return {
+        title: t("notif_top_trader_winner_title", {
+          weekLabel: str("weekLabel") || "S?",
+        }),
+        body: t("notif_top_trader_winner_body", {
+          prizeUsdt: str("prizeUsdt") || "10",
+          pnlUsdt: str("weeklyPnlUsdt") || "0",
+        }),
+        href: str("href") || "/app/community/traders?tab=top_trader",
+        pill: { variant: "success", label: t("notif_community_pill") },
+      };
+    }
+    default:
+      return {
+        title: row.kind,
+        body: "",
+        href: "/app",
+        pill: { variant: "pending", label: t("status_ui_pending") },
+      };
+  }
+}
+
+function NotifIconWrap({ kind }: { kind: string }) {
+  const isP2p = kind.startsWith("p2p_");
+  const tone = isP2p
+    ? kind === "p2p_order_released" ||
+        kind === "p2p_order_dispute_released" ||
+        kind === "p2p_order_dispute_refunded"
+      ? "bg-emerald-100 text-emerald-800"
+      : kind === "p2p_order_cancelled" || kind === "p2p_order_expired" || kind === "p2p_order_expiring" || kind === "p2p_release_reminder"
+        ? "bg-rose-100 text-rose-800"
+        : kind === "p2p_order_disputed"
+          ? "bg-amber-100 text-amber-900"
+          : "bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)]"
+    : kind === "deposit_confirmed" || kind === "withdrawal_completed"
+      ? "bg-emerald-100 text-emerald-800"
+      : kind === "withdrawal_rejected"
+        ? "bg-rose-100 text-rose-800"
+        : kind === "withdrawal_claimed"
+          ? "bg-sky-100 text-sky-800"
+          : kind === "deposit_validation_pending"
+            ? "bg-sky-100 text-sky-800"
+            : kind.startsWith("admin_")
+              ? "bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)]"
+              : "bg-amber-100 text-amber-900";
+  return (
+    <span
+      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ${tone}`}
+      aria-hidden
+    >
+      <NotifKindIcon kind={kind} className="h-5 w-5" />
+    </span>
+  );
+}
+
+export function NotificationDrawer({
+  open,
+  onClose,
+  onDidClose,
+  isSupportStaff = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onDidClose?: () => void;
+  isSupportStaff?: boolean;
+}) {
+  const { t, locale } = useI18n();
+  const [rows, setRows] = useState<Row[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    void fetch("/api/notifications", { credentials: "include", cache: "no-store" })
+      .then((r) => r.json())
+      .then((j: { notifications?: Row[] }) => {
+        setRows(Array.isArray(j.notifications) ? j.notifications : []);
+      })
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  async function handleBackdropClose() {
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markAllRead: true }),
+    }).catch(() => {});
+    onClose();
+    onDidClose?.();
+  }
+
+  if (!open || !mounted) return null;
+
+  const loc = locale === "fr" ? "fr-FR" : "en-US";
+  const unreadCount = rows?.filter((r) => r.readAt == null).length ?? 0;
+
+  const panel = (
+    <div className="fixed inset-0 z-[9999] flex flex-col justify-end">
+      <button
+        type="button"
+        className="absolute inset-0 bg-stone-900/40 backdrop-blur-[2px]"
+        aria-label={t("notifications_title")}
+        onClick={() => void handleBackdropClose()}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notif-drawer-title"
+        className="notif-drawer-panel relative mx-auto max-h-[82vh] w-full max-w-lg rounded-t-3xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] shadow-[0_-12px_48px_rgba(28,25,23,0.18)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-stone-300" />
+        <div className="flex items-start justify-between gap-3 border-b border-[color:var(--fd-border)] px-4 pb-3 pt-4">
+          <div>
+            <h2 id="notif-drawer-title" className="text-lg font-bold text-[color:var(--fd-text)]">
+              {t("notifications_title")}
+            </h2>
+            {unreadCount > 0 ? (
+              <p className="mt-0.5 text-xs font-medium text-[color:var(--fd-primary)]">
+                {unreadCount} {locale === "fr" ? "non lue(s)" : "unread"}
+              </p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => void handleBackdropClose()}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--fd-border)] text-[color:var(--fd-muted)] active:scale-95"
+            aria-label={t("notifications_title")}
+          >
+            <IconClose className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="max-h-[62vh] overflow-y-auto px-3 py-2">
+          {loading ? (
+            <div className="space-y-2 py-6" aria-hidden>
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-16 animate-pulse rounded-2xl bg-[color:var(--fd-mint)]/50"
+                />
+              ))}
+            </div>
+          ) : !rows || rows.length === 0 ? (
+            <div className="flex flex-col items-center px-4 py-12 text-center">
+              <span
+                className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)]"
+                aria-hidden
+              >
+                <IconBell className="h-7 w-7" />
+              </span>
+              <p className="text-sm text-[color:var(--fd-muted)]">{t("notifications_empty")}</p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2 pb-2">
+              {rows.map((row) => {
+                const { title, body, href, pill } = notifMeta(row, t, {
+                  isSupportStaff,
+                });
+                const unread = row.readAt == null;
+                const when = new Date(row.createdAt).toLocaleString(loc, {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                });
+                return (
+                  <li key={row.id}>
+                    <Link
+                      href={href}
+                      onClick={() => void handleBackdropClose()}
+                      className={`flex gap-3 rounded-2xl border px-3 py-3 transition active:scale-[0.99] ${
+                        unread
+                          ? "border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)]/70"
+                          : "border-[color:var(--fd-border)] bg-[color:var(--fd-bg)] hover:bg-[color:var(--fd-mint)]/40"
+                      }`}
+                    >
+                      <NotifIconWrap kind={row.kind} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-semibold leading-snug text-[color:var(--fd-text)]">
+                            {title}
+                          </p>
+                          <StatusPill variant={pill.variant} label={pill.label} />
+                        </div>
+                        {body ? (
+                          <p className="mt-0.5 font-mono text-xs tabular-nums text-[color:var(--fd-muted)]">
+                            {body}
+                          </p>
+                        ) : null}
+                        <p className="mt-1.5 text-[10px] font-medium text-[color:var(--fd-muted)]/80">
+                          {when}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        <div className="h-[env(safe-area-inset-bottom)]" />
+      </div>
+    </div>
+  );
+
+  return createPortal(panel, document.body);
+}
