@@ -78,6 +78,11 @@ export async function listActions(): Promise<OfflineActionRecord[]> {
   }
 }
 
+export async function listActionsByUser(userId: string): Promise<OfflineActionRecord[]> {
+  const rows = await listActions();
+  return rows.filter((row) => row.userId === userId);
+}
+
 export async function getAction(id: string): Promise<OfflineActionRecord | null> {
   const db = await openOfflineDb();
   if (!db) return null;
@@ -152,6 +157,14 @@ export async function listMeetingDrafts(groupId?: string): Promise<OfflineMeetin
   }
 }
 
+export async function listMeetingDraftsByUser(
+  userId: string,
+  groupId?: string,
+): Promise<OfflineMeetingDraft[]> {
+  const rows = await listMeetingDrafts(groupId);
+  return rows.filter((row) => row.userId === userId);
+}
+
 export async function putMeta<T>(key: string, value: T): Promise<void> {
   const db = await openOfflineDb();
   if (!db) return;
@@ -186,4 +199,36 @@ export async function getFieldOpsState(): Promise<OfflineFieldOpsState> {
 
 export async function setFieldOpsState(value: OfflineFieldOpsState): Promise<void> {
   await putMeta("field-ops", value);
+}
+
+function fieldOpsKey(userId: string): string {
+  return `field-ops:${userId}`;
+}
+
+export async function getFieldOpsStateForUser(
+  userId: string,
+): Promise<OfflineFieldOpsState> {
+  return (
+    (await getMeta<OfflineFieldOpsState>(fieldOpsKey(userId))) ?? {
+      primaryDeviceByGroup: {},
+      facilitatorLabel: null,
+    }
+  );
+}
+
+export async function setFieldOpsStateForUser(
+  userId: string,
+  value: OfflineFieldOpsState,
+): Promise<void> {
+  await putMeta(fieldOpsKey(userId), value);
+}
+
+export async function clearOfflineState(): Promise<void> {
+  if (!supportsIndexedDb()) return;
+  await new Promise<void>((resolve, reject) => {
+    const req = window.indexedDB.deleteDatabase(DB_NAME);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error ?? new Error("indexeddb_delete_failed"));
+    req.onblocked = () => reject(new Error("indexeddb_delete_blocked"));
+  }).catch(() => {});
 }

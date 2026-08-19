@@ -35,7 +35,7 @@ type ProviderOption = { provider: string; label: string };
 export default function WalletFiatDepositClient({ fiatPaused = false }: { fiatPaused?: boolean }) {
   const { t, locale } = useI18n();
   const router = useRouter();
-  const { online, refresh } = useOfflineState();
+  const { online, refresh, userId } = useOfflineState();
   const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [asset, setAsset] = useState<"USD" | "CDF">("USD");
@@ -125,11 +125,16 @@ export default function WalletFiatDepositClient({ fiatPaused = false }: { fiatPa
         providerLabel: providers.find((p) => p.provider === provider)?.label ?? provider,
       };
       if (!online) {
+        if (!userId) {
+          setErr("group_session_required");
+          return;
+        }
         if (!canQueueFiatRequest(summary.g)) {
           setErr("wallet_fiat_invalid_amount");
           return;
         }
         await enqueueOfflineAction({
+          userId,
           kind: "fiat_deposit",
           scope: asset,
           payload,

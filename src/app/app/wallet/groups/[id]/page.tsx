@@ -94,7 +94,7 @@ type Tab = "vue" | "meeting" | "members" | "treasury" | "dialogue" | "reports";
 
 export default function AvecDashboardPage() {
   const { t } = useI18n();
-  const { online, refresh: refreshOffline } = useOfflineState();
+  const { online, refresh: refreshOffline, userId } = useOfflineState();
   const routeParams = useParams();
   const searchParams = useSearchParams();
   const showCreateProgress = searchParams.get("created") === "1";
@@ -131,6 +131,7 @@ export default function AvecDashboardPage() {
   );
 
   async function load() {
+    if (!userId) return;
     if (!id) {
       setErr(t("group_not_found"));
       setData(null);
@@ -144,9 +145,9 @@ export default function AvecDashboardPage() {
         throw new Error((j as { error?: string }).error ?? "group_dashboard_failed");
       }
       setData(j as Dashboard);
-      await writeOfflineCache(`group:${id}:dashboard`, j);
+      await writeOfflineCache(`user:${userId}:group:${id}:dashboard`, j);
     } catch (e) {
-      const cached = await readOfflineCache<Dashboard>(`group:${id}:dashboard`);
+      const cached = await readOfflineCache<Dashboard>(`user:${userId}:group:${id}:dashboard`);
       if (cached?.value) {
         setData(cached.value);
         setErr("offline_cache_in_use");
@@ -159,17 +160,18 @@ export default function AvecDashboardPage() {
 
   useEffect(() => {
     void load();
-  }, [id, online]);
+  }, [id, online, userId]);
 
   useEffect(() => {
+    if (!userId) return;
     if (!id) return;
-    void getOfflineQueue().then((rows) => {
+    void getOfflineQueue(userId).then((rows) => {
       setQueuedContribCount(
         rows.filter((row) => row.kind === "group_contribution" && row.scope === id)
           .length,
       );
     });
-  }, [id, online, payOk]);
+  }, [id, online, payOk, userId]);
 
   useEffect(() => {
     if (!id || tab !== "treasury") return;
@@ -255,18 +257,24 @@ export default function AvecDashboardPage() {
     setPayOk(false);
     try {
       if (!online) {
+        if (!userId) {
+          setErr("group_session_required");
+          return false;
+        }
         const localTotal = shareValue * shares + socialFundPerMeeting;
         if (!canQueueGroupContribution(localTotal)) {
           setErr("group_action_failed");
           return false;
         }
         const queued = await enqueueOfflineAction({
+          userId,
           kind: "group_contribution",
           scope: id,
           payload: { shares, paymentSource },
         });
         await putMeetingDraft({
           id: queued.id,
+          userId,
           groupId: id,
           createdAt: queued.createdAt,
           updatedAt: queued.updatedAt,

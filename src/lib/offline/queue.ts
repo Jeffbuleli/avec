@@ -1,4 +1,4 @@
-import { deleteAction, listActions, putAction } from "@/lib/offline/db";
+import { deleteAction, listActions, listActionsByUser, putAction } from "@/lib/offline/db";
 import type {
   OfflineActionKind,
   OfflineActionRecord,
@@ -12,6 +12,7 @@ function actionId(): string {
 }
 
 export async function enqueueOfflineAction(args: {
+  userId: string;
   kind: OfflineActionKind;
   scope: string;
   payload: Record<string, unknown>;
@@ -19,6 +20,7 @@ export async function enqueueOfflineAction(args: {
   const now = new Date().toISOString();
   const record: OfflineActionRecord = {
     id: actionId(),
+    userId: args.userId,
     kind: args.kind,
     scope: args.scope,
     payload: args.payload,
@@ -32,8 +34,9 @@ export async function enqueueOfflineAction(args: {
   return record;
 }
 
-export async function getOfflineQueue(): Promise<OfflineActionRecord[]> {
-  return await listActions();
+export async function getOfflineQueue(userId?: string): Promise<OfflineActionRecord[]> {
+  if (!userId) return await listActions();
+  return await listActionsByUser(userId);
 }
 
 export async function updateOfflineAction(
@@ -62,6 +65,20 @@ export async function queueSnapshot(): Promise<{
   queuedCount: number;
 }> {
   const rows = await listActions();
+  return {
+    count: rows.length,
+    failedCount: rows.filter((r) => r.status === "failed" || r.status === "conflict")
+      .length,
+    queuedCount: rows.filter((r) => r.status === "queued" || r.status === "syncing").length,
+  };
+}
+
+export async function queueSnapshotForUser(userId: string): Promise<{
+  count: number;
+  failedCount: number;
+  queuedCount: number;
+}> {
+  const rows = await listActionsByUser(userId);
   return {
     count: rows.length,
     failedCount: rows.filter((r) => r.status === "failed" || r.status === "conflict")

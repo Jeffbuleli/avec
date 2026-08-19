@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { fetchWithDeadline } from "@/lib/fetch-with-deadline";
 import { clearAssistantClientStorage } from "@/lib/assistant/client-storage";
+import { clearOfflineState } from "@/lib/offline/db";
 
 export function LogoutButton({
   className,
@@ -27,6 +28,7 @@ export function LogoutButton({
             20_000,
           );
           clearAssistantClientStorage();
+          await clearOfflineState();
           window.location.replace("/");
         } catch {
           setLoading(false);

@@ -49,14 +49,14 @@ async function replayAction(row: OfflineActionRecord): Promise<{
   }
 }
 
-export async function syncOfflineQueue(): Promise<{
+export async function syncOfflineQueue(userId?: string): Promise<{
   synced: number;
   failed: number;
 }> {
   if (typeof navigator !== "undefined" && !navigator.onLine) {
     return { synced: 0, failed: 0 };
   }
-  const rows = await getOfflineQueue();
+  const rows = await getOfflineQueue(userId);
   let synced = 0;
   let failed = 0;
   for (const row of rows) {
@@ -94,10 +94,10 @@ export async function syncOfflineQueue(): Promise<{
       });
     }
   }
-  await putMeta(LAST_SYNC_KEY, new Date().toISOString());
+  await putMeta(userId ? `${LAST_SYNC_KEY}:${userId}` : LAST_SYNC_KEY, new Date().toISOString());
   return { synced, failed };
 }
 
-export async function readLastOfflineSyncAt(): Promise<string | null> {
-  return await getMeta<string>(LAST_SYNC_KEY);
+export async function readLastOfflineSyncAt(userId?: string): Promise<string | null> {
+  return await getMeta<string>(userId ? `${LAST_SYNC_KEY}:${userId}` : LAST_SYNC_KEY);
 }

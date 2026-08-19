@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
+import { useOfflineState } from "@/components/offline/offline-provider";
 import { ListPagination, useListPagination } from "@/components/ui/list-pagination";
 import { AvecIconShares, AvecIconSolidarity } from "@/components/groups/avec-icons";
 import { IlluMeeting } from "@/components/groups/avec-illustrations";
@@ -11,7 +12,7 @@ import {
   isSocialFundPerMeetingMisconfigured,
   maxSocialFundPerMeeting,
 } from "@/lib/avec/social-fund-limits";
-import { listMeetingDrafts } from "@/lib/offline/db";
+import { listMeetingDraftsByUser } from "@/lib/offline/db";
 
 export function AvecMeetingPanel({
   groupId,
@@ -37,6 +38,7 @@ export function AvecMeetingPanel({
   paySuccess?: boolean;
 }) {
   const { t, locale } = useI18n();
+  const { userId } = useOfflineState();
   const [shares, setShares] = useState(1);
   const [justPaid, setJustPaid] = useState(false);
   const [fixSocial, setFixSocial] = useState("");
@@ -122,8 +124,9 @@ export function AvecMeetingPanel({
   }, [groupId, showPaid]);
 
   useEffect(() => {
+    if (!userId) return;
     if (!groupId) return;
-    void listMeetingDrafts(groupId).then((rows) => {
+    void listMeetingDraftsByUser(userId, groupId).then((rows) => {
       setDrafts(
         rows.map((row) => ({
           id: row.id,
@@ -132,7 +135,7 @@ export function AvecMeetingPanel({
         })),
       );
     });
-  }, [groupId, showPaid]);
+  }, [groupId, showPaid, userId]);
 
   const batches = useMemo(() => {
     if (!history?.length) return [];

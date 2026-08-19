@@ -42,7 +42,7 @@ type Row = {
 export default function AvecHubPage() {
   const { t, locale } = useI18n();
   const router = useRouter();
-  const { online } = useOfflineState();
+  const { online, userId } = useOfflineState();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [discover, setDiscover] = useState<DiscoverGroup[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -50,6 +50,7 @@ export default function AvecHubPage() {
   const [sheetGroup, setSheetGroup] = useState<DiscoverGroup | null>(null);
 
   useEffect(() => {
+    if (!userId) return;
     setErr(null);
     void (async () => {
       try {
@@ -64,19 +65,19 @@ export default function AvecHubPage() {
         const all = (mineData.groups ?? []) as Row[];
         const filtered = all.filter((r) => r.type === "avec" || r.type === "likelimba");
         setRows(filtered);
-        await writeOfflineCache("groups:mine", filtered);
+        await writeOfflineCache(`user:${userId}:groups:mine`, filtered);
         const discData = await discRes.json().catch(() => ({}));
         if (discRes.ok) {
           const groups = (discData.groups ?? []) as DiscoverGroup[];
           setDiscover(groups);
-          await writeOfflineCache("groups:discover", groups);
+          await writeOfflineCache(`user:${userId}:groups:discover`, groups);
         } else {
           setDiscover([]);
         }
       } catch (e) {
         const [mineCache, discoverCache] = await Promise.all([
-          readOfflineCache<Row[]>("groups:mine"),
-          readOfflineCache<DiscoverGroup[]>("groups:discover"),
+          readOfflineCache<Row[]>(`user:${userId}:groups:mine`),
+          readOfflineCache<DiscoverGroup[]>(`user:${userId}:groups:discover`),
         ]);
         if (mineCache?.value) setRows(mineCache.value);
         else setRows([]);
@@ -95,7 +96,7 @@ export default function AvecHubPage() {
       setDiscover([]);
       setErr("group_dashboard_failed");
     });
-  }, [online]);
+  }, [online, userId]);
 
   const minePag = useListPagination(rows ?? [], 10);
   const discoverPag = useListPagination(discover ?? [], 10);

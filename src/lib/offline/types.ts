@@ -12,6 +12,7 @@ export type OfflineActionStatus =
 
 export type OfflineActionRecord = {
   id: string;
+  userId: string;
   kind: OfflineActionKind;
   createdAt: string;
   updatedAt: string;
@@ -30,6 +31,7 @@ export type OfflineCacheRecord<T = unknown> = {
 
 export type OfflineMeetingDraft = {
   id: string;
+  userId: string;
   groupId: string;
   createdAt: string;
   updatedAt: string;
@@ -52,6 +54,7 @@ export type OfflineFieldOpsState = {
 
 export type OfflineSyncSnapshot = {
   online: boolean;
+  userId: string | null;
   queueCount: number;
   syncing: boolean;
   lastSyncAt: string | null;

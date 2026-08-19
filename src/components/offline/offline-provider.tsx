@@ -9,7 +9,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getFieldOpsState, setFieldOpsState } from "@/lib/offline/db";
+import {
+  getFieldOpsStateForUser,
+  setFieldOpsStateForUser,
+} from "@/lib/offline/db";
 import { getOfflineQueue } from "@/lib/offline/queue";
 import { readLastOfflineSyncAt, syncOfflineQueue } from "@/lib/offline/sync";
 import type {
@@ -30,6 +33,7 @@ const OfflineContext = createContext<OfflineContextValue | null>(null);
 
 export function OfflineProvider({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [queue, setQueue] = useState<OfflineActionRecord[]>([]);
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
@@ -39,30 +43,48 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   });
 
   const refresh = useCallback(async () => {
+    if (!userId) {
+      setQueue([]);
+      setLastSyncAt(null);
+      setFieldOps({
+        primaryDeviceByGroup: {},
+        facilitatorLabel: null,
+      });
+      return;
+    }
     const [rows, lastSync, fieldState] = await Promise.all([
-      getOfflineQueue(),
-      readLastOfflineSyncAt(),
-      getFieldOpsState(),
+      getOfflineQueue(userId),
+      readLastOfflineSyncAt(userId),
+      getFieldOpsStateForUser(userId),
     ]);
     setQueue(rows);
     setLastSyncAt(lastSync);
     setFieldOps(fieldState);
     return;
-  }, []);
+  }, [userId]);
 
   const syncNow = useCallback(async () => {
-    if (syncing) return;
+    if (syncing || !userId) return;
     setSyncing(true);
     try {
-      await syncOfflineQueue();
+      await syncOfflineQueue(userId);
       await refresh();
     } finally {
       setSyncing(false);
     }
-  }, [refresh, syncing]);
+  }, [refresh, syncing, userId]);
 
   useEffect(() => {
     setOnline(typeof navigator === "undefined" ? true : navigator.onLine);
+    void fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        setUserId(typeof data?.user?.id === "string" ? data.user.id : null);
+      })
+      .catch(() => setUserId(null));
+  }, []);
+
+  useEffect(() => {
     void refresh();
     const up = () => {
       setOnline(true);
@@ -84,17 +106,19 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
 
   const setPrimaryDevice = useCallback(
     async (groupId: string, value: boolean) => {
+      if (!userId) return;
+      const scopedState = fieldOps;
       const next: OfflineFieldOpsState = {
-        ...fieldOps,
+        ...scopedState,
         primaryDeviceByGroup: {
-          ...fieldOps.primaryDeviceByGroup,
+          ...scopedState.primaryDeviceByGroup,
           [groupId]: value,
         },
       };
       setFieldOps(next);
-      await setFieldOpsState(next);
+      await setFieldOpsStateForUser(userId, next);
     },
-    [fieldOps],
+    [fieldOps, userId],
   );
 
   const value = useMemo<OfflineContextValue>(() => {
@@ -103,6 +127,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     ).length;
     return {
       online,
+      userId,
       queueCount: queue.length,
       syncing,
       queue,
@@ -113,7 +138,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       fieldOps,
       setPrimaryDevice,
     };
-  }, [fieldOps, lastSyncAt, online, queue, refresh, setPrimaryDevice, syncing, syncNow]);
+  }, [fieldOps, lastSyncAt, online, queue, refresh, setPrimaryDevice, syncing, syncNow, userId]);
 
   return <OfflineContext.Provider value={value}>{children}</OfflineContext.Provider>;
 }
