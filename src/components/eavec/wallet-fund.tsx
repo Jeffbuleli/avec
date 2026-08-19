@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { useI18n } from "@/components/i18n-provider";
+import { useOfflineState } from "@/components/offline/offline-provider";
 import {
   EAVEC_PRIMARY_CURRENCY,
   EAVEC_SECONDARY_CURRENCY,
@@ -29,6 +30,7 @@ function formatBalance(asset: string, balance: string, locale: "fr" | "en") {
 export function EavecWalletFundPage() {
   const { locale } = useI18n();
   const fr = locale === "fr";
+  const { queueCount, failedCount, online, lastSyncAt, syncNow } = useOfflineState();
   const [usd, setUsd] = useState<string | null>(null);
   const [cdf, setCdf] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -125,6 +127,33 @@ export function EavecWalletFundPage() {
       >
         {fr ? "Retour aux AVEC" : "Back to AVEC groups"}
       </Link>
+
+      <div className="mt-4 rounded-2xl border border-[#0F2D2F]/10 bg-white/70 p-4 text-sm text-[#0F2D2F]">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#0F2D2F]/55">
+          Sync terrain
+        </p>
+        <p className="mt-1 font-semibold">
+          {online
+            ? `${queueCount} action(s) en attente`
+            : "Mode offline actif - vos actions sont gardees localement"}
+        </p>
+        <p className="mt-1 text-xs text-[#0F2D2F]/65">
+          {failedCount > 0
+            ? `${failedCount} action(s) demandent une verification`
+            : lastSyncAt
+              ? `Derniere sync: ${new Date(lastSyncAt).toLocaleString(fr ? "fr-FR" : "en-US")}`
+              : "Aucune synchronisation complete pour le moment"}
+        </p>
+        {online ? (
+          <button
+            type="button"
+            onClick={() => void syncNow()}
+            className="mt-3 rounded-xl bg-[#0F2D2F] px-3 py-2 text-xs font-bold text-[#F6E8CD]"
+          >
+            {fr ? "Synchroniser maintenant" : "Sync now"}
+          </button>
+        ) : null}
+      </div>
 
       <McBuleliPoweredFooter />
     </div>

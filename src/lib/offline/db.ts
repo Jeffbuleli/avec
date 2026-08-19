@@ -1,0 +1,212 @@
+import type {
+  OfflineActionRecord,
+  OfflineCacheRecord,
+  OfflineFieldOpsState,
+  OfflineMeetingDraft,
+} from "@/lib/offline/types";
+
+const DB_NAME = "eavec-offline";
+const DB_VERSION = 1;
+const ACTIONS_STORE = "actions";
+const CACHE_STORE = "cache";
+const DRAFTS_STORE = "drafts";
+const META_STORE = "meta";
+
+type StoreName =
+  | typeof ACTIONS_STORE
+  | typeof CACHE_STORE
+  | typeof DRAFTS_STORE
+  | typeof META_STORE;
+
+function supportsIndexedDb(): boolean {
+  return typeof window !== "undefined" && "indexedDB" in window;
+}
+
+export async function openOfflineDb(): Promise<IDBDatabase | null> {
+  if (!supportsIndexedDb()) return null;
+  return await new Promise((resolve, reject) => {
+    const req = window.indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(ACTIONS_STORE)) {
+        const store = db.createObjectStore(ACTIONS_STORE, { keyPath: "id" });
+        store.createIndex("by_status", "status", { unique: false });
+        store.createIndex("by_scope", "scope", { unique: false });
+        store.createIndex("by_createdAt", "createdAt", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(CACHE_STORE)) {
+        db.createObjectStore(CACHE_STORE, { keyPath: "key" });
+      }
+      if (!db.objectStoreNames.contains(DRAFTS_STORE)) {
+        const store = db.createObjectStore(DRAFTS_STORE, { keyPath: "id" });
+        store.createIndex("by_group", "groupId", { unique: false });
+      }
+      if (!db.objectStoreNames.contains(META_STORE)) {
+        db.createObjectStore(META_STORE, { keyPath: "key" });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error ?? new Error("indexeddb_open_failed"));
+  }).catch(() => null);
+}
+
+async function withStore<T>(
+  storeName: StoreName,
+  mode: IDBTransactionMode,
+  cb: (store: IDBObjectStore) => void,
+): Promise<T | null> {
+  const db = await openOfflineDb();
+  if (!db) return null;
+  return await new Promise<T | null>((resolve, reject) => {
+    const tx = db.transaction(storeName, mode);
+    const store = tx.objectStore(storeName);
+    cb(store);
+    tx.oncomplete = () => resolve(null);
+    tx.onerror = () => reject(tx.error ?? new Error("indexeddb_tx_failed"));
+    tx.onabort = () => reject(tx.error ?? new Error("indexeddb_tx_aborted"));
+  }).catch(() => null);
+}
+
+function requestToPromise<T>(req: IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error ?? new Error("indexeddb_request_failed"));
+  });
+}
+
+export async function putAction(action: OfflineActionRecord): Promise<void> {
+  const db = await openOfflineDb();
+  if (!db) return;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(ACTIONS_STORE, "readwrite");
+    tx.objectStore(ACTIONS_STORE).put(action);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error("put_action_failed"));
+  }).catch(() => {});
+}
+
+export async function listActions(): Promise<OfflineActionRecord[]> {
+  const db = await openOfflineDb();
+  if (!db) return [];
+  try {
+    const tx = db.transaction(ACTIONS_STORE, "readonly");
+    const rows = await requestToPromise(
+      tx.objectStore(ACTIONS_STORE).getAll(),
+    );
+    return (rows as OfflineActionRecord[]).sort((a, b) =>
+      a.createdAt.localeCompare(b.createdAt),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function getAction(id: string): Promise<OfflineActionRecord | null> {
+  const db = await openOfflineDb();
+  if (!db) return null;
+  try {
+    const tx = db.transaction(ACTIONS_STORE, "readonly");
+    const row = await requestToPromise(tx.objectStore(ACTIONS_STORE).get(id));
+    return (row as OfflineActionRecord | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteAction(id: string): Promise<void> {
+  const db = await openOfflineDb();
+  if (!db) return;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(ACTIONS_STORE, "readwrite");
+    tx.objectStore(ACTIONS_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error("delete_action_failed"));
+  }).catch(() => {});
+}
+
+export async function putCache<T>(record: OfflineCacheRecord<T>): Promise<void> {
+  const db = await openOfflineDb();
+  if (!db) return;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(CACHE_STORE, "readwrite");
+    tx.objectStore(CACHE_STORE).put(record);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error("put_cache_failed"));
+  }).catch(() => {});
+}
+
+export async function getCache<T>(key: string): Promise<OfflineCacheRecord<T> | null> {
+  const db = await openOfflineDb();
+  if (!db) return null;
+  try {
+    const tx = db.transaction(CACHE_STORE, "readonly");
+    const row = await requestToPromise(tx.objectStore(CACHE_STORE).get(key));
+    return (row as OfflineCacheRecord<T> | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function putMeetingDraft(draft: OfflineMeetingDraft): Promise<void> {
+  const db = await openOfflineDb();
+  if (!db) return;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(DRAFTS_STORE, "readwrite");
+    tx.objectStore(DRAFTS_STORE).put(draft);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error("put_draft_failed"));
+  }).catch(() => {});
+}
+
+export async function listMeetingDrafts(groupId?: string): Promise<OfflineMeetingDraft[]> {
+  const db = await openOfflineDb();
+  if (!db) return [];
+  try {
+    const tx = db.transaction(DRAFTS_STORE, "readonly");
+    const store = tx.objectStore(DRAFTS_STORE);
+    const rows = groupId
+      ? await requestToPromise(store.index("by_group").getAll(groupId))
+      : await requestToPromise(store.getAll());
+    return (rows as OfflineMeetingDraft[]).sort((a, b) =>
+      b.updatedAt.localeCompare(a.updatedAt),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function putMeta<T>(key: string, value: T): Promise<void> {
+  const db = await openOfflineDb();
+  if (!db) return;
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(META_STORE, "readwrite");
+    tx.objectStore(META_STORE).put({ key, value });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error ?? new Error("put_meta_failed"));
+  }).catch(() => {});
+}
+
+export async function getMeta<T>(key: string): Promise<T | null> {
+  const db = await openOfflineDb();
+  if (!db) return null;
+  try {
+    const tx = db.transaction(META_STORE, "readonly");
+    const row = await requestToPromise(tx.objectStore(META_STORE).get(key));
+    return ((row as { value?: T } | undefined)?.value as T | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getFieldOpsState(): Promise<OfflineFieldOpsState> {
+  return (
+    (await getMeta<OfflineFieldOpsState>("field-ops")) ?? {
+      primaryDeviceByGroup: {},
+      facilitatorLabel: null,
+    }
+  );
+}
+
+export async function setFieldOpsState(value: OfflineFieldOpsState): Promise<void> {
+  await putMeta("field-ops", value);
+}

@@ -44,6 +44,12 @@ import {
   markDialogueRead,
 } from "@/lib/avec/dialogue-read-state";
 import type { GranularRoleId } from "@/lib/avec/governance/granular-roles";
+import { FieldOpsCard } from "@/components/offline/field-ops-card";
+import { useOfflineState } from "@/components/offline/offline-provider";
+import { readOfflineCache, writeOfflineCache } from "@/lib/offline/cache";
+import { putMeetingDraft } from "@/lib/offline/db";
+import { enqueueOfflineAction, getOfflineQueue } from "@/lib/offline/queue";
+import { canQueueGroupContribution } from "@/lib/offline/policy";
 
 type Dashboard = {
   ok: true;
@@ -88,6 +94,7 @@ type Tab = "vue" | "meeting" | "members" | "treasury" | "dialogue" | "reports";
 
 export default function AvecDashboardPage() {
   const { t } = useI18n();
+  const { online, refresh: refreshOffline } = useOfflineState();
   const routeParams = useParams();
   const searchParams = useSearchParams();
   const showCreateProgress = searchParams.get("created") === "1";
@@ -104,11 +111,13 @@ export default function AvecDashboardPage() {
     penaltiesUsdt: number;
     interestUsdt: number;
   } | null>(null);
+  const [queuedContribCount, setQueuedContribCount] = useState(0);
 
   const me = data?.group.me;
   const canModerateMembership = me ? canModerateGroupMembership(me) : false;
   const canModerateDialogue = me ? canModerateGroupDialogue(me) : false;
   const canAdmin = me?.status === "approved" && me.role === "admin";
+  const canTreasuryOps = me?.status === "approved" && (me.role === "admin" || me.role === "co_admin");
   const groupActive = data?.group.status === "active";
   const cycleActive = (data?.group.cycleStatus ?? "active") === "active";
   const canContribute = me?.status === "approved" && groupActive && cycleActive;
@@ -128,19 +137,39 @@ export default function AvecDashboardPage() {
       return;
     }
     setErr(null);
-    const res = await fetch(`/api/groups/${id}`, { cache: "no-store" });
-    const j = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setErr((j as { error?: string }).error ?? "group_dashboard_failed");
+    try {
+      const res = await fetch(`/api/groups/${id}`, { cache: "no-store" });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error((j as { error?: string }).error ?? "group_dashboard_failed");
+      }
+      setData(j as Dashboard);
+      await writeOfflineCache(`group:${id}:dashboard`, j);
+    } catch (e) {
+      const cached = await readOfflineCache<Dashboard>(`group:${id}:dashboard`);
+      if (cached?.value) {
+        setData(cached.value);
+        setErr("offline_cache_in_use");
+        return;
+      }
+      setErr(e instanceof Error ? e.message : "group_dashboard_failed");
       setData(null);
-      return;
     }
-    setData(j as Dashboard);
   }
 
   useEffect(() => {
     void load();
-  }, [id]);
+  }, [id, online]);
+
+  useEffect(() => {
+    if (!id) return;
+    void getOfflineQueue().then((rows) => {
+      setQueuedContribCount(
+        rows.filter((row) => row.kind === "group_contribution" && row.scope === id)
+          .length,
+      );
+    });
+  }, [id, online, payOk]);
 
   useEffect(() => {
     if (!id || tab !== "treasury") return;
@@ -217,15 +246,49 @@ export default function AvecDashboardPage() {
     [data?.members],
   );
 
-  async function payShares(shares: number): Promise<boolean> {
+  async function payShares(
+    shares: number,
+    paymentSource: "wallet" | "cash_local",
+  ): Promise<boolean> {
     setBusy(true);
     setErr(null);
     setPayOk(false);
     try {
+      if (!online) {
+        const localTotal = shareValue * shares + socialFundPerMeeting;
+        if (!canQueueGroupContribution(localTotal)) {
+          setErr("group_action_failed");
+          return false;
+        }
+        const queued = await enqueueOfflineAction({
+          kind: "group_contribution",
+          scope: id,
+          payload: { shares, paymentSource },
+        });
+        await putMeetingDraft({
+          id: queued.id,
+          groupId: id,
+          createdAt: queued.createdAt,
+          updatedAt: queued.updatedAt,
+          deviceLabel: "local-device",
+          attendees: [],
+          queuedContributionIds: [queued.id],
+          notes: "",
+          receiptSummary: {
+            shareValue,
+            socialFundPerMeeting,
+            totalQueuedAmount: shareValue * shares + socialFundPerMeeting,
+            queuedMembers: 1,
+          },
+        });
+        setPayOk(true);
+        await refreshOffline();
+        return true;
+      }
       const res = await fetch(`/api/groups/${id}/contributions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shares }),
+        body: JSON.stringify({ shares, paymentSource }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -235,6 +298,7 @@ export default function AvecDashboardPage() {
       setPayOk(true);
       setFundsRefresh((n) => n + 1);
       await load();
+      await refreshOffline();
       return true;
     } finally {
       setBusy(false);
@@ -277,7 +341,9 @@ export default function AvecDashboardPage() {
         </Link>
         {err ? (
           <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-            {clientErrorText(t, err)}
+            {err === "offline_cache_in_use"
+              ? "Mode offline: affichage du dernier etat synchronise."
+              : clientErrorText(t, err)}
           </p>
         ) : (
           <p className="mt-4 text-[color:var(--fd-muted)]">…</p>
@@ -306,6 +372,7 @@ export default function AvecDashboardPage() {
       />
 
       <div className="space-y-3 px-1">
+        <FieldOpsCard groupId={id} />
         {g.status === "pending" || showCreateProgress ? (
           <TransactionStepper steps={groupCreationProgressSteps(g.status)} />
         ) : null}
@@ -354,7 +421,14 @@ export default function AvecDashboardPage() {
         ) : null}
         {err ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-            {clientErrorText(t, err)}
+            {err === "offline_cache_in_use"
+              ? "Mode offline: affichage du dernier etat synchronise."
+              : clientErrorText(t, err)}
+          </p>
+        ) : null}
+        {queuedContribCount > 0 ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            {queuedContribCount} contribution(s) en attente de synchronisation.
           </p>
         ) : null}
 
@@ -466,7 +540,11 @@ export default function AvecDashboardPage() {
 
         {tab === "treasury" && (
           <div className="space-y-3">
-            <AvecTreasuryFunds groupId={id} onRefreshKey={fundsRefresh} />
+            <AvecTreasuryFunds
+              groupId={id}
+              canAdmin={!!canTreasuryOps}
+              onRefreshKey={fundsRefresh}
+            />
             {canAdmin && treasuryFunds ? (
               <AvecBucketTransferGovernance
                 groupId={id}

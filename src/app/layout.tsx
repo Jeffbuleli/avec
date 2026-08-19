@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/get-locale";
 import { I18nProvider } from "@/components/i18n-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalLangSwitch } from "@/components/conditional-lang-switch";
+import { OfflineProvider } from "@/components/offline/offline-provider";
 import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import { PwaInstallBanner } from "@/components/pwa/install-banner";
 import { SessionRefresher } from "@/components/auth/session-refresher";
@@ -94,11 +95,13 @@ export default async function RootLayout({
       <body className="min-h-full text-[#0F2D2F]">
         <ThemeProvider>
           <I18nProvider initialLocale={locale}>
-            <RegisterServiceWorker />
-            <ConditionalLangSwitch />
-            <PwaInstallBanner />
-            <SessionRefresher />
-            {children}
+            <OfflineProvider>
+              <RegisterServiceWorker />
+              <ConditionalLangSwitch />
+              <PwaInstallBanner />
+              <SessionRefresher />
+              {children}
+            </OfflineProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>

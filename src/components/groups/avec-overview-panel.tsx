@@ -35,6 +35,10 @@ type FundBuckets = {
   lentUsdt: number;
   creditUsdt?: number;
   availableUsdt: number;
+  pendingLocalUsdt: number;
+  coveredUsdt: number;
+  coverageRatioPct: number;
+  retirableUsdt: number;
 };
 
 function cycleProgressPct(createdAt: string, cycleDays: number): number {
@@ -216,15 +220,33 @@ export function AvecOverviewPanel({
           </div>
           <div className="rounded-xl border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)]/50 px-3 py-2.5">
             <p className="text-[9px] font-bold uppercase text-[color:var(--fd-primary)]">
-              {t("avec_fund_available")}
+              Retirable
             </p>
             <p className="mt-0.5 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
-              {funds ? funds.availableUsdt.toFixed(0) : "—"}
+              {funds ? funds.retirableUsdt.toFixed(0) : "—"}
               <span className="ml-0.5 text-xs font-bold">USD</span>
             </p>
-            <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">{t("avec_treasury_available_hint")}</p>
+            <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
+              Couvert et disponible pour decaissement
+            </p>
           </div>
         </div>
+        {funds ? (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+              <p className="text-[9px] font-bold uppercase text-amber-950">Cash local</p>
+              <p className="mt-0.5 text-lg font-black tabular-nums text-amber-950">
+                {funds.pendingLocalUsdt.toFixed(0)} <span className="text-xs font-bold">USD</span>
+              </p>
+            </div>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
+              <p className="text-[9px] font-bold uppercase text-emerald-950">Couverture</p>
+              <p className="mt-0.5 text-lg font-black tabular-nums text-emerald-950">
+                {funds.coverageRatioPct}% <span className="text-xs font-bold">liquide</span>
+              </p>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {funds ? (

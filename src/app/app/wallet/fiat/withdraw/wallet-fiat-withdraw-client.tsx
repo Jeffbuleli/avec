@@ -28,12 +28,16 @@ import {
 } from "@/lib/freshpay/normalize-phone";
 import { FiatProviderPicker } from "@/components/wallet/fiat-provider-picker";
 import { WalletAmountPresets } from "@/components/wallet/wallet-amount-presets";
+import { useOfflineState } from "@/components/offline/offline-provider";
+import { canQueueFiatRequest } from "@/lib/offline/policy";
+import { enqueueOfflineAction } from "@/lib/offline/queue";
 
 type ProviderOption = { provider: string; label: string };
 
 export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatPaused?: boolean }) {
   const { t, locale } = useI18n();
   const router = useRouter();
+  const { online, refresh } = useOfflineState();
   const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [mobileOk, setMobileOk] = useState<boolean | null>(null);
@@ -158,16 +162,31 @@ export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatP
     setErr(null);
     setLoading(true);
     try {
+      const payload = {
+        asset,
+        grossAmount: gross,
+        phoneNumber: normalizeCodPhoneNumber(phoneNumber),
+        provider,
+        providerLabel: providers.find((p) => p.provider === provider)?.label ?? provider,
+      };
+      if (!online) {
+        if (!canQueueFiatRequest(summary.g)) {
+          setErr("wallet_fiat_invalid_amount");
+          return;
+        }
+        await enqueueOfflineAction({
+          kind: "fiat_withdraw",
+          scope: asset,
+          payload,
+        });
+        await refresh();
+        router.push("/app/wallet");
+        return;
+      }
       const res = await fetch("/api/wallet/fiat/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          asset,
-          grossAmount: gross,
-          phoneNumber: normalizeCodPhoneNumber(phoneNumber),
-          provider,
-          providerLabel: providers.find((p) => p.provider === provider)?.label ?? provider,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.ok) {
@@ -196,6 +215,11 @@ export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatP
       <FiatStepper steps={steps} current={step} />
 
       {fiatPaused ? <WalletStatusBanner tone="warn">{t("wallet_fiat_paused_hint")}</WalletStatusBanner> : null}
+      {!online ? (
+        <WalletStatusBanner tone="info">
+          Offline: votre demande de retrait sera enregistree sur cet appareil puis envoyee des que le reseau revient.
+        </WalletStatusBanner>
+      ) : null}
 
       {step === 0 ? (
         <>

@@ -18,6 +18,9 @@ import { groupRoleLabel } from "@/lib/group-role-label";
 import { countryShortLabel } from "@/lib/country-label";
 import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { AvecHelpSheet, AvecHelpTrigger } from "@/components/groups/avec-help-sheet";
+import { FieldOpsCard } from "@/components/offline/field-ops-card";
+import { useOfflineState } from "@/components/offline/offline-provider";
+import { readOfflineCache, writeOfflineCache } from "@/lib/offline/cache";
 
 type Row = {
   groupId: string;
@@ -39,6 +42,7 @@ type Row = {
 export default function AvecHubPage() {
   const { t, locale } = useI18n();
   const router = useRouter();
+  const { online } = useOfflineState();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [discover, setDiscover] = useState<DiscoverGroup[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -48,28 +52,50 @@ export default function AvecHubPage() {
   useEffect(() => {
     setErr(null);
     void (async () => {
-      const [mineRes, discRes] = await Promise.all([
-        fetch("/api/groups/mine", { cache: "no-store" }),
-        fetch("/api/groups/discover", { cache: "no-store" }),
-      ]);
-      const mineData = await mineRes.json().catch(() => ({}));
-      if (!mineRes.ok) {
-        setErr(mineData.error ?? "group_dashboard_failed");
-        setRows([]);
-      } else {
+      try {
+        const [mineRes, discRes] = await Promise.all([
+          fetch("/api/groups/mine", { cache: "no-store" }),
+          fetch("/api/groups/discover", { cache: "no-store" }),
+        ]);
+        const mineData = await mineRes.json().catch(() => ({}));
+        if (!mineRes.ok) {
+          throw new Error(mineData.error ?? "group_dashboard_failed");
+        }
         const all = (mineData.groups ?? []) as Row[];
-        setRows(
-          all.filter((r) => r.type === "avec" || r.type === "likelimba"),
+        const filtered = all.filter((r) => r.type === "avec" || r.type === "likelimba");
+        setRows(filtered);
+        await writeOfflineCache("groups:mine", filtered);
+        const discData = await discRes.json().catch(() => ({}));
+        if (discRes.ok) {
+          const groups = (discData.groups ?? []) as DiscoverGroup[];
+          setDiscover(groups);
+          await writeOfflineCache("groups:discover", groups);
+        } else {
+          setDiscover([]);
+        }
+      } catch (e) {
+        const [mineCache, discoverCache] = await Promise.all([
+          readOfflineCache<Row[]>("groups:mine"),
+          readOfflineCache<DiscoverGroup[]>("groups:discover"),
+        ]);
+        if (mineCache?.value) setRows(mineCache.value);
+        else setRows([]);
+        if (discoverCache?.value) setDiscover(discoverCache.value);
+        else setDiscover([]);
+        setErr(
+          mineCache?.value
+            ? "offline_cache_in_use"
+            : e instanceof Error
+              ? e.message
+              : "group_dashboard_failed",
         );
       }
-      const discData = await discRes.json().catch(() => ({}));
-      if (discRes.ok) {
-        setDiscover((discData.groups ?? []) as DiscoverGroup[]);
-      } else {
-        setDiscover([]);
-      }
-    })();
-  }, []);
+    })().catch(() => {
+      setRows([]);
+      setDiscover([]);
+      setErr("group_dashboard_failed");
+    });
+  }, [online]);
 
   const minePag = useListPagination(rows ?? [], 10);
   const discoverPag = useListPagination(discover ?? [], 10);
@@ -96,9 +122,15 @@ export default function AvecHubPage() {
 
       {err ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-          {clientErrorText(t, err)}
+          {err === "offline_cache_in_use"
+            ? online
+              ? clientErrorText(t, err)
+              : "Mode offline: affichage du dernier état synchronisé."
+            : clientErrorText(t, err)}
         </p>
       ) : null}
+
+      <FieldOpsCard />
 
       <section className="space-y-2">
         <h2 className="px-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">

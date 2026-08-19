@@ -32,6 +32,12 @@ export type GroupFundSummary = {
   shareValueUsdt: number;
   outflowLast24hUsdt: number;
   outflowCapUsdt: number;
+  pendingLocalUsdt: number;
+  pendingLocalSavingsUsdt: number;
+  pendingLocalSocialUsdt: number;
+  coveredUsdt: number;
+  coverageRatioPct: number;
+  retirableUsdt: number;
 };
 
 /** Classify ledger line → fund bucket (meta.bucket overrides legacy rows). */
@@ -109,23 +115,50 @@ export async function getGroupFundSummary(
   let penaltiesUsdt = 0;
   let interestUsdt = 0;
   let reserveUsdt = 0;
+  let pendingLocalSavingsUsdt = 0;
+  let pendingLocalSocialUsdt = 0;
+  let coverageNotesUsdt = 0;
 
   for (const r of rows) {
     const n = numFromNumeric(r.amount?.toString());
-    const bucket = ledgerBucket(r.entryType, r.meta as Record<string, unknown> | null);
+    const meta = r.meta as Record<string, unknown> | null;
+    const bucket = ledgerBucket(r.entryType, meta);
     if (bucket === "social") socialUsdt += n;
     else if (bucket === "admin") adminUsdt += n;
     else if (bucket === "penalties") penaltiesUsdt += n;
     else if (bucket === "interest") interestUsdt += n;
     else if (bucket === "reserve") reserveUsdt += n;
     else savingsUsdt += n;
+
+    if (
+      (r.entryType === "group_contribution_in" ||
+        r.entryType === "group_social_contribution_in") &&
+      meta?.paymentSource === "cash_local"
+    ) {
+      if (bucket === "social") pendingLocalSocialUsdt += Math.max(0, n);
+      else pendingLocalSavingsUsdt += Math.max(0, n);
+    }
+
+    if (r.entryType === "group_cash_coverage_note") {
+      const covered = Number(meta?.coverageAmountUsdt ?? 0);
+      if (Number.isFinite(covered) && covered > 0) coverageNotesUsdt += covered;
+    }
   }
 
   const stats = await getMemberContributionStats(groupId);
   const totalShares = stats.reduce((s, m) => s + m.sharesTotal, 0);
   const totalUsdt = await getGroupUsdtBalance(groupId);
   const lentUsdt = await getGroupLentUsdt(groupId);
-  const availableUsdt = Math.max(0, savingsUsdt - lentUsdt);
+  const appliedToSavingsUsdt = Math.min(coverageNotesUsdt, pendingLocalSavingsUsdt);
+  const remainingCoverageUsdt = Math.max(0, coverageNotesUsdt - appliedToSavingsUsdt);
+  const appliedToSocialUsdt = Math.min(remainingCoverageUsdt, pendingLocalSocialUsdt);
+  const uncoveredSavingsUsdt = Math.max(0, pendingLocalSavingsUsdt - appliedToSavingsUsdt);
+  const uncoveredSocialUsdt = Math.max(0, pendingLocalSocialUsdt - appliedToSocialUsdt);
+  const pendingLocalUsdt = uncoveredSavingsUsdt + uncoveredSocialUsdt;
+  const coveredUsdt = Math.max(0, totalUsdt - pendingLocalUsdt);
+  const liquidSavingsUsdt = Math.max(0, savingsUsdt - uncoveredSavingsUsdt);
+  const availableUsdt = Math.max(0, liquidSavingsUsdt - lentUsdt);
+  const retirableUsdt = availableUsdt;
 
   const { groupTreasuryOutflowLast24hUsdt } = await import(
     "@/lib/avec/treasury-daily-limits"
@@ -148,6 +181,13 @@ export async function getGroupFundSummary(
     shareValueUsdt,
     outflowLast24hUsdt,
     outflowCapUsdt: DEFAULT_GOVERNANCE_RULES.maxGroupTreasuryOutflowPerDayUsdt,
+    pendingLocalUsdt,
+    pendingLocalSavingsUsdt: uncoveredSavingsUsdt,
+    pendingLocalSocialUsdt: uncoveredSocialUsdt,
+    coveredUsdt,
+    coverageRatioPct:
+      totalUsdt > 0 ? Math.max(0, Math.min(100, Math.round((coveredUsdt / totalUsdt) * 100))) : 100,
+    retirableUsdt,
   };
 }
 

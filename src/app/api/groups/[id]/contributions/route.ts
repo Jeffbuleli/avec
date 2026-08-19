@@ -10,6 +10,7 @@ const bodyZ = z
   .object({
     amountUsdt: z.number().positive().optional(),
     shares: z.number().int().min(1).max(5).optional(),
+    paymentSource: z.enum(["wallet", "cash_local"]).optional(),
   })
   .refine((b) => b.amountUsdt != null || b.shares != null, {
     message: "group_invalid_amount",
@@ -49,6 +50,7 @@ export async function POST(
     userId,
     amountUsdt: parsed.data.amountUsdt,
     shares: parsed.data.shares,
+    paymentSource: parsed.data.paymentSource,
   });
   if (!r.ok) return NextResponse.json({ error: r.message }, { status: 400 });
   return NextResponse.json({ ok: true });

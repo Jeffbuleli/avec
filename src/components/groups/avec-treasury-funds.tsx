@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { AvecIconTreasury } from "@/components/groups/avec-icons";
 import { avecCls } from "@/components/groups/avec-ui";
+import { clientErrorText } from "@/lib/client-error-text";
 
 type Funds = {
   totalUsdt: number;
@@ -20,6 +21,12 @@ type Funds = {
   shareValueUsdt: number;
   outflowLast24hUsdt?: number;
   outflowCapUsdt?: number;
+  pendingLocalUsdt: number;
+  pendingLocalSavingsUsdt: number;
+  pendingLocalSocialUsdt: number;
+  coveredUsdt: number;
+  coverageRatioPct: number;
+  retirableUsdt: number;
 };
 
 function FundRow({
@@ -76,13 +83,19 @@ function FundRow({
 
 export function AvecTreasuryFunds({
   groupId,
+  canAdmin = false,
   onRefreshKey,
 }: {
   groupId: string;
+  canAdmin?: boolean;
   onRefreshKey?: number;
 }) {
   const { t } = useI18n();
   const [funds, setFunds] = useState<Funds | null>(null);
+  const [coverageAmount, setCoverageAmount] = useState("");
+  const [coverageNote, setCoverageNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/groups/${groupId}/funds`, { cache: "no-store" });
@@ -95,6 +108,30 @@ export function AvecTreasuryFunds({
   }, [load, onRefreshKey]);
 
   const fmt = (n: number) => `${n.toFixed(2)} USD`;
+
+  async function submitCoverage() {
+    const amountUsdt = Number(coverageAmount.replace(",", "."));
+    if (!Number.isFinite(amountUsdt) || amountUsdt <= 0) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/cash-coverage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amountUsdt, note: coverageNote }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr((j as { error?: string }).error ?? "group_action_failed");
+        return;
+      }
+      setCoverageAmount("");
+      setCoverageNote("");
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div className={avecCls.section}>
@@ -143,6 +180,17 @@ export function AvecTreasuryFunds({
             accent
           />
           <FundRow label={t("avec_fund_social")} value={fmt(funds.socialUsdt)} />
+          <FundRow
+            label="Epargne locale non centralisee"
+            value={fmt(funds.pendingLocalUsdt)}
+            hint="Valeur enregistree en cash local, pas encore retirable numeriquement."
+          />
+          <FundRow
+            label="Liquidite couverte"
+            value={fmt(funds.coveredUsdt)}
+            hint={`Couverture ${funds.coverageRatioPct}%`}
+            accent
+          />
           <FundRow label={t("avec_fund_penalties")} value={fmt(funds.penaltiesUsdt)} />
           <FundRow label={t("avec_fund_interest")} value={fmt(funds.interestUsdt)} />
           {funds.reserveUsdt > 0.01 ? (
@@ -153,7 +201,7 @@ export function AvecTreasuryFunds({
             <FundRow
               compact
               label={t("avec_fund_avail_short")}
-              value={fmt(funds.availableUsdt)}
+              value={fmt(funds.retirableUsdt)}
               accent
             />
             <FundRow
@@ -163,6 +211,43 @@ export function AvecTreasuryFunds({
               hint={funds.creditUsdt > 0.01 ? t("avec_fund_credit_hint") : undefined}
             />
           </div>
+          {canAdmin ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-amber-950">
+                Centraliser du cash
+              </p>
+              <p className="mt-1 text-[10px] text-amber-900/80">
+                Utilisez ceci quand l’admin a effectivement depose le cash via banque ou
+                Mobile Money.
+              </p>
+              <div className="mt-2 grid gap-2">
+                <input
+                  value={coverageAmount}
+                  onChange={(e) => setCoverageAmount(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Montant centralise (USD)"
+                  className="wallet-input w-full rounded-xl border px-3 py-2 text-sm"
+                />
+                <input
+                  value={coverageNote}
+                  onChange={(e) => setCoverageNote(e.target.value)}
+                  placeholder="Reference / note"
+                  className="wallet-input w-full rounded-xl border px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => void submitCoverage()}
+                  disabled={busy}
+                  className="rounded-xl bg-[color:var(--fd-primary)] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+                >
+                  {busy ? "…" : "Confirmer la centralisation"}
+                </button>
+                {err ? (
+                  <p className="text-xs text-rose-700">{clientErrorText(t, err)}</p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="text-xs text-[color:var(--fd-muted)]">…</p>

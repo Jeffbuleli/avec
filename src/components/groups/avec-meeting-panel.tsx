@@ -11,6 +11,7 @@ import {
   isSocialFundPerMeetingMisconfigured,
   maxSocialFundPerMeeting,
 } from "@/lib/avec/social-fund-limits";
+import { listMeetingDrafts } from "@/lib/offline/db";
 
 export function AvecMeetingPanel({
   groupId,
@@ -31,7 +32,7 @@ export function AvecMeetingPanel({
   canContribute: boolean;
   canFixSocial?: boolean;
   busy: boolean;
-  onPay: (shares: number) => Promise<boolean>;
+  onPay: (shares: number, paymentSource: "wallet" | "cash_local") => Promise<boolean>;
   onSocialFixed?: () => void;
   paySuccess?: boolean;
 }) {
@@ -39,6 +40,7 @@ export function AvecMeetingPanel({
   const [shares, setShares] = useState(1);
   const [justPaid, setJustPaid] = useState(false);
   const [fixSocial, setFixSocial] = useState("");
+  const [paymentSource, setPaymentSource] = useState<"wallet" | "cash_local">("wallet");
   const [fixBusy, setFixBusy] = useState(false);
   const [fixErr, setFixErr] = useState<string | null>(null);
 
@@ -53,7 +55,7 @@ export function AvecMeetingPanel({
 
   async function pay() {
     setJustPaid(false);
-    const ok = await onPay(shares);
+    const ok = await onPay(shares, paymentSource);
     if (ok) setJustPaid(true);
   }
 
@@ -97,6 +99,16 @@ export function AvecMeetingPanel({
     createdAt: string;
   };
   const [history, setHistory] = useState<ContribRow[] | null>(null);
+  const [drafts, setDrafts] = useState<
+    {
+      id: string;
+      updatedAt: string;
+      receiptSummary: {
+        totalQueuedAmount: number;
+        queuedMembers: number;
+      };
+    }[]
+  >([]);
 
   useEffect(() => {
     if (!groupId) return;
@@ -107,6 +119,19 @@ export function AvecMeetingPanel({
         else setHistory([]);
       })
       .catch(() => setHistory([]));
+  }, [groupId, showPaid]);
+
+  useEffect(() => {
+    if (!groupId) return;
+    void listMeetingDrafts(groupId).then((rows) => {
+      setDrafts(
+        rows.map((row) => ({
+          id: row.id,
+          updatedAt: row.updatedAt,
+          receiptSummary: row.receiptSummary,
+        })),
+      );
+    });
   }, [groupId, showPaid]);
 
   const batches = useMemo(() => {
@@ -228,6 +253,31 @@ export function AvecMeetingPanel({
           </span>
         </div>
 
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setPaymentSource("wallet")}
+            className={`rounded-xl border px-3 py-2 text-xs font-bold ${
+              paymentSource === "wallet"
+                ? "border-[color:var(--fd-primary)] bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)]"
+                : "border-[color:var(--fd-border)] bg-white text-[color:var(--fd-muted)]"
+            }`}
+          >
+            Wallet / MM
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaymentSource("cash_local")}
+            className={`rounded-xl border px-3 py-2 text-xs font-bold ${
+              paymentSource === "cash_local"
+                ? "border-amber-300 bg-amber-50 text-amber-950"
+                : "border-[color:var(--fd-border)] bg-white text-[color:var(--fd-muted)]"
+            }`}
+          >
+            Cash local
+          </button>
+        </div>
+
         <button
           type="button"
           disabled={busy || !canContribute || misconfigured}
@@ -237,7 +287,9 @@ export function AvecMeetingPanel({
           {t("group_dash_contribute")}
         </button>
         <p className="mt-2 text-center text-[10px] text-[color:var(--fd-muted)]">
-          {t("avec_wallet_debit")}
+          {paymentSource === "cash_local"
+            ? "Enregistre comme epargne locale en attente de centralisation."
+            : t("avec_wallet_debit")}
         </p>
         {showPaid ? (
           <p
@@ -254,6 +306,24 @@ export function AvecMeetingPanel({
         <p className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
           {t("avec_meeting_history_title")}
         </p>
+        {drafts.length > 0 ? (
+          <div className="mt-3 space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-amber-900">
+              Reçus locaux en attente
+            </p>
+            {drafts.slice(0, 3).map((draft) => (
+              <div key={draft.id} className="rounded-xl bg-white/70 px-3 py-2 text-xs text-amber-950">
+                <p className="font-bold">
+                  {draft.receiptSummary.totalQueuedAmount.toFixed(2)} USD
+                </p>
+                <p className="mt-0.5 text-[11px]">
+                  {draft.receiptSummary.queuedMembers} membre(s) •{" "}
+                  {new Date(draft.updatedAt).toLocaleString(loc)}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
         {history === null ? (
           <p className="mt-2 text-xs text-[color:var(--fd-muted)]">…</p>
         ) : batches.length === 0 ? (
