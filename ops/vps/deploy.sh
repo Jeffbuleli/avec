@@ -8,7 +8,7 @@
 # Prereqs:
 #   - McBuleli stack running (docker network mcbuleli_default)
 #   - ops/vps/.env filled (JWT_SECRET + POSTGRES_* match McBuleli)
-#   - nginx: ops/vps/nginx-e-avec.conf + TLS under /etc/ssl/e-avec/
+#   - nginx: ops/vps/nginx-e-avec.conf + certbot TLS under /etc/letsencrypt/live/e-avec.org/
 set -euo pipefail
 
 REPO_DIR="${EAVEC_REPO:-/opt/avec}"
@@ -73,7 +73,7 @@ if [[ -f "$NGINX_SRC" ]]; then
     systemctl reload nginx
     echo "==> nginx reloaded (e-avec.org)"
   else
-    echo "WARN: nginx -t failed — install TLS certs under /etc/ssl/e-avec/ first" >&2
+    echo "WARN: nginx -t failed — run certbot for e-avec.org first" >&2
   fi
 fi
 
