@@ -71,7 +71,12 @@ export function middleware(request: NextRequest) {
     return preflight;
   }
 
-  const res = NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+
+  const res = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
   if (allowedOrigin) {
     const extra = corsHeaders(allowedOrigin);
     for (const [k, v] of Object.entries(extra)) res.headers.set(k, v);

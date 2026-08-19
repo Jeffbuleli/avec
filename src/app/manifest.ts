@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "e-AVEC",
     description:
       "Digital village savings and loan associations — shares, social fund, internal credit.",
-    start_url: "/",
+    start_url: "/app/wallet/groups",
     scope: "/",
     display: "standalone",
     background_color: "#0F2D2F",
