@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { EavecAppShell } from "@/components/eavec/app-shell";
 import { getDb, users } from "@/db";
@@ -49,11 +49,15 @@ export default async function AppLayout({
     redirect(VERIFY_EMAIL_PENDING_PATH);
   }
 
+  const cameFromMcbuleli =
+    cookies().get("mb_came_from_mcbuleli")?.value === "1";
+
   return (
     <EavecAppShell
       email={u?.email ?? ""}
       avatarUrl={u?.avatarUrl ?? null}
       isSupportStaff={u?.role === "agent" || u?.role === "super_admin"}
+      showReturnToMcbuleli={cameFromMcbuleli}
     >
       {children}
     </EavecAppShell>

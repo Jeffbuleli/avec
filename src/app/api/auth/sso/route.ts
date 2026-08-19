@@ -45,5 +45,12 @@ export async function GET(req: Request) {
   const session = await signSessionToken(user.id, user.sessionVersion ?? 0);
   const res = NextResponse.redirect(new URL(next, url.origin));
   res.cookies.set(sessionCookieName(), session, getSessionCookieWriteOptions());
+  // Used by the e-AVEC UI to show a "Return to McBuleli" CTA after a handoff.
+  // Short-lived to avoid showing the CTA forever.
+  res.cookies.set(
+    "mb_came_from_mcbuleli",
+    "1",
+    getSessionCookieWriteOptions(30 * 60),
+  );
   return res;
 }
