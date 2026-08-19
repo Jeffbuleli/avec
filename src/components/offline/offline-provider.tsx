@@ -63,6 +63,16 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     return;
   }, [userId]);
 
+  const loadUserId = useCallback(async () => {
+    try {
+      const r = await fetch("/api/auth/me", { cache: "no-store" });
+      const data = (await r.json()) as { user?: { id?: string } };
+      setUserId(typeof data?.user?.id === "string" ? data.user.id : null);
+    } catch {
+      setUserId(null);
+    }
+  }, []);
+
   const syncNow = useCallback(async () => {
     if (syncing || !userId) return;
     setSyncing(true);
@@ -75,20 +85,27 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   }, [refresh, syncing, userId]);
 
   useEffect(() => {
-    setOnline(typeof navigator === "undefined" ? true : navigator.onLine);
-    void fetch("/api/auth/me", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        setUserId(typeof data?.user?.id === "string" ? data.user.id : null);
-      })
-      .catch(() => setUserId(null));
-  }, []);
+    void loadUserId();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void loadUserId();
+    };
+    window.addEventListener("focus", loadUserId);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", loadUserId);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [loadUserId]);
 
   useEffect(() => {
     void refresh();
+  }, [userId, refresh]);
+
+  useEffect(() => {
+    setOnline(typeof navigator === "undefined" ? true : navigator.onLine);
     const up = () => {
       setOnline(true);
-      void syncNow();
+      void loadUserId().then(() => syncNow());
     };
     const down = () => setOnline(false);
     window.addEventListener("online", up);
@@ -102,7 +119,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("offline", down);
       window.clearInterval(timer);
     };
-  }, [refresh, syncNow]);
+  }, [loadUserId, refresh, syncNow]);
 
   const setPrimaryDevice = useCallback(
     async (groupId: string, value: boolean) => {

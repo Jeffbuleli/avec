@@ -11,7 +11,8 @@ import { EavecBottomNav } from "@/components/eavec/bottom-nav";
 import { EavecSideNav } from "@/components/eavec/side-nav";
 import { EavecTopBar } from "@/components/eavec/top-bar";
 import { OfflineStatusBar } from "@/components/offline/offline-status-bar";
-import { getMcbuleliWalletUrl } from "@/lib/app-url";
+
+const MCBULELI_RETURN_PATH = "/app/wallet/groups";
 
 export function EavecAppShell({
   email,
@@ -58,9 +59,7 @@ export function EavecAppShell({
           {showReturnToMcbuleli ? (
             <div className="mb-3">
               <Link
-                href={`${getMcbuleliWalletUrl(
-                  "/app/wallet/groups",
-                )}?pwaInstall=1`}
+                href={`/app/mcbuleli-handoff?next=${encodeURIComponent(MCBULELI_RETURN_PATH)}`}
                 className="min-h-[44px] inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 text-sm font-semibold text-white active:scale-[0.99]"
               >
                 {returnLabel}

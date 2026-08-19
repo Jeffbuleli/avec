@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { MCBULELI_POWERED_LOGO } from "@/lib/brand-logo";
 
-const X_URL = "https://x.com/McBuleli";
-
 export function McBuleliPoweredFooter({ className = "" }: { className?: string }) {
   return (
     <footer
@@ -21,9 +19,7 @@ export function McBuleliPoweredFooter({ className = "" }: { className?: string }
           />
         </span>
         <Link
-          href={X_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/app/mcbuleli-handoff?next=%2Fapp%2Fwallet"
           className="font-extrabold text-[color:var(--fd-primary)] hover:underline"
         >
           McBuleli
