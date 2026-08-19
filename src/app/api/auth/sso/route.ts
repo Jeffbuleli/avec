@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyEavecHandoffToken } from "@/lib/eavec-handoff";
+import { CANONICAL_PRODUCTION_ORIGIN, resolveRequestPublicOrigin } from "@/lib/app-url";
 import { sessionCookieName, signSessionToken } from "@/lib/jwt";
 import { getSessionCookieWriteOptions } from "@/lib/session-cookie";
 import { safeAppRedirectPath } from "@/lib/safe-app-path";
@@ -9,12 +10,13 @@ import { eq } from "drizzle-orm";
 /** McBuleli → e-AVEC silent login (shared DB + JWT secret). */
 export async function GET(req: Request) {
   const url = new URL(req.url);
+  const origin = resolveRequestPublicOrigin(req, CANONICAL_PRODUCTION_ORIGIN);
   const token = url.searchParams.get("token")?.trim();
   const nextRaw = url.searchParams.get("next")?.trim() || "/app/wallet/groups";
   const next = safeAppRedirectPath(nextRaw);
 
   if (!token) {
-    return NextResponse.redirect(new URL("/login", url.origin));
+    return NextResponse.redirect(new URL("/login", origin));
   }
 
   let userId: string;
@@ -22,7 +24,7 @@ export async function GET(req: Request) {
     ({ userId } = await verifyEavecHandoffToken(token));
   } catch {
     return NextResponse.redirect(
-      new URL(`/login?next=${encodeURIComponent(next)}`, url.origin),
+      new URL(`/login?next=${encodeURIComponent(next)}`, origin),
     );
   }
 
@@ -38,12 +40,12 @@ export async function GET(req: Request) {
 
   if (!user) {
     return NextResponse.redirect(
-      new URL(`/login?next=${encodeURIComponent(next)}`, url.origin),
+      new URL(`/login?next=${encodeURIComponent(next)}`, origin),
     );
   }
 
   const session = await signSessionToken(user.id, user.sessionVersion ?? 0);
-  const res = NextResponse.redirect(new URL(next, url.origin));
+  const res = NextResponse.redirect(new URL(next, origin));
   res.cookies.set(sessionCookieName(), session, getSessionCookieWriteOptions());
   // Used by the e-AVEC UI to show a "Return to McBuleli" CTA after a handoff.
   // Short-lived to avoid showing the CTA forever.
