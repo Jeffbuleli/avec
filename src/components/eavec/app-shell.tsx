@@ -8,7 +8,6 @@ import { KycStatusPoller } from "@/components/kyc/kyc-status-poller";
 import { EavecBottomNav } from "@/components/eavec/bottom-nav";
 import { EavecSideNav } from "@/components/eavec/side-nav";
 import { EavecTopBar } from "@/components/eavec/top-bar";
-import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { OfflineStatusBar } from "@/components/offline/offline-status-bar";
 
 export function EavecAppShell({
@@ -54,9 +53,6 @@ export function EavecAppShell({
           </div>
           {children}
         </main>
-        <div className="hidden lg:block px-5">
-          <McBuleliPoweredFooter />
-        </div>
         <div className="lg:hidden">
           <EavecBottomNav />
         </div>

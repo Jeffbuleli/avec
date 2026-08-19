@@ -52,20 +52,20 @@ export function EavecLanding() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/register"
-                className="inline-flex min-h-[48px] items-center rounded-full bg-[#F6E8CD] px-6 text-sm font-extrabold text-[#0F2D2F] hover:bg-white"
+                className="inline-flex min-h-[50px] items-center rounded-full bg-[#F6E8CD] px-6 text-sm font-extrabold text-[#0F2D2F] shadow-[0_16px_40px_rgba(201,162,39,0.22)] hover:bg-white"
               >
                 {fr ? "Créer une AVEC" : "Create an AVEC"}
               </Link>
               <Link
                 href="/login?next=%2Fapp%2Fwallet%2Fgroups"
-                className="inline-flex min-h-[48px] items-center rounded-full border border-[#F6E8CD]/40 px-6 text-sm font-bold text-[#F6E8CD] hover:bg-[#F6E8CD]/10"
+                className="inline-flex min-h-[50px] items-center rounded-full border border-[#F6E8CD]/40 bg-white/5 px-6 text-sm font-bold text-[#F6E8CD] backdrop-blur hover:bg-[#F6E8CD]/10"
               >
                 {fr ? "Rejoindre un groupe" : "Join a group"}
               </Link>
             </div>
           </div>
           <div className="flex justify-center">
-            <div className="rounded-3xl border border-[#F6E8CD]/15 bg-[#0a2224] p-8 shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+            <div className="rounded-[2rem] border border-[#F6E8CD]/15 bg-[radial-gradient(circle_at_top,rgba(201,162,39,0.16),transparent_45%),#0a2224] p-8 shadow-[0_24px_90px_rgba(0,0,0,0.38)]">
               <Image
                 src="/brand/logo-mark.png"
                 alt=""
@@ -101,8 +101,9 @@ export function EavecLanding() {
           ].map((card) => (
             <article
               key={card.t}
-              className="rounded-2xl border border-[#F6E8CD]/15 bg-[#F6E8CD]/5 p-5"
+              className="rounded-[1.6rem] border border-[#F6E8CD]/12 bg-[linear-gradient(180deg,rgba(246,232,205,0.12),rgba(246,232,205,0.04))] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur"
             >
+              <div className="mb-3 h-1.5 w-12 rounded-full bg-[#C9A227]" />
               <h2 className="text-lg font-bold">{card.t}</h2>
               <p className="mt-2 text-sm leading-relaxed text-[#F6E8CD]/75">{card.d}</p>
             </article>

@@ -100,11 +100,14 @@ export type ProfileHubMeta = {
 export function ProfileSettingsList({
   meta,
   showAdmin,
+  variant = "default",
 }: {
   meta: ProfileHubMeta;
   showAdmin: boolean;
+  variant?: "default" | "eavec";
 }) {
   const { t } = useI18n();
+  const eavecMode = variant === "eavec";
 
   const kycApproved = isKycApproved(meta.kycStatus);
   const kycPending = ["pending", "manual_review"].includes(
@@ -222,51 +225,65 @@ export function ProfileSettingsList({
         />
       </SettingsSection>
 
-      <SettingsSection title={t("profile_section_trading")}>
-        <SettingsRow
-          href={`/app/p2p/merchant/${meta.userId}`}
-          icon={<ProfileIconMerchant />}
-          tone="mint"
-          title={t("profile_row_merchant")}
-          subtitle={t("profile_row_merchant_sub")}
-        />
-        <SettingsRow
-          href={communityHref}
-          icon={<ProfileIconCommunity />}
-          tone="sky"
-          title={t("profile_row_community")}
-          subtitle={communitySubtitle}
-        />
-        <SettingsRow
-          href="/app/academy"
-          icon={<ProfileIconAcademy />}
-          tone="forest"
-          title={t("profile_tile_academy")}
-        />
-      </SettingsSection>
+      {!eavecMode ? (
+        <>
+          <SettingsSection title={t("profile_section_trading")}>
+            <SettingsRow
+              href={`/app/p2p/merchant/${meta.userId}`}
+              icon={<ProfileIconMerchant />}
+              tone="mint"
+              title={t("profile_row_merchant")}
+              subtitle={t("profile_row_merchant_sub")}
+            />
+            <SettingsRow
+              href={communityHref}
+              icon={<ProfileIconCommunity />}
+              tone="sky"
+              title={t("profile_row_community")}
+              subtitle={communitySubtitle}
+            />
+            <SettingsRow
+              href="/app/academy"
+              icon={<ProfileIconAcademy />}
+              tone="forest"
+              title={t("profile_tile_academy")}
+            />
+          </SettingsSection>
 
-      <SettingsSection title={t("profile_section_integrations")}>
-        <SettingsRow
-          href="/app/profile/pi"
-          icon={<ProfileIconPi />}
-          tone="violet"
-          title={t("profile_tile_pi")}
-          subtitle={t("profile_tile_pi_sub")}
-          badge={meta.piLinked ? t("profile_status_linked") : t("profile_status_not_linked")}
-          badgeTone={meta.piLinked ? "ok" : "muted"}
-        />
-        <SettingsRow
-          href="/app/profile/api-keys"
-          icon={
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M8 11V7a4 4 0 118 0v4M6 11h12v10H6V11z" stroke="currentColor" strokeWidth="2" />
-            </svg>
-          }
-          tone="copper"
-          title={t("profile_api_keys_title")}
-          subtitle={t("profile_row_api_keys_sub")}
-        />
-        {showAdmin ? (
+          <SettingsSection title={t("profile_section_integrations")}>
+            <SettingsRow
+              href="/app/profile/pi"
+              icon={<ProfileIconPi />}
+              tone="violet"
+              title={t("profile_tile_pi")}
+              subtitle={t("profile_tile_pi_sub")}
+              badge={meta.piLinked ? t("profile_status_linked") : t("profile_status_not_linked")}
+              badgeTone={meta.piLinked ? "ok" : "muted"}
+            />
+            <SettingsRow
+              href="/app/profile/api-keys"
+              icon={
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M8 11V7a4 4 0 118 0v4M6 11h12v10H6V11z" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              }
+              tone="copper"
+              title={t("profile_api_keys_title")}
+              subtitle={t("profile_row_api_keys_sub")}
+            />
+            {showAdmin ? (
+              <SettingsRow
+                href="/app/profile/ops"
+                icon={<ProfileIconOps />}
+                tone="copper"
+                title={t("profile_tile_admin")}
+                subtitle={t("profile_ops_sub")}
+              />
+            ) : null}
+          </SettingsSection>
+        </>
+      ) : showAdmin ? (
+        <SettingsSection title={t("profile_section_integrations")}>
           <SettingsRow
             href="/app/profile/ops"
             icon={<ProfileIconOps />}
@@ -274,8 +291,8 @@ export function ProfileSettingsList({
             title={t("profile_tile_admin")}
             subtitle={t("profile_ops_sub")}
           />
-        ) : null}
-      </SettingsSection>
+        </SettingsSection>
+      ) : null}
 
       <section className="fd-card overflow-hidden p-0">
         <LogoutButton

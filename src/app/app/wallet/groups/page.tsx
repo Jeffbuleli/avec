@@ -140,7 +140,7 @@ export default function AvecHubPage() {
         {rows === null ? (
           <p className="text-[color:var(--fd-muted)]">…</p>
         ) : rows.length === 0 ? (
-          <div className="fd-card flex flex-col items-center gap-3 p-8 text-center">
+          <div className="fd-card flex flex-col items-center gap-3 rounded-[1.75rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf7)] p-8 text-center shadow-[0_16px_48px_rgba(15,45,47,0.08)]">
             <AvecListMark className="h-14 w-14" />
             <p className="text-sm font-bold text-[color:var(--fd-text)]">{t("group_hub_empty")}</p>
             <p className="max-w-xs text-[11px] leading-relaxed text-[color:var(--fd-muted)]">
@@ -157,7 +157,7 @@ export default function AvecHubPage() {
                 <li key={r.groupId}>
                   <Link
                     href={`/app/wallet/groups/${r.groupId}`}
-                    className="fd-card block p-3.5 active:scale-[0.99]"
+                    className="fd-card block rounded-[1.5rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf8)] p-3.5 shadow-[0_14px_36px_rgba(15,45,47,0.08)] active:scale-[0.99]"
                   >
                     <div className="flex items-center gap-3">
                       {r.logoUrl ? (
@@ -231,7 +231,7 @@ export default function AvecHubPage() {
         {discover === null ? (
           <p className="text-[color:var(--fd-muted)]">…</p>
         ) : discover.length === 0 ? (
-          <p className="fd-card px-3 py-4 text-center text-xs text-[color:var(--fd-muted)]">
+          <p className="fd-card rounded-[1.5rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf8)] px-3 py-4 text-center text-xs text-[color:var(--fd-muted)] shadow-[0_14px_36px_rgba(15,45,47,0.08)]">
             {t("group_discover_empty")}
           </p>
         ) : (
@@ -246,7 +246,7 @@ export default function AvecHubPage() {
                     <button
                       type="button"
                       onClick={() => setSheetGroup(g)}
-                      className="fd-card w-full p-3.5 text-left active:scale-[0.99]"
+                      className="fd-card w-full rounded-[1.5rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf8)] p-3.5 text-left shadow-[0_14px_36px_rgba(15,45,47,0.08)] active:scale-[0.99]"
                     >
                       <div className="flex items-center gap-3">
                         {g.logoUrl ? (

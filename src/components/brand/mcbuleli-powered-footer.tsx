@@ -1,8 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
-import { BRAND_LOGO_MARK_256 } from "@/lib/brand-logo";
 
 const X_URL = "https://x.com/McBuleli";
+const LOGO_URL = "https://mcbuleli.org/brand/logo-mark-256.png";
 
 export function McBuleliPoweredFooter({ className = "" }: { className?: string }) {
   return (
@@ -12,13 +11,13 @@ export function McBuleliPoweredFooter({ className = "" }: { className?: string }
       <div className="flex items-center gap-2 text-[10px] text-[color:var(--fd-muted)]">
         <span>Powered by</span>
         <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full">
-          <Image
-            src={BRAND_LOGO_MARK_256}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LOGO_URL}
             alt=""
             width={24}
             height={24}
             className="h-6 w-6 object-contain"
-            unoptimized
           />
         </span>
         <Link
