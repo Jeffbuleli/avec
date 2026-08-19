@@ -348,7 +348,7 @@ export function buildIspAccessOutreachEmail(args: {
   const isBroadcast = args.segment === "broadcast";
   const kicker = isBroadcast
     ? "Starlink - cybercafé - entreprise"
-    : SEGMENT_KICKER[args.segment];
+    : SEGMENT_KICKER[args.segment as Exclude<IspAccessSegment, "broadcast">];
   const greeting =
     args.greeting?.trim() ||
     (company ? `Bonjour l'équipe ${company},` : "Bonjour,");
