@@ -22,3 +22,14 @@ ops/vps/.env
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# Local clones / tools (not part of e-AVEC)
+/OpenWA/
+/Godot.app/
+/Godot_v4.3-stable_macos.universal.zip
+/McBuleliP2P.env
+/*.png
+!/public/**/*.png
+/drizzle-push*.log
+/migrate-*.log
+/godot/.godot/
