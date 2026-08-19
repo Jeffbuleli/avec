@@ -5,6 +5,7 @@ import { AvecProgressRing } from "@/components/groups/avec-charts";
 import { GroupStatusBadge } from "@/components/groups/group-status-badge";
 import { countryShortLabel } from "@/lib/country-label";
 import { avecCls } from "@/components/groups/avec-ui";
+import { GroupLogoImg } from "@/components/groups/group-logo-img";
 
 export function AvecGroupHero({
   name,
@@ -43,7 +44,7 @@ export function AvecGroupHero({
         {logoUrl ? (
           <span className="flex h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+            <GroupLogoImg url={logoUrl} />
           </span>
         ) : (
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)] text-sm font-black text-[color:var(--fd-primary)]">

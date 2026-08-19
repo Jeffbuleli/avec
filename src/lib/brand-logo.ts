@@ -7,6 +7,8 @@ export const BRAND_LOGO_1024 = "/brand/logo-1024.png";
 /** Circular mark with transparent corners — preferred in top bars / dark surfaces. */
 export const BRAND_LOGO_MARK_256 = "/brand/logo-mark-256.png";
 export const BRAND_LOGO_MARK_512 = "/brand/logo-mark-512.png";
+/** Local copy for « Powered by McBuleli » (avoids CSP / offline breakage). */
+export const MCBULELI_POWERED_LOGO = "/brand/mcbuleli-mark-256.png";
 
 /** Props Image recommandées pour netteté (pas d’optimisation qui adoucit). */
 export const brandLogoImageProps = {

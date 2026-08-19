@@ -72,12 +72,13 @@ export function AuthMarketingShell({
         </div>
         <div className="flex flex-col items-center gap-1.5">
           <Image
-            src="/brand/logo-256.png"
+            src="/brand/logo-mark-256.png"
             alt=""
             width={48}
             height={48}
             className="h-12 w-12 rounded-full ring-2 ring-[#0F2D2F]/20"
             priority
+            unoptimized
           />
           <span className="text-base font-extrabold tracking-tight text-stone-900">{t("brand")}</span>
         </div>

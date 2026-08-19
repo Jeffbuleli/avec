@@ -6,6 +6,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { countryShortLabel } from "@/lib/country-label";
 import { p2pDisplayName } from "@/lib/p2p-display";
 import { KycVerifiedBadge } from "@/components/kyc/kyc-verified-badge";
+import { GroupLogoImg } from "@/components/groups/group-logo-img";
 
 export function AvecTopBar({
   groupName,
@@ -51,8 +52,7 @@ export function AvecTopBar({
       <div className="flex shrink-0 justify-center">
         {groupLogoUrl ? (
           <span className="flex h-11 w-11 overflow-hidden rounded-full border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] shadow-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={groupLogoUrl} alt="" className="h-full w-full object-cover" />
+            <GroupLogoImg url={groupLogoUrl} />
           </span>
         ) : (
           <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">

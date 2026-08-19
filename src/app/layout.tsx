@@ -8,6 +8,7 @@ import { ConditionalLangSwitch } from "@/components/conditional-lang-switch";
 import { OfflineProvider } from "@/components/offline/offline-provider";
 import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import { PwaInstallBanner } from "@/components/pwa/install-banner";
+import { HostGuard } from "@/components/pwa/host-guard";
 import { SessionRefresher } from "@/components/auth/session-refresher";
 import { CANONICAL_PRODUCTION_ORIGIN, getMetadataOrigin } from "@/lib/app-url";
 
@@ -97,6 +98,7 @@ export default async function RootLayout({
           <I18nProvider initialLocale={locale}>
             <OfflineProvider>
               <RegisterServiceWorker />
+              <HostGuard />
               <ConditionalLangSwitch />
               <PwaInstallBanner />
               <SessionRefresher />

@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { MCBULELI_POWERED_LOGO } from "@/lib/brand-logo";
 
 const X_URL = "https://x.com/McBuleli";
-const LOGO_URL = "https://mcbuleli.org/brand/logo-mark-256.png";
 
 export function McBuleliPoweredFooter({ className = "" }: { className?: string }) {
   return (
@@ -13,7 +13,7 @@ export function McBuleliPoweredFooter({ className = "" }: { className?: string }
         <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={LOGO_URL}
+            src={MCBULELI_POWERED_LOGO}
             alt=""
             width={24}
             height={24}

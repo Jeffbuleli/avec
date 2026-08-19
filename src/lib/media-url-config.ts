@@ -1,7 +1,9 @@
-/** Hostnames allowed to serve community / academy media in CSP and next/image. */
+/** Hostnames allowed to serve community / academy / e-AVEC media in CSP and next/image. */
 const DEFAULT_MEDIA_HOSTNAMES = [
   "media.mcbuleli.org",
   "cdn.mcbuleli.org",
+  "mcbuleli.org",
+  "e-avec.org",
 ] as const;
 
 function hostnameFromEnvUrl(envKey: string): string | null {
@@ -19,6 +21,7 @@ export function mediaPublicHostnames(): string[] {
   for (const key of [
     "COMMUNITY_R2_PUBLIC_BASE_URL",
     "ACADEMY_R2_PUBLIC_BASE_URL",
+    "EAVEC_R2_PUBLIC_BASE_URL",
   ]) {
     const h = hostnameFromEnvUrl(key);
     if (h) hosts.add(h);
@@ -50,10 +53,19 @@ export function normalizePublicMediaUrl(
 
   try {
     const parsed = new URL(trimmed);
-    const canonicalBase = process.env.COMMUNITY_R2_PUBLIC_BASE_URL?.trim();
-    if (canonicalBase && parsed.hostname.endsWith(".r2.dev")) {
-      const base = new URL(canonicalBase);
-      return `${base.origin}${parsed.pathname}${parsed.search}`;
+    const rewriteBases = [
+      process.env.EAVEC_R2_PUBLIC_BASE_URL?.trim(),
+      process.env.COMMUNITY_R2_PUBLIC_BASE_URL?.trim(),
+    ].filter(Boolean) as string[];
+    if (parsed.hostname.endsWith(".r2.dev")) {
+      for (const baseRaw of rewriteBases) {
+        try {
+          const base = new URL(baseRaw);
+          return `${base.origin}${parsed.pathname}${parsed.search}`;
+        } catch {
+          // try next base
+        }
+      }
     }
     return parsed.href;
   } catch {

@@ -21,7 +21,7 @@ export async function PublicPageShell({
       <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/brand/logo-256.png" alt="" width={32} height={32} className="h-8 w-8 rounded-full ring-2 ring-[#305F33]/20" />
+            <Image src="/brand/logo-mark-256.png" alt="" width={32} height={32} className="h-8 w-8 rounded-full ring-2 ring-[#305F33]/20" unoptimized />
             <span className="text-sm font-extrabold">{d.brand}</span>
           </Link>
           <div className="flex items-center gap-2">

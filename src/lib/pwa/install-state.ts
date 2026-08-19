@@ -113,7 +113,7 @@ export async function hasInstalledRelatedWebApp(): Promise<boolean> {
 export function shouldRedirectToCanonical(): string | null {
   if (typeof window === "undefined") return null;
   const host = window.location.hostname.toLowerCase();
-  const canonical = "mcbuleli.org";
+  const canonical = "e-avec.org";
   if (host === canonical || host === `www.${canonical}`) return null;
   if (host.endsWith(".onrender.com") || host === "localhost") return null;
   return `https://${canonical}${window.location.pathname}${window.location.search}`;

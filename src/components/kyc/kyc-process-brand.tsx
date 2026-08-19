@@ -11,7 +11,7 @@ export function KycProcessBrandHeader() {
     <header className="flex items-center gap-3 border-b border-[color:var(--fd-border)]/60 bg-white/80 px-5 py-3.5">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[color:var(--fd-mint)] ring-1 ring-[color:var(--fd-primary)]/15">
         <Image
-          src="/brand/logo.png"
+          src="/brand/logo-mark-256.png"
           alt=""
           width={32}
           height={32}
@@ -39,7 +39,7 @@ export function KycProcessBrandFooter() {
       <div className="flex items-center gap-2">
         <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-[color:var(--fd-primary)]/10">
           <Image
-            src="/brand/logo.png"
+            src="/brand/logo-mark-256.png"
             alt=""
             width={22}
             height={22}

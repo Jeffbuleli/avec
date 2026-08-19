@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { AvecListMark } from "@/components/groups/avec-icons";
+import { GroupLogoImg } from "@/components/groups/group-logo-img";
 import { GroupStatusBadge } from "@/components/groups/group-status-badge";
 import {
   AvecDiscoverSheet,
@@ -163,8 +164,7 @@ export default function AvecHubPage() {
                     <div className="flex items-center gap-3">
                       {r.logoUrl ? (
                         <span className="flex h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[color:var(--fd-border)]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={r.logoUrl} alt="" className="h-full w-full object-cover" />
+                          <GroupLogoImg url={r.logoUrl} />
                         </span>
                       ) : (
                         <AvecListMark />
@@ -252,8 +252,7 @@ export default function AvecHubPage() {
                       <div className="flex items-center gap-3">
                         {g.logoUrl ? (
                           <span className="flex h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[color:var(--fd-border)]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={g.logoUrl} alt="" className="h-full w-full object-cover" />
+                            <GroupLogoImg url={g.logoUrl} />
                           </span>
                         ) : (
                           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">

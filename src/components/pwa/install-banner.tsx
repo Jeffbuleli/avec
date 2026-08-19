@@ -16,6 +16,7 @@ import {
   shouldRedirectToCanonical,
   wasPromptedThisSession,
 } from "@/lib/pwa/install-state";
+import { resolveCanonicalRedirect } from "@/lib/app-url";
 
 const PROMPT_DELAY_MS = 1800;
 const NAV_PROMPT_DELAY_MS = 1000;
@@ -47,6 +48,12 @@ export function PwaInstallBanner() {
 
   useEffect(() => {
     if (isStandaloneDisplay()) return;
+
+    const devRedirect = resolveCanonicalRedirect();
+    if (devRedirect) {
+      window.location.replace(devRedirect);
+      return;
+    }
 
     const redirect = shouldRedirectToCanonical();
     if (redirect) {
