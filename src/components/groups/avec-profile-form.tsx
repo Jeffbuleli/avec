@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { avecCls } from "@/components/groups/avec-ui";
+import { GroupLogoImg } from "@/components/groups/group-logo-img";
 import { clientErrorText } from "@/lib/client-error-text";
+import { prepareCommunityImageBlob } from "@/lib/community-image";
 
 export function AvecProfileForm({
   groupId,
@@ -28,6 +30,7 @@ export function AvecProfileForm({
   const [email, setEmail] = useState(initial.contactEmail ?? "");
   const [desc, setDesc] = useState(initial.publicDescription ?? "");
   const [logoPreview, setLogoPreview] = useState(initial.logoUrl);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -42,12 +45,64 @@ export function AvecProfileForm({
 
   async function onLogoFile(file: File | null) {
     if (!file) return;
-    const buf = await file.arrayBuffer();
-    const b64 = btoa(
-      new Uint8Array(buf).reduce((s, byte) => s + String.fromCharCode(byte), ""),
-    );
-    const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
-    setLogoPreview(`data:${mime};base64,${b64}`);
+    setErr(null);
+    setLogoUploading(true);
+    try {
+      let uploadFile: File;
+      try {
+        const prep = await prepareCommunityImageBlob(file);
+        uploadFile = new File([prep.blob], "logo.webp", { type: prep.mime });
+      } catch {
+        uploadFile = file;
+      }
+
+      const form = new FormData();
+      form.append("file", uploadFile);
+      const res = await fetch(`/api/groups/${groupId}/logo`, {
+        method: "POST",
+        body: form,
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        logoUrl?: string;
+      };
+
+      if (res.ok && typeof data.logoUrl === "string") {
+        setLogoPreview(data.logoUrl);
+        return;
+      }
+
+      if (data.error === "eavec_r2_not_configured" || data.error === "eavec_r2_upload_failed") {
+        const buf = await file.arrayBuffer();
+        const b64 = btoa(
+          new Uint8Array(buf).reduce((s, byte) => s + String.fromCharCode(byte), ""),
+        );
+        const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+        setLogoPreview(`data:${mime};base64,${b64}`);
+        setErr(data.error);
+        return;
+      }
+
+      setErr(data.error ?? "group_logo_upload_failed");
+    } finally {
+      setLogoUploading(false);
+    }
+  }
+
+  async function removeLogo() {
+    setErr(null);
+    setLogoUploading(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/logo`, { method: "DELETE" });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setErr(data.error ?? "group_action_failed");
+        return;
+      }
+      setLogoPreview(null);
+    } finally {
+      setLogoUploading(false);
+    }
   }
 
   async function save() {
@@ -82,22 +137,39 @@ export function AvecProfileForm({
       <p className={avecCls.sectionTitle}>{t("avec_profile_title")}</p>
       <div className="flex items-center gap-3">
         {logoPreview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={logoPreview} alt="" className="h-14 w-14 rounded-full object-cover" />
+          <div className="h-14 w-14 overflow-hidden rounded-full ring-1 ring-[color:var(--fd-border)]">
+            <GroupLogoImg url={logoPreview} />
+          </div>
         ) : (
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--fd-mint)] text-sm font-black text-[color:var(--fd-primary)]">
             {name.slice(0, 2).toUpperCase()}
           </span>
         )}
-        <label className="text-xs font-semibold text-[color:var(--fd-primary)]">
-          {t("avec_profile_logo")}
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="mt-1 block text-[10px]"
-            onChange={(e) => void onLogoFile(e.target.files?.[0] ?? null)}
-          />
-        </label>
+        <div className="min-w-0 flex-1 space-y-1">
+          <label className="block text-xs font-semibold text-[color:var(--fd-primary)]">
+            {t("avec_profile_logo")}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              disabled={logoUploading || busy}
+              className="mt-1 block w-full text-[10px]"
+              onChange={(e) => void onLogoFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          {logoPreview ? (
+            <button
+              type="button"
+              disabled={logoUploading || busy}
+              onClick={() => void removeLogo()}
+              className="text-[10px] font-semibold text-rose-700 underline"
+            >
+              {t("avec_profile_logo_remove")}
+            </button>
+          ) : null}
+          {logoUploading ? (
+            <p className="text-[10px] text-[color:var(--fd-muted)]">{t("avec_profile_logo_uploading")}</p>
+          ) : null}
+        </div>
       </div>
       <label className="block">
         <span className={avecCls.sectionTitle}>{t("group_field_name")}</span>
@@ -120,7 +192,12 @@ export function AvecProfileForm({
         <textarea value={desc} onChange={(e) => setDesc(e.target.value)} className={`${avecCls.input} min-h-[72px]`} />
       </label>
       {err ? <p className="text-xs text-rose-700">{clientErrorText(t, err)}</p> : null}
-      <button type="button" disabled={busy} onClick={() => void save()} className={avecCls.btnPrimary}>
+      <button
+        type="button"
+        disabled={busy || logoUploading}
+        onClick={() => void save()}
+        className={avecCls.btnPrimary}
+      >
         {t("group_settings_save")}
       </button>
     </div>

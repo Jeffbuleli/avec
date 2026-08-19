@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { validateGroupLogoUrl } from "@/lib/group-logo-url";
 import { getSessionUserId } from "@/lib/session";
 import { updateGroupProfile } from "@/lib/group-savings-profile";
 
@@ -24,10 +25,18 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json({ error: "group_invalid_body" }, { status: 400 });
   }
+  const data = parsed.data;
+  if (data.logoUrl !== undefined) {
+    const logo = validateGroupLogoUrl(data.logoUrl);
+    if (!logo.ok) {
+      return NextResponse.json({ error: logo.error }, { status: 400 });
+    }
+    data.logoUrl = logo.value;
+  }
   const r = await updateGroupProfile({
     groupId: id,
     actorUserId: userId,
-    ...parsed.data,
+    ...data,
   });
   if (!r.ok) return NextResponse.json({ error: r.message }, { status: 400 });
   return NextResponse.json({ ok: true });

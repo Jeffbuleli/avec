@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { channelLogoPath } from "@/lib/partner-logos";
 
 /** Channel icons for fiat history / deposit flows. */
@@ -36,13 +37,21 @@ export function FiatChannelIcon({
   className?: string;
 }) {
   const logo = channelLogoPath(channel);
-  if (logo) {
+  const [logoFailed, setLogoFailed] = useState(false);
+  if (logo && !logoFailed) {
     return (
       <span
         className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[color:var(--fd-border)] ${className}`}
         aria-hidden
       >
-        <Image src={logo} alt="" fill className="object-contain p-0.5" unoptimized />
+        <Image
+          src={logo}
+          alt=""
+          fill
+          className="object-contain p-0.5"
+          unoptimized
+          onError={() => setLogoFailed(true)}
+        />
       </span>
     );
   }

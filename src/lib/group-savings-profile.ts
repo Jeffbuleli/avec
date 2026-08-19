@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb, groupSavingsGroups } from "@/db";
+import { validateGroupLogoUrl } from "@/lib/group-logo-url";
 import { writeGroupAudit } from "@/lib/group-savings-audit";
 import { hasRole, getMyMembershipOrNull } from "@/lib/group-savings-permissions";
 
@@ -38,10 +39,9 @@ export async function updateGroupProfile(args: {
     patch.name = n;
   }
   if (args.logoUrl !== undefined) {
-    if (args.logoUrl && args.logoUrl.length > 600_000) {
-      return { ok: false, message: "group_logo_too_large" };
-    }
-    patch.logoUrl = args.logoUrl;
+    const logo = validateGroupLogoUrl(args.logoUrl);
+    if (!logo.ok) return { ok: false, message: logo.error };
+    patch.logoUrl = logo.value;
   }
   if (args.address !== undefined) patch.address = args.address?.trim() || null;
   if (args.contactPhone !== undefined) {
