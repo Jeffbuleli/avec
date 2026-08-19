@@ -196,7 +196,7 @@ export function AvecMeetingPanel({
 
       <div className={avecCls.section}>
         <p className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
-          {t("avec_buy_shares")} · {shareValue.toFixed(2)} USDT
+          {t("avec_buy_shares")} · {shareValue.toFixed(2)} USD
         </p>
         <div className="mt-3 flex flex-wrap justify-center gap-2">
           {Array.from({ length: maxShares }, (_, i) => i + 1).map((n) => (
@@ -224,7 +224,7 @@ export function AvecMeetingPanel({
           ) : null}
           <span className="text-[10px] font-bold text-[color:var(--fd-muted)]">=</span>
           <span className="rounded-full bg-[color:var(--fd-primary)] px-3 py-1 text-sm font-black tabular-nums text-white">
-            {meetingTotal.toFixed(2)} USDT
+            {meetingTotal.toFixed(2)} USD
           </span>
         </div>
 
@@ -280,7 +280,7 @@ export function AvecMeetingPanel({
                     ) : null}
                   </div>
                   <p className="shrink-0 font-mono text-xs font-bold tabular-nums text-[color:var(--fd-primary)]">
-                    {row.total.toFixed(2)} USDT
+                    {row.total.toFixed(2)} USD
                   </p>
                 </li>
               ))}

@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LangSwitch } from "@/components/lang-switch";
+import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { useI18n } from "@/components/i18n-provider";
-import { getMcbuleliWalletUrl } from "@/lib/app-url";
 
 export function EavecLanding() {
   const { locale } = useI18n();
@@ -46,8 +46,8 @@ export function EavecLanding() {
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-[#F6E8CD]/80">
               {fr
-                ? "Parts, caisse sociale, crédits internes, gouvernance et clôture de cycle — sur e-avec.org. Le portefeuille USDT reste chez McBuleli, sur le même serveur et la même base."
-                : "Shares, social fund, internal loans, governance and cycle share-out — on e-avec.org. The USDT wallet stays with McBuleli, on the same server and database."}
+                ? "Parts, caisse sociale, crédits internes, gouvernance et clôture de cycle — en USD et CDF, avec dépôt Mobile Money pour l’inclusion financière."
+                : "Shares, social fund, internal loans, governance and cycle share-out — in USD and CDF, with Mobile Money deposits for financial inclusion."}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -93,10 +93,10 @@ export function EavecLanding() {
                 : "Roles, votes, internal loans and cycle closure, tracked to the cent.",
             },
             {
-              t: fr ? "Caisse USDT" : "USDT treasury",
+              t: fr ? "Mobile Money" : "Mobile Money",
               d: fr
-                ? "Alimentez via McBuleli. Les AVEC partagent la même base Postgres."
-                : "Fund via McBuleli. AVEC groups share the same Postgres database.",
+                ? "Dépôt et retrait USD/CDF via Orange, M-Pesa et Airtel (PawaPay)."
+                : "USD/CDF deposit and withdraw via Orange, M-Pesa and Airtel (PawaPay).",
             },
           ].map((card) => (
             <article
@@ -110,12 +110,7 @@ export function EavecLanding() {
         </section>
       </main>
 
-      <footer className="border-t border-[#F6E8CD]/10 px-5 py-8 text-center text-xs text-[#F6E8CD]/55">
-        e-AVEC · {fr ? "propulsé par" : "powered by"}{" "}
-        <a href={getMcbuleliWalletUrl("/")} className="font-semibold text-[#C9A227] hover:underline">
-          McBuleli
-        </a>
-      </footer>
+      <McBuleliPoweredFooter className="border-[#F6E8CD]/10 [&_span]:text-[#F6E8CD]/55 [&_a]:text-[#C9A227]" />
     </div>
   );
 }

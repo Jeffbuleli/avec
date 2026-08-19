@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
 import { APP_NAV_ITEMS, isAppNavActive } from "@/lib/app-nav-items";
 import { BRAND_LOGO_MARK_256 } from "@/lib/brand-logo";
-import { getMcbuleliWalletUrl } from "@/lib/app-url";
 
 export function EavecSideNav() {
   const pathname = usePathname();
@@ -52,12 +51,6 @@ export function EavecSideNav() {
           );
         })}
       </nav>
-      <a
-        href={getMcbuleliWalletUrl()}
-        className="mt-auto rounded-xl border border-[color:var(--fd-border)] px-3 py-2 text-xs font-semibold text-[#0F2D2F]/70 hover:bg-[#F6E8CD]"
-      >
-        {fr ? "Portefeuille McBuleli" : "McBuleli wallet"}
-      </a>
     </aside>
   );
 }

@@ -31,9 +31,9 @@ export function AvecClosureDecisionMessage({
         <dt className="text-[color:var(--fd-muted)]">{t("group_closure_cycle")}</dt>
         <dd className="font-bold">#{m.cycleNumber}</dd>
         <dt className="text-[color:var(--fd-muted)]">{t("group_closure_distributed")}</dt>
-        <dd className="font-bold">{m.distributableUsdt.toFixed(2)} USDT</dd>
+        <dd className="font-bold">{m.distributableUsdt.toFixed(2)} USD</dd>
         <dt className="text-[color:var(--fd-muted)]">{t("group_closure_final_share")}</dt>
-        <dd>{m.finalShareValueUsdt.toFixed(4)} USDT</dd>
+        <dd>{m.finalShareValueUsdt.toFixed(4)} USD</dd>
         <dt className="text-[color:var(--fd-muted)]">{t("group_payout_initiated_by")}</dt>
         <dd>{m.initiatedByDisplay}</dd>
         <dt className="text-[color:var(--fd-muted)]">{t("group_payout_approved_by")}</dt>

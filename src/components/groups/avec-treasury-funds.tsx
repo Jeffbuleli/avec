@@ -94,7 +94,7 @@ export function AvecTreasuryFunds({
     void load();
   }, [load, onRefreshKey]);
 
-  const fmt = (n: number) => `${n.toFixed(2)} USDT`;
+  const fmt = (n: number) => `${n.toFixed(2)} USD`;
 
   return (
     <div className={avecCls.section}>
@@ -106,7 +106,7 @@ export function AvecTreasuryFunds({
           <p className={avecCls.sectionTitle}>{t("avec_treasury_title")}</p>
           <p className="text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
             {funds ? funds.totalUsdt.toFixed(0) : "…"}
-            <span className="ml-1 text-xs font-bold">USDT</span>
+            <span className="ml-1 text-xs font-bold">USD</span>
           </p>
         </div>
       </div>
@@ -119,7 +119,7 @@ export function AvecTreasuryFunds({
                 <span>{t("avec_treasury_outflow_24h")}</span>
                 <span className="font-mono tabular-nums">
                   {(funds.outflowLast24hUsdt ?? 0).toFixed(0)} / {funds.outflowCapUsdt.toFixed(0)}{" "}
-                  USDT
+                  USD
                 </span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-sky-100">

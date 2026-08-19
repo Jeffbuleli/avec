@@ -5,7 +5,7 @@ import {
   SUPPORT_X,
 } from "@/lib/support-contact";
 
-export const EMAIL_DEFAULT_FROM = "McBuleli <noreply@mcbuleli.org>";
+export const EMAIL_DEFAULT_FROM = "e-AVEC <noreply@e-avec.org>";
 
 export const EMAIL_BRAND = {
   primary: "#305f33",

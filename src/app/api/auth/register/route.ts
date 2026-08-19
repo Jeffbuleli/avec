@@ -5,7 +5,7 @@ export const maxDuration = 60;
 import { getDb, users } from "@/db";
 import { findReferrerByCode } from "@/lib/referral-service";
 import { friendlyAuthError } from "@/lib/auth-errors";
-import { assertEmailAvailable } from "@/lib/auth/email-uniqueness";
+import { assertEmailAvailable, findUserByAuthEmail } from "@/lib/auth/email-uniqueness";
 import { isSuperAdminEmail, UserRole } from "@/lib/roles";
 import { isDisplayNameTaken } from "@/lib/display-name-uniqueness";
 import { registerSchema } from "@/lib/validation";
@@ -56,6 +56,45 @@ export async function POST(req: Request) {
     const { email, password, referralCode, countryCode, displayName, returnPath } =
       parsed.data;
     const db = getDb();
+
+    const existingUser = await findUserByAuthEmail(email);
+    if (existingUser) {
+      if (await bcrypt.compare(password, existingUser.passwordHash)) {
+        const token = await signSessionToken(
+          existingUser.id,
+          existingUser.sessionVersion ?? 0,
+        );
+        const { userNeedsEmailVerification } = await import(
+          "@/lib/auth/email-verified-gate"
+        );
+        const emailVerified = !userNeedsEmailVerification({
+          email: existingUser.email,
+          emailVerifiedAt: existingUser.emailVerifiedAt,
+        });
+        const res = NextResponse.json({
+          user: {
+            id: existingUser.id,
+            email: existingUser.email,
+            role: existingUser.role,
+            emailVerified,
+          },
+          linkedExistingAccount: true,
+        });
+        res.cookies.set(
+          sessionCookieName(),
+          token,
+          getSessionCookieWriteOptions(),
+        );
+        return res;
+      }
+      return NextResponse.json(
+        {
+          message: "auth_email_taken",
+          loginUrl: `/login?email=${encodeURIComponent(email)}`,
+        },
+        { status: 409 },
+      );
+    }
 
     const emailCheck = await assertEmailAvailable({ rawEmail: email });
     if (!emailCheck.ok) {

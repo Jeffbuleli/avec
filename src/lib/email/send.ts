@@ -8,11 +8,19 @@ import type { ResendInlineAttachment } from "@/lib/email/email-inline-images";
 
 export { appBaseUrl };
 
+function resendApiKey(): string {
+  return (
+    process.env.RESEND_E_AVEC?.trim() ||
+    process.env.RESEND_API_KEY?.trim() ||
+    ""
+  );
+}
+
 async function resendFetch(
   path: string,
   init: RequestInit,
 ): Promise<{ ok: boolean; status: number; body: string }> {
-  const key = process.env.RESEND_API_KEY?.trim();
+  const key = resendApiKey();
   if (!key) {
     return { ok: false, status: 0, body: "missing_api_key" };
   }
@@ -36,7 +44,7 @@ async function resendFetch(
 
 /** Whether Resend API will be called (prod always; local needs RESEND_ALLOW_SEND). */
 export function canSendViaResendApi(): boolean {
-  if (!process.env.RESEND_API_KEY?.trim()) return false;
+  if (!resendApiKey()) return false;
   if (process.env.NODE_ENV === "production") return true;
   const allow = (process.env.RESEND_ALLOW_SEND ?? "").trim().toLowerCase();
   return allow === "1" || allow === "true" || allow === "yes";
@@ -44,8 +52,8 @@ export function canSendViaResendApi(): boolean {
 
 /** Human-readable reason when canSendViaResendApi() is false. */
 export function resendSendBlockedReason(): string | null {
-  if (!process.env.RESEND_API_KEY?.trim()) {
-    return "RESEND_API_KEY manquant dans .env";
+  if (!resendApiKey()) {
+    return "RESEND_E_AVEC (ou RESEND_API_KEY) manquant dans .env";
   }
   if (process.env.NODE_ENV === "production") return null;
   const allow = (process.env.RESEND_ALLOW_SEND ?? "").trim().toLowerCase();

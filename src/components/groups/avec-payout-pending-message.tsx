@@ -73,7 +73,7 @@ export function AvecPayoutPendingMessage({
             {t("group_payout_pending_badge")}
           </p>
           <p className="truncate text-lg font-black tabular-nums text-amber-950">
-            {meta.amountUsdt.toFixed(2)} <span className="text-xs font-bold">USDT</span>
+            {meta.amountUsdt.toFixed(2)} <span className="text-xs font-bold">USD</span>
           </p>
         </div>
       </div>

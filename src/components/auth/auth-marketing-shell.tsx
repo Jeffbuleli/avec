@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LangSwitch } from "@/components/lang-switch";
+import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { useI18n } from "@/components/i18n-provider";
 
 function BackHomeIcon({ className }: { className?: string }) {
@@ -93,6 +94,7 @@ export function AuthMarketingShell({
       </div>
 
       {footer}
+      <McBuleliPoweredFooter />
     </div>
   );
 }

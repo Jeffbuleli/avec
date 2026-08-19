@@ -208,7 +208,7 @@ export function AvecOverviewPanel({
             </p>
             <p className="mt-0.5 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
               {group.balanceUsdt.toFixed(0)}
-              <span className="ml-0.5 text-xs font-bold">USDT</span>
+              <span className="ml-0.5 text-xs font-bold">USD</span>
             </p>
             <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
               {t("avec_vue_saved_members", { amount: totalSaved.toFixed(0) })}
@@ -220,7 +220,7 @@ export function AvecOverviewPanel({
             </p>
             <p className="mt-0.5 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
               {funds ? funds.availableUsdt.toFixed(0) : "—"}
-              <span className="ml-0.5 text-xs font-bold">USDT</span>
+              <span className="ml-0.5 text-xs font-bold">USD</span>
             </p>
             <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">{t("avec_treasury_available_hint")}</p>
           </div>

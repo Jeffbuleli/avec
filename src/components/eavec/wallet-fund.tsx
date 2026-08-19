@@ -1,19 +1,36 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { useI18n } from "@/components/i18n-provider";
-import { getMcbuleliWalletUrl } from "@/lib/app-url";
+import {
+  EAVEC_PRIMARY_CURRENCY,
+  EAVEC_SECONDARY_CURRENCY,
+  eavecDisplayAsset,
+} from "@/lib/eavec-currency";
 import { BRAND_LOGO_MARK_256 } from "@/lib/brand-logo";
 
 type WalletSummary = {
   lines?: { asset?: string; balance?: string | number }[];
 };
 
+function formatBalance(asset: string, balance: string, locale: "fr" | "en") {
+  const n = Number(balance);
+  if (!Number.isFinite(n)) return balance;
+  const loc = locale === "fr" ? "fr-FR" : "en-US";
+  if (asset === "CDF") {
+    return `${Math.round(n).toLocaleString(loc)} ${EAVEC_SECONDARY_CURRENCY}`;
+  }
+  return `${n.toLocaleString(loc, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${EAVEC_PRIMARY_CURRENCY}`;
+}
+
 export function EavecWalletFundPage() {
   const { locale } = useI18n();
   const fr = locale === "fr";
-  const [usdt, setUsdt] = useState<string | null>(null);
+  const [usd, setUsd] = useState<string | null>(null);
+  const [cdf, setCdf] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,13 +43,23 @@ export function EavecWalletFundPage() {
         setErr(data.error ?? "wallet_not_found");
         return;
       }
-      const row = data.lines?.find((b) => b.asset === "USDT");
-      setUsdt(row?.balance != null ? String(row.balance) : "0");
+      const usdRow = data.lines?.find(
+        (b) => eavecDisplayAsset(b.asset ?? "") === EAVEC_PRIMARY_CURRENCY,
+      );
+      const cdfRow = data.lines?.find((b) => b.asset === EAVEC_SECONDARY_CURRENCY);
+      setUsd(
+        usdRow?.balance != null
+          ? String(usdRow.balance)
+          : data.lines?.find((b) => b.asset === "USDT")?.balance != null
+            ? String(data.lines!.find((b) => b.asset === "USDT")!.balance)
+            : "0",
+      );
+      setCdf(cdfRow?.balance != null ? String(cdfRow.balance) : "0");
     })();
   }, []);
 
   return (
-    <div className="mx-auto max-w-lg pb-8 pt-2">
+    <div className="mx-auto max-w-lg pb-4 pt-2">
       <div className="flex items-center gap-3">
         <Image
           src={BRAND_LOGO_MARK_256}
@@ -52,32 +79,54 @@ export function EavecWalletFundPage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl bg-[#0F2D2F] p-6 text-[#F6E8CD]">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
-          USDT
-        </p>
-        <p className="mt-2 text-4xl font-black tabular-nums">
-          {err ? "—" : usdt ?? "…"}
-        </p>
-        <p className="mt-3 text-sm leading-relaxed text-[#F6E8CD]/75">
-          {fr
-            ? "Les parts AVEC sont débitées de ce solde. Déposez ou retirez sur McBuleli — même compte, même base."
-            : "AVEC shares are debited from this balance. Deposit or withdraw on McBuleli — same account, same database."}
-        </p>
+      <p className="mt-3 text-sm leading-relaxed text-[#0F2D2F]/70">
+        {fr
+          ? "Dépôt et retrait via Mobile Money (Orange, M-Pesa, Airtel). Les parts AVEC sont débitées de votre solde USD."
+          : "Deposit and withdraw via Mobile Money (Orange, M-Pesa, Airtel). AVEC shares are debited from your USD balance."}
+      </p>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-3xl bg-[#0F2D2F] p-5 text-[#F6E8CD]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
+            {EAVEC_PRIMARY_CURRENCY}
+          </p>
+          <p className="mt-2 text-3xl font-black tabular-nums">
+            {err ? "—" : usd != null ? formatBalance("USD", usd, locale) : "…"}
+          </p>
+        </div>
+        <div className="rounded-3xl border border-[#0F2D2F]/15 bg-[#F6E8CD]/40 p-5 text-[#0F2D2F]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#0F2D2F]/50">
+            {EAVEC_SECONDARY_CURRENCY}
+          </p>
+          <p className="mt-2 text-3xl font-black tabular-nums">
+            {err ? "—" : cdf != null ? formatBalance("CDF", cdf, locale) : "…"}
+          </p>
+        </div>
       </div>
 
-      <a
-        href={getMcbuleliWalletUrl()}
-        className="mt-5 flex min-h-[52px] items-center justify-center rounded-2xl bg-[#0F2D2F] px-5 text-sm font-extrabold text-[#F6E8CD]"
-      >
-        {fr ? "Alimenter / retirer sur McBuleli" : "Fund / withdraw on McBuleli"}
-      </a>
-      <a
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <Link
+          href="/app/wallet/fiat/deposit?asset=USD"
+          className="flex min-h-[52px] items-center justify-center rounded-2xl bg-[#0F2D2F] px-5 text-sm font-extrabold text-[#F6E8CD]"
+        >
+          {fr ? "Dépôt Mobile Money" : "Mobile Money deposit"}
+        </Link>
+        <Link
+          href="/app/wallet/fiat/withdraw?asset=USD"
+          className="flex min-h-[52px] items-center justify-center rounded-2xl border border-[#0F2D2F]/20 px-5 text-sm font-bold text-[#0F2D2F]"
+        >
+          {fr ? "Retrait Mobile Money" : "Mobile Money withdraw"}
+        </Link>
+      </div>
+
+      <Link
         href="/app/wallet/groups"
         className="mt-3 flex min-h-[48px] items-center justify-center rounded-2xl border border-[#0F2D2F]/20 px-5 text-sm font-bold text-[#0F2D2F]"
       >
         {fr ? "Retour aux AVEC" : "Back to AVEC groups"}
-      </a>
+      </Link>
+
+      <McBuleliPoweredFooter />
     </div>
   );
 }

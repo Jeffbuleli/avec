@@ -8,6 +8,7 @@ import { KycStatusPoller } from "@/components/kyc/kyc-status-poller";
 import { EavecBottomNav } from "@/components/eavec/bottom-nav";
 import { EavecSideNav } from "@/components/eavec/side-nav";
 import { EavecTopBar } from "@/components/eavec/top-bar";
+import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 
 export function EavecAppShell({
   email,
@@ -47,6 +48,9 @@ export function EavecAppShell({
           </div>
         ) : null}
         <main className="flex-1 px-4 pt-2 md:px-5 lg:px-6">{children}</main>
+        <div className="hidden lg:block px-5">
+          <McBuleliPoweredFooter />
+        </div>
         <div className="lg:hidden">
           <EavecBottomNav />
         </div>

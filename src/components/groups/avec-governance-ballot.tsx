@@ -198,7 +198,7 @@ export function AvecGovernanceBallot({
           {meta.financialImpactUsdt != null ? (
             <p className="mt-0.5 text-lg font-black tabular-nums text-violet-950">
               {meta.financialImpactUsdt.toFixed(2)}{" "}
-              <span className="text-xs font-bold">USDT</span>
+              <span className="text-xs font-bold">USD</span>
             </p>
           ) : null}
           {ballot?.impactLines?.map((line) => (

@@ -48,7 +48,7 @@ export function AvecPayoutDecisionMessage({
         <div className="flex justify-between gap-2">
           <dt className="text-[color:var(--fd-muted)]">{t("group_payout_decision_amount")}</dt>
           <dd className="font-bold tabular-nums text-[color:var(--fd-primary)]">
-            {meta.amountUsdt.toFixed(2)} USDT
+            {meta.amountUsdt.toFixed(2)} USD
           </dd>
         </div>
         <div className="flex justify-between gap-2">

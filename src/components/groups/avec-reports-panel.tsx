@@ -113,7 +113,7 @@ export function AvecReportsPanel({ groupId }: { groupId: string }) {
                     </p>
                   </div>
                   <p className="font-mono text-xs font-bold tabular-nums text-[color:var(--fd-primary)]">
-                    {Number(x.amount).toFixed(2)} USDT
+                    {Number(x.amount).toFixed(2)} USD
                   </p>
                 </li>
               ))}

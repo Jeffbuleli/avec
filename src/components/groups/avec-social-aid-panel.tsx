@@ -120,7 +120,7 @@ export function AvecSocialAidPanel({
           {data ? (
             <p className="mt-2 text-lg font-black tabular-nums text-amber-900">
               {data.socialBalanceUsdt.toFixed(2)}{" "}
-              <span className="text-xs font-bold">USDT</span>
+              <span className="text-xs font-bold">USD</span>
               <span className="ml-1 text-[10px] font-semibold text-[color:var(--fd-muted)]">
                 {t("avec_fund_social")}
               </span>
@@ -225,7 +225,7 @@ export function AvecSocialAidPanel({
                 </span>
               </div>
               <p className="mt-0.5 text-sm font-black tabular-nums text-amber-900">
-                {r.amountUsdt.toFixed(2)} USDT · {t(`avec_social_aid_type_${r.aidType}` as keyof typeof t)}
+                {r.amountUsdt.toFixed(2)} USD · {t(`avec_social_aid_type_${r.aidType}` as keyof typeof t)}
               </p>
               <p className="mt-0.5 line-clamp-2 text-[10px] text-[color:var(--fd-muted)]">
                 {r.justification}

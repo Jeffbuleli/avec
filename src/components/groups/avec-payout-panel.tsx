@@ -179,7 +179,7 @@ export function AvecPayoutPanel({
           </p>
           <p className="mt-2 text-lg font-black tabular-nums text-[color:var(--fd-text)]">
             {active.amountUsdt.toFixed(2)}{" "}
-            <span className="text-sm font-bold">USDT</span>
+            <span className="text-sm font-bold">USD</span>
             <span className="text-sm font-bold text-amber-800"> → {active.beneficiaryDisplay}</span>
           </p>
           <p className="text-[10px] text-[color:var(--fd-muted)]">
@@ -261,7 +261,7 @@ export function AvecPayoutPanel({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
-            placeholder="USDT"
+            placeholder="USD"
             className={avecCls.input}
           />
           <button

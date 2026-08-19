@@ -241,7 +241,7 @@ export function AvecClosurePanel({
           </p>
           <p className="mt-1 text-lg font-black tabular-nums text-violet-950">
             {state.collectiveVote.distributableUsdt.toFixed(2)}{" "}
-            <span className="text-sm font-bold">USDT</span>
+            <span className="text-sm font-bold">USD</span>
           </p>
           <p className="text-[10px] font-semibold text-violet-800">
             {t("group_gov_vote_closes_at")}:{" "}
@@ -256,7 +256,7 @@ export function AvecClosurePanel({
           </p>
           <p className="mt-1 text-lg font-black tabular-nums text-violet-950">
             {state.pending.distributableUsdt.toFixed(2)}{" "}
-            <span className="text-sm font-bold">USDT</span>
+            <span className="text-sm font-bold">USD</span>
           </p>
           <p className="text-[10px] font-semibold text-violet-800">
             {t("group_closure_approvals_progress", {
@@ -319,7 +319,7 @@ export function AvecClosurePanel({
             </div>
           ))}
           <p className="text-center text-[10px] font-semibold text-[color:var(--fd-muted)]">
-            {snap.finalShareValueUsdt.toFixed(4)} USDT / {t("group_closure_shares_short")}
+            {snap.finalShareValueUsdt.toFixed(4)} USD / {t("group_closure_shares_short")}
           </p>
         </div>
       ) : null}

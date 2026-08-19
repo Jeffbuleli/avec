@@ -20,7 +20,7 @@ const poppins = Poppins({
 const metadataBaseUrl = getMetadataOrigin() || undefined;
 
 const desc =
-  "e-AVEC — associations villageoises d’épargne et de crédit numériques. Parts, caisse sociale, crédits internes et gouvernance. Portefeuille USDT McBuleli.";
+  "e-AVEC — associations villageoises d’épargne et de crédit numériques. Parts, caisse sociale, crédits internes et gouvernance. USD, CDF et Mobile Money.";
 
 const ogImageAlt = "e-AVEC — digital village savings groups";
 
