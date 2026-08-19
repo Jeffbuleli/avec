@@ -49,8 +49,9 @@ export default async function AppLayout({
     redirect(VERIFY_EMAIL_PENDING_PATH);
   }
 
+  const cookieStore = await cookies();
   const cameFromMcbuleli =
-    cookies().get("mb_came_from_mcbuleli")?.value === "1";
+    cookieStore.get("mb_came_from_mcbuleli")?.value === "1";
 
   return (
     <EavecAppShell
