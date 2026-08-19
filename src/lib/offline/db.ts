@@ -12,19 +12,13 @@ const CACHE_STORE = "cache";
 const DRAFTS_STORE = "drafts";
 const META_STORE = "meta";
 
-type StoreName =
-  | typeof ACTIONS_STORE
-  | typeof CACHE_STORE
-  | typeof DRAFTS_STORE
-  | typeof META_STORE;
-
 function supportsIndexedDb(): boolean {
   return typeof window !== "undefined" && "indexedDB" in window;
 }
 
 export async function openOfflineDb(): Promise<IDBDatabase | null> {
   if (!supportsIndexedDb()) return null;
-  return await new Promise((resolve, reject) => {
+  return await new Promise<IDBDatabase>((resolve, reject) => {
     const req = window.indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
@@ -47,23 +41,6 @@ export async function openOfflineDb(): Promise<IDBDatabase | null> {
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error ?? new Error("indexeddb_open_failed"));
-  }).catch(() => null);
-}
-
-async function withStore<T>(
-  storeName: StoreName,
-  mode: IDBTransactionMode,
-  cb: (store: IDBObjectStore) => void,
-): Promise<T | null> {
-  const db = await openOfflineDb();
-  if (!db) return null;
-  return await new Promise<T | null>((resolve, reject) => {
-    const tx = db.transaction(storeName, mode);
-    const store = tx.objectStore(storeName);
-    cb(store);
-    tx.oncomplete = () => resolve(null);
-    tx.onerror = () => reject(tx.error ?? new Error("indexeddb_tx_failed"));
-    tx.onabort = () => reject(tx.error ?? new Error("indexeddb_tx_aborted"));
   }).catch(() => null);
 }
 
