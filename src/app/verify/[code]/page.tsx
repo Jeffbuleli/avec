@@ -56,10 +56,10 @@ export default async function VerifyCredentialPage({
           </a>
         ) : null}
         <a
-          href="https://mcbuleli.org"
+          href="https://e-avec.org"
           className="mt-6 block text-center text-sm font-semibold text-[#305f33]"
         >
-          mcbuleli.org
+          e-avec.org
         </a>
       </div>
       <p className="mt-4 text-center text-[10px] text-stone-400">

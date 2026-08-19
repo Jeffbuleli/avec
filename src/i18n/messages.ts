@@ -5,21 +5,21 @@ export type Messages = typeof en;
 export const en = {
   lang_en: "EN",
   lang_fr: "FR",
-  brand: "McBuleli",
-  pwa_install_title: "Install McBuleli",
-  pwa_install_desktop_title: "Install McBuleli on this device",
+  brand: "e-AVEC",
+  pwa_install_title: "Install e-AVEC",
+  pwa_install_desktop_title: "Install e-AVEC on this device",
   pwa_install_body:
-    "Add McBuleli to your phone home screen for one-tap access and a full-screen app experience.",
+    "Add e-AVEC to your phone home screen for one-tap access and a full-screen app experience.",
   pwa_install_ios_body:
-    'Tap Share, then "Add to Home Screen" to install McBuleli like an app on your phone.',
+    'Tap Share, then "Add to Home Screen" to install e-AVEC like an app on your phone.',
   pwa_install_ios_tablet_body:
-    'Tap Share, then "Add to Home Screen" to install McBuleli like an app on this tablet.',
+    'Tap Share, then "Add to Home Screen" to install e-AVEC like an app on this tablet.',
   pwa_install_fallback_body:
     'Open your browser menu (⋮) and choose "Install app" or "Add to Home screen".',
   pwa_install_tablet_body:
-    "Install McBuleli on this tablet for a faster, full-screen experience - no app store needed.",
+    "Install e-AVEC on this tablet for a faster, full-screen experience - no app store needed.",
   pwa_install_desktop_body:
-    "Install McBuleli from your browser for a dedicated window and quicker access - or open mcbuleli.org on your phone and tap Install.",
+    "Install e-AVEC from your browser for a dedicated window and quicker access - or open e-avec.org on your phone and tap Install.",
   pwa_install_cta: "Install",
   pwa_install_later: "Later",
   pwa_install_got_it: "Got it",
@@ -33,9 +33,9 @@ export const en = {
   pwa_install_ios_step1: "Tap Share at the bottom of Safari",
   pwa_install_ios_step2: 'Scroll and tap "Add to Home Screen"',
   pwa_install_ios_step3: 'Tap "Add" - McBuleli appears on your home screen',
-  pwa_open_in_app_title: "Open in McBuleli app",
+  pwa_open_in_app_title: "Open in e-AVEC app",
   pwa_open_in_app_body:
-    "You already installed McBuleli on this device. Open the app for the same session and faster access.",
+    "You already installed e-AVEC on this device. Open the app for the same session and faster access.",
   pwa_open_in_app_cta: "Open app",
   home_title: "Buy and sell crypto with mobile money in Africa",
   home_sub:
@@ -577,7 +577,7 @@ export const en = {
   pi_uid_already_linked: "This Pi account is already linked to another user.",
   auth_pi_failed: "Pi sign-in failed. Please try again.",
   auth_pi_browser_required:
-    "Open https://mcbuleli.org/login in Pi Browser, then tap “Continue with Pi”.",
+    "Open https://e-avec.org/login in Pi Browser, then tap \"Continue with Pi\".",
   auth_pi_timeout:
     "Pi sign-in took too long. Use email and password below, or open this page in Pi Browser and tap “Continue with Pi”.",
   pi_pay_section_title: "Pi payments",
@@ -4500,21 +4500,21 @@ export const en = {
 export const fr: Messages = {
   lang_en: "EN",
   lang_fr: "FR",
-  brand: "McBuleli",
-  pwa_install_title: "Installer McBuleli",
-  pwa_install_desktop_title: "Installer McBuleli sur cet appareil",
+  brand: "e-AVEC",
+  pwa_install_title: "Installer e-AVEC",
+  pwa_install_desktop_title: "Installer e-AVEC sur cet appareil",
   pwa_install_body:
-    "Ajoutez McBuleli à l'écran d'accueil du téléphone pour un accès en un tap et une expérience plein écran.",
+    "Ajoutez e-AVEC à l'écran d'accueil du téléphone pour un accès en un tap et une expérience plein écran.",
   pwa_install_ios_body:
-    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer McBuleli comme une app sur votre téléphone.',
+    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer e-AVEC comme une app sur votre téléphone.',
   pwa_install_ios_tablet_body:
-    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer McBuleli comme une app sur cette tablette.',
+    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer e-AVEC comme une app sur cette tablette.',
   pwa_install_fallback_body:
     'Ouvrez le menu du navigateur (⋮) et choisissez "Installer l\'application" ou "Ajouter à l\'écran d\'accueil".',
   pwa_install_tablet_body:
-    "Installez McBuleli sur cette tablette pour une expérience plus rapide en plein écran - sans passer par un store.",
+    "Installez e-AVEC sur cette tablette pour une expérience plus rapide en plein écran - sans passer par un store.",
   pwa_install_desktop_body:
-    "Installez McBuleli depuis le navigateur pour une fenêtre dédiée - ou ouvrez mcbuleli.org sur votre téléphone et touchez Installer.",
+    "Installez e-AVEC depuis le navigateur pour une fenêtre dédiée - ou ouvrez e-avec.org sur votre téléphone et touchez Installer.",
   pwa_install_cta: "Installer",
   pwa_install_later: "Plus tard",
   pwa_install_got_it: "Compris",
@@ -4524,13 +4524,13 @@ export const fr: Messages = {
   pwa_install_open_safari_body:
     "L'installation ne marche pas dans WhatsApp, Instagram ou les autres navigateurs intégrés. Copiez le lien, ouvrez Safari, collez-le, puis Partager - Sur l'écran d'accueil.",
   pwa_install_ios_use_safari_body:
-    "Sur iPhone, installez McBuleli depuis Safari (pas Chrome). Copiez ce lien, ouvrez Safari, collez-le, puis touchez Partager - Sur l'écran d'accueil.",
+    "Sur iPhone, installez e-AVEC depuis Safari (pas Chrome). Copiez ce lien, ouvrez Safari, collez-le, puis touchez Partager - Sur l'écran d'accueil.",
   pwa_install_ios_step1: "Touchez Partager en bas de Safari",
   pwa_install_ios_step2: 'Faites défiler et touchez "Sur l\'écran d\'accueil"',
-  pwa_install_ios_step3: 'Touchez "Ajouter" - McBuleli apparaît sur l\'écran d\'accueil',
-  pwa_open_in_app_title: "Ouvrir l'app McBuleli",
+  pwa_install_ios_step3: 'Touchez "Ajouter" - e-AVEC apparaît sur l\'écran d\'accueil',
+  pwa_open_in_app_title: "Ouvrir l'app e-AVEC",
   pwa_open_in_app_body:
-    "McBuleli est déjà installé sur cet appareil. Ouvrez l'application pour la même session et un accès plus rapide.",
+    "e-AVEC est déjà installé sur cet appareil. Ouvrez l'application pour la même session et un accès plus rapide.",
   pwa_open_in_app_cta: "Ouvrir l'app",
   home_title: "Achetez et vendez des cryptos avec le mobile money en Afrique",
   home_sub:
@@ -5079,7 +5079,7 @@ export const fr: Messages = {
   pi_uid_already_linked: "Ce compte Pi est déjà lié à un autre utilisateur.",
   auth_pi_failed: "Connexion Pi impossible. Réessayez.",
   auth_pi_browser_required:
-    "Ouvrez https://mcbuleli.org/login dans Pi Browser, puis « Continuer avec Pi ».",
+    "Ouvrez https://e-avec.org/login dans Pi Browser, puis « Continuer avec Pi ».",
   auth_pi_timeout:
     "La connexion Pi a expiré. Utilisez e-mail et mot de passe ci‑dessous, ou ouvrez cette page dans Pi Browser puis « Continuer avec Pi ».",
   pi_pay_section_title: "Paiements Pi",

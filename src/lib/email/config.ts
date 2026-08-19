@@ -35,7 +35,7 @@ export function partnershipPublicBaseUrl(): string {
 export function emailAssetBaseUrl(): string {
   const override = process.env.EMAIL_ASSET_BASE_URL?.trim().replace(/\/$/, "");
   if (override) return override;
-  return "https://mcbuleli.org";
+  return CANONICAL_PRODUCTION_ORIGIN;
 }
 
 /** Public URL (site / docs only). Emails embed PNGs inline. */
