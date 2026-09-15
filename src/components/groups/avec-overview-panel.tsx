@@ -15,6 +15,9 @@ import {
 } from "@/components/groups/avec-illustrations";
 import { AvecVueGovernanceCard } from "@/components/groups/avec-vue-governance-card";
 import { AvecGovernanceHub } from "@/components/groups/avec-governance-hub";
+import { AvecAiInsightsCard } from "@/components/groups/avec-ai-insights-card";
+import { AvecFinancialPassportPanel } from "@/components/groups/avec-financial-passport-panel";
+import { AvecMemberQuickActions } from "@/components/groups/avec-member-quick-actions";
 import { avecCls } from "@/components/groups/avec-ui";
 import { p2pDisplayName } from "@/lib/p2p-display";
 import type { GovernanceVoteMeta } from "@/lib/avec/governance/types";
@@ -35,10 +38,6 @@ type FundBuckets = {
   lentUsdt: number;
   creditUsdt?: number;
   availableUsdt: number;
-  pendingLocalUsdt: number;
-  coveredUsdt: number;
-  coverageRatioPct: number;
-  retirableUsdt: number;
 };
 
 function cycleProgressPct(createdAt: string, cycleDays: number): number {
@@ -185,6 +184,12 @@ export function AvecOverviewPanel({
 
   return (
     <div className="space-y-3">
+      <AvecMemberQuickActions
+        groupId={groupId}
+        onGoMeeting={() => onNavigate("meeting")}
+        onGoTreasury={() => onNavigate("treasury")}
+      />
+
       {openVote ? (
         <AvecVueGovernanceCard
           groupId={groupId}
@@ -201,6 +206,14 @@ export function AvecOverviewPanel({
         onOpenDialogue={() => onNavigate("dialogue")}
       />
 
+      <AvecAiInsightsCard groupId={groupId} />
+
+      {myUserId ? (
+        <div id="avec-passport">
+          <AvecFinancialPassportPanel groupId={groupId} />
+        </div>
+      ) : null}
+
       <div className={`${avecCls.section} space-y-3`}>
         <p className="text-[9px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
           {t("avec_vue_treasury")}
@@ -212,7 +225,7 @@ export function AvecOverviewPanel({
             </p>
             <p className="mt-0.5 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
               {group.balanceUsdt.toFixed(0)}
-              <span className="ml-0.5 text-xs font-bold">USD</span>
+              <span className="ml-0.5 text-xs font-bold">USDT</span>
             </p>
             <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
               {t("avec_vue_saved_members", { amount: totalSaved.toFixed(0) })}
@@ -220,33 +233,15 @@ export function AvecOverviewPanel({
           </div>
           <div className="rounded-xl border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)]/50 px-3 py-2.5">
             <p className="text-[9px] font-bold uppercase text-[color:var(--fd-primary)]">
-              Retirable
+              {t("avec_fund_available")}
             </p>
             <p className="mt-0.5 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
-              {funds ? funds.retirableUsdt.toFixed(0) : "—"}
-              <span className="ml-0.5 text-xs font-bold">USD</span>
+              {funds ? funds.availableUsdt.toFixed(0) : "-"}
+              <span className="ml-0.5 text-xs font-bold">USDT</span>
             </p>
-            <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
-              Couvert et disponible pour decaissement
-            </p>
+            <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">{t("avec_treasury_available_hint")}</p>
           </div>
         </div>
-        {funds ? (
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
-              <p className="text-[9px] font-bold uppercase text-amber-950">Cash local</p>
-              <p className="mt-0.5 text-lg font-black tabular-nums text-amber-950">
-                {funds.pendingLocalUsdt.toFixed(0)} <span className="text-xs font-bold">USD</span>
-              </p>
-            </div>
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
-              <p className="text-[9px] font-bold uppercase text-emerald-950">Couverture</p>
-              <p className="mt-0.5 text-lg font-black tabular-nums text-emerald-950">
-                {funds.coverageRatioPct}% <span className="text-xs font-bold">liquide</span>
-              </p>
-            </div>
-          </div>
-        ) : null}
       </div>
 
       {funds ? (

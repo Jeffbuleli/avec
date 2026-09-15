@@ -6,7 +6,6 @@ import { useI18n } from "@/components/i18n-provider";
 import { countryShortLabel } from "@/lib/country-label";
 import { clientErrorText } from "@/lib/client-error-text";
 import { AvecProgressRing } from "@/components/groups/avec-charts";
-import { GroupLogoImg } from "@/components/groups/group-logo-img";
 
 export type DiscoverGroup = {
   groupId: string;
@@ -18,8 +17,7 @@ export type DiscoverGroup = {
   maxMembers: number;
   memberCount: number;
   shareValueUsdt: number;
-  inviteCode: string | null;
-  joinHref: string | null;
+  joinHref: string;
 };
 
 export function AvecDiscoverSheet({
@@ -69,7 +67,7 @@ export function AvecDiscoverSheet({
           {group.logoUrl ? (
             <span className="flex h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[color:var(--fd-border)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <GroupLogoImg url={group.logoUrl} />
+              <img src={group.logoUrl} alt="" className="h-full w-full object-cover" />
             </span>
           ) : (
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">
@@ -103,7 +101,7 @@ export function AvecDiscoverSheet({
             </p>
           </div>
           <p className="text-[10px] text-[color:var(--fd-muted)]">
-            {t("group_field_share_value")}: {group.shareValueUsdt.toFixed(0)} USD
+            {t("group_field_share_value")}: {group.shareValueUsdt.toFixed(0)} USDT
           </p>
         </div>
 

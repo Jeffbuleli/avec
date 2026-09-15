@@ -266,6 +266,8 @@ export async function listDiscoverableGroups(args: { userId: string; limit?: num
       : undefined,
   );
 
+  // Do not select inviteCode here — discovery is public metadata only.
+  // Join requires an invite code entered by the user or shared by a manager.
   const rows = await db
     .select({
       groupId: groupSavingsGroups.id,
@@ -276,7 +278,6 @@ export async function listDiscoverableGroups(args: { userId: string; limit?: num
       publicDescription: groupSavingsGroups.publicDescription,
       maxMembers: groupSavingsGroups.maxMembers,
       contributionAmountUsdt: groupSavingsGroups.contributionAmountUsdt,
-      inviteCode: groupSavingsGroups.inviteCode,
     })
     .from(groupSavingsGroups)
     .where(whereClause)
@@ -315,10 +316,8 @@ export async function listDiscoverableGroups(args: { userId: string; limit?: num
       maxMembers: r.maxMembers,
       memberCount: memberCounts.get(r.groupId) ?? 0,
       shareValueUsdt: numFromNumeric(r.contributionAmountUsdt?.toString()),
-      inviteCode: r.inviteCode ?? null,
-      joinHref: r.inviteCode
-        ? `/app/wallet/groups/join?code=${encodeURIComponent(r.inviteCode)}`
-        : null,
+      // Join is via /app/wallet/groups/join with a code — never returned from discover.
+      joinHref: "/app/wallet/groups/join",
     })),
   };
 }
@@ -687,7 +686,6 @@ export async function contributeToGroup(args: {
   userId: string;
   amountUsdt?: number;
   shares?: number;
-  paymentSource?: "wallet" | "cash_local";
 }) {
   const db = getDb();
   const m = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.userId });
@@ -733,20 +731,18 @@ export async function contributeToGroup(args: {
   const amtStr = fmtWalletAmount(amt);
   const socialStr = socialPerMeeting > 0 ? fmtWalletAmount(socialPerMeeting) : null;
   const batchId = randomUUID();
-  const paymentSource = args.paymentSource === "cash_local" ? "cash_local" : "wallet";
 
   try {
     await db.transaction(async (tx) => {
-      if (paymentSource === "wallet") {
-        const [u] = await tx
-          .select({ bal: users.balance })
-          .from(users)
-          .where(eq(users.id, args.userId))
-          .limit(1);
-        const bal = numFromNumeric(u?.bal?.toString());
-        if (bal + 1e-18 < totalDue) throw new Error("insufficient");
-        await debitUserAsset(tx, args.userId, "USDT", fmtWalletAmount(totalDue));
-      }
+      const [u] = await tx
+        .select({ bal: users.balance })
+        .from(users)
+        .where(eq(users.id, args.userId))
+        .limit(1);
+      const bal = numFromNumeric(u?.bal?.toString());
+      if (bal + 1e-18 < totalDue) throw new Error("insufficient");
+
+      await debitUserAsset(tx, args.userId, "USDT", fmtWalletAmount(totalDue));
       await tx.insert(groupWalletLedgerEntries).values({
         batchId,
         groupId: args.groupId,
@@ -756,9 +752,6 @@ export async function contributeToGroup(args: {
         meta: {
           userId: args.userId,
           ...fundBucketMeta("savings"),
-          paymentSource,
-          liquidityState:
-            paymentSource === "cash_local" ? "pending_local_centralization" : "covered",
           ...(shares != null ? { shares } : {}),
         },
       });
@@ -772,24 +765,19 @@ export async function contributeToGroup(args: {
           meta: {
             userId: args.userId,
             ...fundBucketMeta("social"),
-            paymentSource,
-            liquidityState:
-              paymentSource === "cash_local" ? "pending_local_centralization" : "covered",
           },
         });
       }
-      if (paymentSource === "wallet") {
-        await insertWalletLedgerLines(tx, [
-          {
-            batchId,
-            userId: args.userId,
-            entryType: "group_contribution_out",
-            asset: "USDT",
-            amount: `-${fmtWalletAmount(totalDue)}`,
-            meta: { groupId: args.groupId },
-          },
-        ]);
-      }
+      await insertWalletLedgerLines(tx, [
+        {
+          batchId,
+          userId: args.userId,
+          entryType: "group_contribution_out",
+          asset: "USDT",
+          amount: `-${fmtWalletAmount(totalDue)}`,
+          meta: { groupId: args.groupId },
+        },
+      ]);
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "";
@@ -800,13 +788,8 @@ export async function contributeToGroup(args: {
   await writeGroupAudit({
     groupId: args.groupId,
     actorUserId: args.userId,
-    action: paymentSource === "cash_local" ? "cash_contribution_recorded" : "contribution_made",
-    after: {
-      amountUsdt: amt,
-      paymentSource,
-      totalDueUsdt: totalDue,
-      ...(shares != null ? { shares } : {}),
-    },
+    action: "contribution_made",
+    after: { amountUsdt: amt, ...(shares != null ? { shares } : {}) },
   });
 
   const [u] = await db
@@ -820,9 +803,7 @@ export async function contributeToGroup(args: {
   await insertGroupActivitySystemMessage({
     groupId: args.groupId,
     actorUserId: args.userId,
-    body: `${u?.email ?? "Member"} → ${amt.toFixed(2)} USDT${partsLabel}${socialLabel}${
-      paymentSource === "cash_local" ? " · cash local" : ""
-    }`,
+    body: `${u?.email ?? "Member"} → ${amt.toFixed(2)} USDT${partsLabel}${socialLabel}`,
   });
   await notifyGroupMembers({
     groupId: args.groupId,
@@ -836,46 +817,6 @@ export async function contributeToGroup(args: {
     },
   });
 
-  await ensureGroupSubscriptionUpToDate({ groupId: args.groupId });
-  return { ok: true as const };
-}
-
-export async function recordGroupCashCoverage(args: {
-  groupId: string;
-  actorUserId: string;
-  amountUsdt: number;
-  note?: string;
-}) {
-  const db = getDb();
-  const actor = await getMyMembershipOrNull({ groupId: args.groupId, userId: args.actorUserId });
-  if (!hasRole(actor, ["admin", "co_admin"])) {
-    return { ok: false as const, message: "group_forbidden" };
-  }
-  if (!Number.isFinite(args.amountUsdt) || args.amountUsdt <= 0) {
-    return { ok: false as const, message: "group_invalid_amount" };
-  }
-  const batchId = randomUUID();
-  await db.insert(groupWalletLedgerEntries).values({
-    batchId,
-    groupId: args.groupId,
-    entryType: "group_cash_coverage_note",
-    asset: "USDT",
-    amount: "0",
-    meta: {
-      by: args.actorUserId,
-      coverageAmountUsdt: Number(args.amountUsdt.toFixed(2)),
-      note: args.note?.trim() || null,
-    },
-  });
-  await writeGroupAudit({
-    groupId: args.groupId,
-    actorUserId: args.actorUserId,
-    action: "cash_liquidity_covered",
-    after: {
-      amountUsdt: Number(args.amountUsdt.toFixed(2)),
-      note: args.note?.trim() || null,
-    },
-  });
   await ensureGroupSubscriptionUpToDate({ groupId: args.groupId });
   return { ok: true as const };
 }
