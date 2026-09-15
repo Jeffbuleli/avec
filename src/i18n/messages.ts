@@ -2334,6 +2334,8 @@ export const en = {
   avec_ai_snapshot_line: "{savings} USDT · {members} members · cycle {cycle}",
   avec_ai_source: "Source",
   avec_ai_insights_error: "Could not load insights.",
+  avec_ai_disclaimer:
+    "Insights use only group aggregates you can access. AI never invents figures and never decides loans.",
   avec_passport_title: "Financial Passport",
   avec_passport_member: "Member",
   avec_passport_since: "Member since",
@@ -6894,6 +6896,8 @@ export const fr: Messages = {
   avec_ai_snapshot_line: "{savings} USDT · {members} membres · cycle {cycle}",
   avec_ai_source: "Source",
   avec_ai_insights_error: "Impossible de charger les insights.",
+  avec_ai_disclaimer:
+    "Les insights n'utilisent que les agrégats du groupe auxquels vous avez accès. L'IA n'invente aucun chiffre et ne décide jamais un crédit.",
   avec_passport_title: "Passeport financier",
   avec_passport_member: "Membre",
   avec_passport_since: "Membre depuis",
