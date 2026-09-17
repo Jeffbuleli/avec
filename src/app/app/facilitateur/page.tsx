@@ -79,9 +79,6 @@ export default function FacilitateurPage() {
             <Link href="/app/wallet/groups" className={avecCls.btnGhost}>
               AVEC
             </Link>
-            <Link href="/demo" className={avecCls.btnGhost}>
-              Demo
-            </Link>
           </div>
         </div>
       ) : groups.length > 0 ? (

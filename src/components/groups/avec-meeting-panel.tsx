@@ -5,9 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { ListPagination, useListPagination } from "@/components/ui/list-pagination";
 import { AvecIconShares, AvecIconSolidarity } from "@/components/groups/avec-icons";
-import { IlluMeeting } from "@/components/groups/avec-illustrations";
-import { avecCls, AvecMoneyNote } from "@/components/groups/avec-ui";
-import { AvecLiteracyHint } from "@/components/groups/avec-literacy-hint";
+import { avecCls } from "@/components/groups/avec-ui";
 import { clientErrorText } from "@/lib/client-error-text";
 import {
   isSocialFundPerMeetingMisconfigured,
@@ -26,7 +24,7 @@ export function AvecMeetingPanel({
   onPay,
   onSocialFixed,
   paySuccess = false,
-  members = [],
+  members: _members = [],
   walletBalanceUsdt = null,
 }: {
   groupId?: string;
@@ -48,7 +46,6 @@ export function AvecMeetingPanel({
   const [fixSocial, setFixSocial] = useState("");
   const [fixBusy, setFixBusy] = useState(false);
   const [fixErr, setFixErr] = useState<string | null>(null);
-  const [present, setPresent] = useState<Record<string, boolean>>({});
 
   const sharesTotal = shareValue * shares;
   const meetingTotal = sharesTotal + socialFundPerMeeting;
@@ -58,7 +55,6 @@ export function AvecMeetingPanel({
     shareValue,
     maxShares,
   );
-  const approved = members.filter((m) => m.status === "approved");
 
   async function pay() {
     setJustPaid(false);
@@ -144,30 +140,13 @@ export function AvecMeetingPanel({
     );
   }, [history]);
 
-  const histPag = useListPagination(batches, 10);
+  const histPag = useListPagination(batches, 5);
   const loc = locale === "fr" ? "fr-FR" : "en-US";
   const insufficient =
     walletBalanceUsdt != null && walletBalanceUsdt + 1e-9 < meetingTotal;
 
   return (
     <div className="space-y-3">
-      <div className={`${avecCls.section} relative overflow-hidden`}>
-        <span className="absolute -right-1 top-0 text-[color:var(--fd-primary)] opacity-[0.14]">
-          <IlluMeeting className="h-20 w-24" />
-        </span>
-        <div className="relative flex items-start gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)]">
-            <AvecIconShares className="h-6 w-6" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-[color:var(--fd-text)]">{t("avec_tab_meeting")}</p>
-            <p className="mt-0.5 text-[10px] leading-snug text-[color:var(--fd-muted)]">
-              {t("avec_meeting_checkout_hint")}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {misconfigured ? (
         <div
           className="rounded-2xl border-2 border-rose-200 bg-rose-50/90 px-3 py-2.5"
@@ -176,8 +155,8 @@ export function AvecMeetingPanel({
           <p className="text-xs font-bold text-rose-900">{t("avec_social_misconfigured_title")}</p>
           <p className="mt-1 text-[10px] text-rose-800">
             {t("avec_social_misconfigured_body", {
-              current: socialFundPerMeeting.toFixed(2),
-              max: socialMax.toFixed(2),
+              current: socialFundPerMeeting.toFixed(0),
+              max: socialMax.toFixed(0),
             })}
           </p>
           {canFixSocial && groupId ? (
@@ -259,7 +238,6 @@ export function AvecMeetingPanel({
             </strong>
           </p>
         ) : null}
-        <AvecMoneyNote>{t("avec_money_ledger_note")}</AvecMoneyNote>
 
         <button
           type="button"
@@ -271,14 +249,6 @@ export function AvecMeetingPanel({
             ? t("avec_meeting_insufficient")
             : t("avec_meeting_confirm_pay", { amount: avecMoney(meetingTotal) })}
         </button>
-        <AvecLiteracyHint
-          fr={locale === "fr" ? "Payer les parts" : "Pay shares"}
-          ln="Futa biparti"
-          sw="Lipa hisa"
-        />
-        <p className="mt-2 text-center text-[10px] text-[color:var(--fd-muted)]">
-          {t("avec_wallet_debit")}
-        </p>
         {showPaid ? (
           <p
             className="mt-3 flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-xs font-semibold text-emerald-900"
@@ -289,38 +259,6 @@ export function AvecMeetingPanel({
           </p>
         ) : null}
       </div>
-
-      {approved.length > 0 ? (
-        <div className={avecCls.section}>
-          <p className={avecCls.sectionTitle}>{t("avec_meeting_attendance")}</p>
-          <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
-            {t("avec_meeting_attendance_hint")}
-          </p>
-          <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
-            {approved.map((m) => {
-              const id = m.userId;
-              const checked = !!present[id];
-              return (
-                <li key={id}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[color:var(--fd-bg)]">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() =>
-                        setPresent((p) => ({ ...p, [id]: !p[id] }))
-                      }
-                      className="h-4 w-4 rounded border-[color:var(--fd-border)]"
-                    />
-                    <span className="truncate text-xs font-semibold text-[color:var(--fd-text)]">
-                      {m.displayName?.trim() || m.email || t("avec_member_fallback")}
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : null}
 
       <div className={avecCls.section}>
         <p className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">

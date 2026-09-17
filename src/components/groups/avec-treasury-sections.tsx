@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
-import { AvecSectionTabs, AvecMoneyNote } from "@/components/groups/avec-ui";
+import { AvecSectionTabs } from "@/components/groups/avec-ui";
 import { AvecTreasuryFunds } from "@/components/groups/avec-treasury-funds";
 import { AvecSocialAidPanel } from "@/components/groups/avec-social-aid-panel";
 import { AvecLoansPanel } from "@/components/groups/avec-loans-panel";
@@ -50,7 +50,6 @@ export function AvecTreasurySections({
 
   return (
     <div className="space-y-3">
-      <AvecMoneyNote>{t("avec_money_ledger_note")}</AvecMoneyNote>
       <AvecSectionTabs
         tabs={tabs}
         active={section}
@@ -59,7 +58,11 @@ export function AvecTreasurySections({
 
       {section === "funds" ? (
         <div className="space-y-3">
-          <AvecTreasuryFunds groupId={groupId} onRefreshKey={fundsRefresh} />
+          <AvecTreasuryFunds
+            groupId={groupId}
+            canAdmin={canAdmin}
+            onRefreshKey={fundsRefresh}
+          />
           {canAdmin && treasuryFunds ? (
             <AvecBucketTransferGovernance
               groupId={groupId}

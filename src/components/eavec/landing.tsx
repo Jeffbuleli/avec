@@ -106,10 +106,6 @@ export function EavecLanding() {
             ? "e-AVEC n’est pas une banque · pas d’agrément BCC."
             : "e-AVEC is not a bank · no BCC license."}
           {" · "}
-          <Link href="/demo" className="underline decoration-[#C9A227]/50 text-[#C9A227]">
-            {fr ? "Essai jury (sandbox)" : "Jury sandbox"}
-          </Link>
-          {" · "}
           <Link href="/business" className="underline decoration-[#F6E8CD]/30">
             Business
           </Link>

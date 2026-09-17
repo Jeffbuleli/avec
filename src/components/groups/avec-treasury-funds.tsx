@@ -91,8 +91,10 @@ export function AvecTreasuryFunds({
   canAdmin?: boolean;
   onRefreshKey?: number;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const fr = locale === "fr";
   const [funds, setFunds] = useState<Funds | null>(null);
+  const [showMore, setShowMore] = useState(false);
   const [coverageAmount, setCoverageAmount] = useState("");
   const [coverageNote, setCoverageNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -143,61 +145,23 @@ export function AvecTreasuryFunds({
         <div>
           <p className={avecCls.sectionTitle}>{t("avec_treasury_title")}</p>
           <p className="text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
-            {funds ? funds.totalUsdt.toFixed(0) : "…"}
-            <span className="ml-1 text-xs font-bold">Fc</span>
+            {funds ? fmt(funds.totalUsdt) : "…"}
           </p>
         </div>
       </div>
 
       {funds ? (
         <div className="space-y-2">
-          {typeof funds.outflowCapUsdt === "number" && funds.outflowCapUsdt > 0 ? (
-            <div className="rounded-xl border border-sky-200/80 bg-sky-50/50 px-3 py-2">
-              <div className="flex items-center justify-between gap-2 text-[9px] font-bold text-sky-950">
-                <span>{t("avec_treasury_outflow_24h")}</span>
-                <span className="font-mono tabular-nums">
-                  {(funds.outflowLast24hUsdt ?? 0).toFixed(0)} / {funds.outflowCapUsdt.toFixed(0)}{" "}
-                  USD
-                </span>
-              </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-sky-100">
-                <div
-                  className="h-full rounded-full bg-sky-600 transition-all"
-                  style={{
-                    width: `${Math.min(100, ((funds.outflowLast24hUsdt ?? 0) / funds.outflowCapUsdt) * 100)}%`,
-                  }}
-                />
-              </div>
-              <p className="mt-1 text-[8px] text-sky-900/80">{t("avec_treasury_outflow_hint")}</p>
-            </div>
-          ) : null}
           <FundRow
             label={t("avec_fund_savings")}
             value={fmt(funds.savingsUsdt)}
             hint={t("avec_fund_savings_hint", {
               shares: funds.totalShares,
-              value: funds.shareValueUsdt.toFixed(2),
+              value: avecMoney(funds.shareValueUsdt),
             })}
             accent
           />
           <FundRow label={t("avec_fund_social")} value={fmt(funds.socialUsdt)} />
-          <FundRow
-            label="Epargne locale non centralisee"
-            value={fmt(funds.pendingLocalUsdt)}
-            hint="Valeur enregistree en cash local, pas encore retirable numeriquement."
-          />
-          <FundRow
-            label="Liquidite couverte"
-            value={fmt(funds.coveredUsdt)}
-            hint={`Couverture ${funds.coverageRatioPct}%`}
-            accent
-          />
-          <FundRow label={t("avec_fund_penalties")} value={fmt(funds.penaltiesUsdt)} />
-          <FundRow label={t("avec_fund_interest")} value={fmt(funds.interestUsdt)} />
-          {funds.reserveUsdt > 0.01 ? (
-            <FundRow label={t("avec_fund_reserve")} value={fmt(funds.reserveUsdt)} />
-          ) : null}
-          <FundRow label={t("avec_fund_admin")} value={fmt(funds.adminUsdt)} />
           <div className="grid grid-cols-2 gap-2 pt-1">
             <FundRow
               compact
@@ -209,30 +173,87 @@ export function AvecTreasuryFunds({
               compact
               label={t("avec_fund_credit_short")}
               value={fmt(funds.creditUsdt ?? funds.lentUsdt)}
-              hint={funds.creditUsdt > 0.01 ? t("avec_fund_credit_hint") : undefined}
             />
           </div>
+
+          {showMore ? (
+            <>
+              {typeof funds.outflowCapUsdt === "number" && funds.outflowCapUsdt > 0 ? (
+                <div className="rounded-xl border border-sky-200/80 bg-sky-50/50 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2 text-[9px] font-bold text-sky-950">
+                    <span>{t("avec_treasury_outflow_24h")}</span>
+                    <span className="font-mono tabular-nums">
+                      {fmt(funds.outflowLast24hUsdt ?? 0)} / {fmt(funds.outflowCapUsdt)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-sky-100">
+                    <div
+                      className="h-full rounded-full bg-sky-600 transition-all"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          ((funds.outflowLast24hUsdt ?? 0) / funds.outflowCapUsdt) * 100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+              {funds.pendingLocalUsdt > 0.01 ? (
+                <FundRow
+                  label={t("avec_fund_pending_local")}
+                  value={fmt(funds.pendingLocalUsdt)}
+                  hint={t("avec_fund_pending_local_hint")}
+                />
+              ) : null}
+              {funds.coveredUsdt > 0.01 ? (
+                <FundRow
+                  label={t("avec_fund_covered")}
+                  value={fmt(funds.coveredUsdt)}
+                  hint={`${funds.coverageRatioPct}%`}
+                />
+              ) : null}
+              <FundRow label={t("avec_fund_penalties")} value={fmt(funds.penaltiesUsdt)} />
+              <FundRow label={t("avec_fund_interest")} value={fmt(funds.interestUsdt)} />
+              {funds.reserveUsdt > 0.01 ? (
+                <FundRow label={t("avec_fund_reserve")} value={fmt(funds.reserveUsdt)} />
+              ) : null}
+              <FundRow label={t("avec_fund_admin")} value={fmt(funds.adminUsdt)} />
+            </>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            className="w-full py-1.5 text-[10px] font-bold text-[color:var(--fd-primary)]"
+          >
+            {showMore
+              ? fr
+                ? "Moins"
+                : "Less"
+              : fr
+                ? "Détail caisse"
+                : "Treasury detail"}
+          </button>
+
           {canAdmin ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wide text-amber-950">
-                Centraliser du cash
+                {t("avec_cash_cover_title")}
               </p>
-              <p className="mt-1 text-[10px] text-amber-900/80">
-                Utilisez ceci quand l’admin a effectivement depose le cash via banque ou
-                Mobile Money.
-              </p>
+              <p className="mt-1 text-[10px] text-amber-900/80">{t("avec_cash_cover_hint")}</p>
               <div className="mt-2 grid gap-2">
                 <input
                   value={coverageAmount}
                   onChange={(e) => setCoverageAmount(e.target.value)}
                   inputMode="decimal"
-                  placeholder="Montant centralise (Fc)"
+                  placeholder={t("avec_cash_cover_amount_ph")}
                   className="wallet-input w-full rounded-xl border px-3 py-2 text-sm"
                 />
                 <input
                   value={coverageNote}
                   onChange={(e) => setCoverageNote(e.target.value)}
-                  placeholder="Reference / note"
+                  placeholder={t("avec_cash_cover_note_ph")}
                   className="wallet-input w-full rounded-xl border px-3 py-2 text-sm"
                 />
                 <button
@@ -241,7 +262,7 @@ export function AvecTreasuryFunds({
                   disabled={busy}
                   className="rounded-xl bg-[color:var(--fd-primary)] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
                 >
-                  {busy ? "…" : "Confirmer la centralisation"}
+                  {busy ? "…" : t("avec_cash_cover_submit")}
                 </button>
                 {err ? (
                   <p className="text-xs text-rose-700">{clientErrorText(t, err)}</p>
