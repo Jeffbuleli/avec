@@ -104,7 +104,7 @@ export function EavecSlidesMcClient({
           Seul le speaker connecté pilote le projecteur LIVE.
         </p>
         <Link
-          href={`/login?next=${encodeURIComponent("/slides/mc")}`}
+          href={`/login?next=${encodeURIComponent("/mc")}`}
           className="mt-6 rounded-2xl bg-[color:var(--fd-primary)] px-4 py-3 text-sm font-bold text-white"
         >
           Se connecter
@@ -125,7 +125,7 @@ export function EavecSlidesMcClient({
           <p className="text-sm font-extrabold">{deck.titleFr}</p>
         </div>
         <Link
-          href="/slides/live"
+          href="/live"
           target="_blank"
           className="rounded-full border border-white/20 px-3 py-1.5 text-[10px] font-bold uppercase"
         >
@@ -208,8 +208,8 @@ export function EavecSlidesMcClient({
         ))}
       </div>
 
-      <Link href="/slides" className="mt-6 text-center text-xs text-white/40 underline">
-        ← Hub slides
+      <Link href="/" className="mt-6 text-center text-xs text-white/40 underline">
+        ← e-AVEC
       </Link>
     </div>
   );

@@ -51,8 +51,8 @@ export function EavecSlidesLiveClient() {
         <span className={live ? "text-emerald-400" : "text-amber-300"}>
           {live ? "On Air" : "En attente MC"}
         </span>
-        <Link href="/slides" className="normal-case tracking-normal text-white/40 underline">
-          Hub
+        <Link href="/" className="normal-case tracking-normal text-white/40 underline">
+          e-AVEC
         </Link>
       </header>
 
@@ -88,7 +88,7 @@ export function EavecSlidesLiveClient() {
               En attente de la télécommande
             </h1>
             <p className="mt-3 max-w-md text-sm text-white/60">
-              Ouvrez <span className="font-semibold text-white">/slides/mc</span> sur le
+              Ouvrez <span className="font-semibold text-white">/mc</span> sur le
               téléphone du speaker, puis appuyez sur <strong>Passer On Air</strong>.
             </p>
           </div>

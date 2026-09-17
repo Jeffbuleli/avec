@@ -1,12 +1,6 @@
-import { EavecSlidesLiveClient } from "@/components/eavec/eavec-slides-live-client";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export const metadata = {
-  title: "LIVE · e-AVEC Slides",
-  robots: { index: false, follow: false },
-};
-
-export default function EavecSlidesLivePage() {
-  return <EavecSlidesLiveClient />;
+/** @deprecated use /live */
+export default function LegacySlidesLiveRedirect() {
+  redirect("/live");
 }

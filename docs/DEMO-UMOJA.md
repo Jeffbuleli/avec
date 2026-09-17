@@ -1,10 +1,8 @@
-# Notes internes
+# Notes
 
-Pitch VUK’AFRIK officiel :
-- Slides J1 → https://e-avec.org/slides  
-- Pratique → https://e-avec.org (prod)  
-- **Pas** `/demo` · **pas** modification McBuleli Hackathon  
+Pitch VUK’AFRIK :
+- LIVE → https://e-avec.org/live  
+- MC → https://e-avec.org/mc  
+- Produit → https://e-avec.org  
 
-Pack : [docs/vukafrik/README.md](./vukafrik/README.md)
-
-Disclaimer : *e-AVEC n’est pas une banque et ne revendique aucun agrément BCC.*
+*Pas une banque · pas d’agrément BCC.*

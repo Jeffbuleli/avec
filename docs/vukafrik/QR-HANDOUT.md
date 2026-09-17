@@ -1,4 +1,3 @@
 # QR
 
-Principal → `https://e-avec.org`  
-Slides hub → `https://e-avec.org/slides`
+`https://e-avec.org` · LIVE `/live` · MC `/mc`

@@ -5,7 +5,7 @@ function s(partial: HackathonSlide): HackathonSlide {
 }
 
 /**
- * VUK’AFRIK 2026 — Jour 1 théorique (e-avec.org/slides).
+ * VUK’AFRIK 2026 — Jour 1 théorique (e-avec.org/live + /mc).
  * Narratif ancré VSLA/AVEC (CARE, TechnoServe, AIR) : caisse opaque,
  * tenue de livres fragile, faible lien au formalisme financier.
  */
@@ -20,8 +20,8 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
   moduleLabelFr: "Finance / Fintech",
   moduleLabelEn: "Finance / Fintech",
   estimatedMinutes: 12,
-  speakerHintFr: "Piloté depuis /slides/mc · diffusé sur /slides/live",
-  speakerHintEn: "Controlled from /slides/mc · shown on /slides/live",
+  speakerHintFr: "Piloté depuis /mc · diffusé sur /live",
+  speakerHintEn: "Controlled from /mc · shown on /live",
   slides: [
     s({
       id: "cover",
@@ -220,7 +220,7 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       ],
       ctas: [
         { label: "e-AVEC", href: "https://e-avec.org" },
-        { label: "LIVE", href: "/slides/live" },
+        { label: "LIVE", href: "/live" },
       ],
       illustration: "avec-circle",
       notes: "Q&A. Remercier. Annoncer la pratique produit.",
