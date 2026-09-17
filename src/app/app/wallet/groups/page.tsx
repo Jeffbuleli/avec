@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { AvecListMark } from "@/components/groups/avec-icons";
-import { GroupLogoImg } from "@/components/groups/group-logo-img";
 import { GroupStatusBadge } from "@/components/groups/group-status-badge";
 import {
   AvecDiscoverSheet,
@@ -19,9 +18,6 @@ import { groupRoleLabel } from "@/lib/group-role-label";
 import { countryShortLabel } from "@/lib/country-label";
 import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { AvecHelpSheet, AvecHelpTrigger } from "@/components/groups/avec-help-sheet";
-import { FieldOpsCard } from "@/components/offline/field-ops-card";
-import { useOfflineState } from "@/components/offline/offline-provider";
-import { readOfflineCache, writeOfflineCache } from "@/lib/offline/cache";
 
 type Row = {
   groupId: string;
@@ -43,7 +39,6 @@ type Row = {
 export default function AvecHubPage() {
   const { t, locale } = useI18n();
   const router = useRouter();
-  const { online, userId } = useOfflineState();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [discover, setDiscover] = useState<DiscoverGroup[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -51,53 +46,30 @@ export default function AvecHubPage() {
   const [sheetGroup, setSheetGroup] = useState<DiscoverGroup | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
     setErr(null);
     void (async () => {
-      try {
-        const [mineRes, discRes] = await Promise.all([
-          fetch("/api/groups/mine", { cache: "no-store" }),
-          fetch("/api/groups/discover", { cache: "no-store" }),
-        ]);
-        const mineData = await mineRes.json().catch(() => ({}));
-        if (!mineRes.ok) {
-          throw new Error(mineData.error ?? "group_dashboard_failed");
-        }
+      const [mineRes, discRes] = await Promise.all([
+        fetch("/api/groups/mine", { cache: "no-store" }),
+        fetch("/api/groups/discover", { cache: "no-store" }),
+      ]);
+      const mineData = await mineRes.json().catch(() => ({}));
+      if (!mineRes.ok) {
+        setErr(mineData.error ?? "group_dashboard_failed");
+        setRows([]);
+      } else {
         const all = (mineData.groups ?? []) as Row[];
-        const filtered = all.filter((r) => r.type === "avec" || r.type === "likelimba");
-        setRows(filtered);
-        await writeOfflineCache(`user:${userId}:groups:mine`, filtered);
-        const discData = await discRes.json().catch(() => ({}));
-        if (discRes.ok) {
-          const groups = (discData.groups ?? []) as DiscoverGroup[];
-          setDiscover(groups);
-          await writeOfflineCache(`user:${userId}:groups:discover`, groups);
-        } else {
-          setDiscover([]);
-        }
-      } catch (e) {
-        const [mineCache, discoverCache] = await Promise.all([
-          readOfflineCache<Row[]>(`user:${userId}:groups:mine`),
-          readOfflineCache<DiscoverGroup[]>(`user:${userId}:groups:discover`),
-        ]);
-        if (mineCache?.value) setRows(mineCache.value);
-        else setRows([]);
-        if (discoverCache?.value) setDiscover(discoverCache.value);
-        else setDiscover([]);
-        setErr(
-          mineCache?.value
-            ? "offline_cache_in_use"
-            : e instanceof Error
-              ? e.message
-              : "group_dashboard_failed",
+        setRows(
+          all.filter((r) => r.type === "avec" || r.type === "likelimba"),
         );
       }
-    })().catch(() => {
-      setRows([]);
-      setDiscover([]);
-      setErr("group_dashboard_failed");
-    });
-  }, [online, userId]);
+      const discData = await discRes.json().catch(() => ({}));
+      if (discRes.ok) {
+        setDiscover((discData.groups ?? []) as DiscoverGroup[]);
+      } else {
+        setDiscover([]);
+      }
+    })();
+  }, []);
 
   const minePag = useListPagination(rows ?? [], 10);
   const discoverPag = useListPagination(discover ?? [], 10);
@@ -106,7 +78,7 @@ export default function AvecHubPage() {
   const mineSlice = useMemo(() => minePag.slice, [minePag.slice]);
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="mx-auto w-full max-w-lg space-y-4 pb-8 md:max-w-3xl lg:max-w-5xl">
       <WalletSubpageHeader
         title={t("group_hub_title")}
         subtitle={t("group_hub_sub")}
@@ -124,15 +96,9 @@ export default function AvecHubPage() {
 
       {err ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-          {err === "offline_cache_in_use"
-            ? online
-              ? clientErrorText(t, err)
-              : "Mode offline: affichage du dernier état synchronisé."
-            : clientErrorText(t, err)}
+          {clientErrorText(t, err)}
         </p>
       ) : null}
-
-      <FieldOpsCard />
 
       <section className="space-y-2">
         <h2 className="px-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
@@ -142,7 +108,7 @@ export default function AvecHubPage() {
         {rows === null ? (
           <p className="text-[color:var(--fd-muted)]">…</p>
         ) : rows.length === 0 ? (
-          <div className="fd-card flex flex-col items-center gap-3 rounded-[1.75rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf7)] p-8 text-center shadow-[0_16px_48px_rgba(15,45,47,0.08)]">
+          <div className="fd-card flex flex-col items-center gap-3 p-8 text-center">
             <AvecListMark className="h-14 w-14" />
             <p className="text-sm font-bold text-[color:var(--fd-text)]">{t("group_hub_empty")}</p>
             <p className="max-w-xs text-[11px] leading-relaxed text-[color:var(--fd-muted)]">
@@ -159,12 +125,13 @@ export default function AvecHubPage() {
                 <li key={r.groupId}>
                   <Link
                     href={`/app/wallet/groups/${r.groupId}`}
-                    className="fd-card block rounded-[1.5rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf8)] p-3.5 shadow-[0_14px_36px_rgba(15,45,47,0.08)] active:scale-[0.99]"
+                    className="fd-card block border border-[color:var(--fd-border)] p-3.5 transition hover:border-[color:var(--fd-primary)]/35 active:scale-[0.99]"
                   >
                     <div className="flex items-center gap-3">
                       {r.logoUrl ? (
                         <span className="flex h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[color:var(--fd-border)]">
-                          <GroupLogoImg url={r.logoUrl} />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={r.logoUrl} alt="" className="h-full w-full object-cover" />
                         </span>
                       ) : (
                         <AvecListMark />
@@ -186,6 +153,13 @@ export default function AvecHubPage() {
                           {r.nextBillingAt
                             ? ` · ${new Date(r.nextBillingAt).toLocaleDateString(loc)}`
                             : ""}
+                        </p>
+                        <p className="mt-1 text-[10px] font-bold text-[color:var(--fd-primary)]">
+                          {r.membershipStatus === "pending"
+                            ? t("group_hub_action_pending")
+                            : r.status === "active"
+                              ? t("group_hub_action_open")
+                              : t("group_hub_action_review")}
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -232,7 +206,7 @@ export default function AvecHubPage() {
         {discover === null ? (
           <p className="text-[color:var(--fd-muted)]">…</p>
         ) : discover.length === 0 ? (
-          <p className="fd-card rounded-[1.5rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf8)] px-3 py-4 text-center text-xs text-[color:var(--fd-muted)] shadow-[0_14px_36px_rgba(15,45,47,0.08)]">
+          <p className="fd-card px-3 py-4 text-center text-xs text-[color:var(--fd-muted)]">
             {t("group_discover_empty")}
           </p>
         ) : (
@@ -247,12 +221,13 @@ export default function AvecHubPage() {
                     <button
                       type="button"
                       onClick={() => setSheetGroup(g)}
-                      className="fd-card w-full rounded-[1.5rem] border border-[#0F2D2F]/10 bg-[linear-gradient(180deg,#fff8eb,#fffdf8)] p-3.5 text-left shadow-[0_14px_36px_rgba(15,45,47,0.08)] active:scale-[0.99]"
+                      className="fd-card w-full p-3.5 text-left active:scale-[0.99]"
                     >
                       <div className="flex items-center gap-3">
                         {g.logoUrl ? (
                           <span className="flex h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[color:var(--fd-border)]">
-                            <GroupLogoImg url={g.logoUrl} />
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={g.logoUrl} alt="" className="h-full w-full object-cover" />
                           </span>
                         ) : (
                           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">

@@ -21,12 +21,7 @@ import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-foote
 import { p2pDisplayName } from "@/lib/p2p-display";
 import { AvecMeetingPanel } from "@/components/groups/avec-meeting-panel";
 import { AvecOverviewPanel } from "@/components/groups/avec-overview-panel";
-import { AvecPayoutPanel } from "@/components/groups/avec-payout-panel";
-import { AvecLoansPanel } from "@/components/groups/avec-loans-panel";
-import { AvecClosurePanel } from "@/components/groups/avec-closure-panel";
-import { AvecTreasuryFunds } from "@/components/groups/avec-treasury-funds";
-import { AvecBucketTransferGovernance } from "@/components/groups/avec-bucket-transfer-governance";
-import { AvecSocialAidPanel } from "@/components/groups/avec-social-aid-panel";
+import { AvecTreasurySections } from "@/components/groups/avec-treasury-sections";
 import { AvecReportsPanel } from "@/components/groups/avec-reports-panel";
 import { AvecGroupHero } from "@/components/groups/avec-group-hero";
 import { AvecRoleStrip } from "@/components/groups/avec-role-strip";
@@ -44,12 +39,6 @@ import {
   markDialogueRead,
 } from "@/lib/avec/dialogue-read-state";
 import type { GranularRoleId } from "@/lib/avec/governance/granular-roles";
-import { FieldOpsCard } from "@/components/offline/field-ops-card";
-import { useOfflineState } from "@/components/offline/offline-provider";
-import { readOfflineCache, writeOfflineCache } from "@/lib/offline/cache";
-import { putMeetingDraft } from "@/lib/offline/db";
-import { enqueueOfflineAction, getOfflineQueue } from "@/lib/offline/queue";
-import { canQueueGroupContribution } from "@/lib/offline/policy";
 
 type Dashboard = {
   ok: true;
@@ -94,30 +83,39 @@ type Tab = "vue" | "meeting" | "members" | "treasury" | "dialogue" | "reports";
 
 export default function AvecDashboardPage() {
   const { t } = useI18n();
-  const { online, refresh: refreshOffline, userId } = useOfflineState();
   const routeParams = useParams();
   const searchParams = useSearchParams();
   const showCreateProgress = searchParams.get("created") === "1";
   const id = typeof routeParams.id === "string" ? routeParams.id : "";
+  const tabFromUrl = searchParams.get("tab");
   const [data, setData] = useState<Dashboard | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [payOk, setPayOk] = useState(false);
   const [fundsRefresh, setFundsRefresh] = useState(0);
-  const [tab, setTab] = useState<Tab>("vue");
+  const [tab, setTab] = useState<Tab>(() => {
+    const allowed: Tab[] = [
+      "vue",
+      "meeting",
+      "members",
+      "treasury",
+      "dialogue",
+      "reports",
+    ];
+    return allowed.includes(tabFromUrl as Tab) ? (tabFromUrl as Tab) : "vue";
+  });
   const [myUserId, setMyUserId] = useState<string | undefined>();
   const [dialogueUnread, setDialogueUnread] = useState(false);
   const [treasuryFunds, setTreasuryFunds] = useState<{
     penaltiesUsdt: number;
     interestUsdt: number;
   } | null>(null);
-  const [queuedContribCount, setQueuedContribCount] = useState(0);
+  const [walletUsdt, setWalletUsdt] = useState<number | null>(null);
 
   const me = data?.group.me;
   const canModerateMembership = me ? canModerateGroupMembership(me) : false;
   const canModerateDialogue = me ? canModerateGroupDialogue(me) : false;
   const canAdmin = me?.status === "approved" && me.role === "admin";
-  const canTreasuryOps = me?.status === "approved" && (me.role === "admin" || me.role === "co_admin");
   const groupActive = data?.group.status === "active";
   const cycleActive = (data?.group.cycleStatus ?? "active") === "active";
   const canContribute = me?.status === "approved" && groupActive && cycleActive;
@@ -131,47 +129,37 @@ export default function AvecDashboardPage() {
   );
 
   async function load() {
-    if (!userId) return;
     if (!id) {
       setErr(t("group_not_found"));
       setData(null);
       return;
     }
     setErr(null);
-    try {
-      const res = await fetch(`/api/groups/${id}`, { cache: "no-store" });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error((j as { error?: string }).error ?? "group_dashboard_failed");
-      }
-      setData(j as Dashboard);
-      await writeOfflineCache(`user:${userId}:group:${id}:dashboard`, j);
-    } catch (e) {
-      const cached = await readOfflineCache<Dashboard>(`user:${userId}:group:${id}:dashboard`);
-      if (cached?.value) {
-        setData(cached.value);
-        setErr("offline_cache_in_use");
-        return;
-      }
-      setErr(e instanceof Error ? e.message : "group_dashboard_failed");
+    const res = await fetch(`/api/groups/${id}`, { cache: "no-store" });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setErr((j as { error?: string }).error ?? "group_dashboard_failed");
       setData(null);
+      return;
     }
+    setData(j as Dashboard);
   }
 
   useEffect(() => {
     void load();
-  }, [id, online, userId]);
+  }, [id]);
 
   useEffect(() => {
-    if (!userId) return;
-    if (!id) return;
-    void getOfflineQueue(userId).then((rows) => {
-      setQueuedContribCount(
-        rows.filter((row) => row.kind === "group_contribution" && row.scope === id)
-          .length,
-      );
-    });
-  }, [id, online, payOk, userId]);
+    void fetch("/api/wallet/summary", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        const line = (
+          d.lines as Array<{ asset: string; balance: string }> | undefined
+        )?.find((b) => b.asset === "USDT");
+        setWalletUsdt(line ? Number(line.balance) : 0);
+      })
+      .catch(() => setWalletUsdt(null));
+  }, []);
 
   useEffect(() => {
     if (!id || tab !== "treasury") return;
@@ -248,55 +236,15 @@ export default function AvecDashboardPage() {
     [data?.members],
   );
 
-  async function payShares(
-    shares: number,
-    paymentSource: "wallet" | "cash_local",
-  ): Promise<boolean> {
+  async function payShares(shares: number): Promise<boolean> {
     setBusy(true);
     setErr(null);
     setPayOk(false);
     try {
-      if (!online) {
-        if (!userId) {
-          setErr("group_session_required");
-          return false;
-        }
-        const localTotal = shareValue * shares + socialFundPerMeeting;
-        if (!canQueueGroupContribution(localTotal)) {
-          setErr("group_action_failed");
-          return false;
-        }
-        const queued = await enqueueOfflineAction({
-          userId,
-          kind: "group_contribution",
-          scope: id,
-          payload: { shares, paymentSource },
-        });
-        await putMeetingDraft({
-          id: queued.id,
-          userId,
-          groupId: id,
-          createdAt: queued.createdAt,
-          updatedAt: queued.updatedAt,
-          deviceLabel: "local-device",
-          attendees: [],
-          queuedContributionIds: [queued.id],
-          notes: "",
-          receiptSummary: {
-            shareValue,
-            socialFundPerMeeting,
-            totalQueuedAmount: shareValue * shares + socialFundPerMeeting,
-            queuedMembers: 1,
-          },
-        });
-        setPayOk(true);
-        await refreshOffline();
-        return true;
-      }
       const res = await fetch(`/api/groups/${id}/contributions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shares, paymentSource }),
+        body: JSON.stringify({ shares }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -306,7 +254,6 @@ export default function AvecDashboardPage() {
       setPayOk(true);
       setFundsRefresh((n) => n + 1);
       await load();
-      await refreshOffline();
       return true;
     } finally {
       setBusy(false);
@@ -349,9 +296,7 @@ export default function AvecDashboardPage() {
         </Link>
         {err ? (
           <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-            {err === "offline_cache_in_use"
-              ? "Mode offline: affichage du dernier etat synchronise."
-              : clientErrorText(t, err)}
+            {clientErrorText(t, err)}
           </p>
         ) : (
           <p className="mt-4 text-[color:var(--fd-muted)]">…</p>
@@ -368,7 +313,7 @@ export default function AvecDashboardPage() {
   const showSuspended = g.status === "suspended";
 
   return (
-    <div className="pb-10">
+    <div className="mx-auto w-full max-w-lg pb-10 md:max-w-3xl lg:max-w-5xl">
       <AvecTopBar
         groupName={g.name}
         groupLogoUrl={g.logoUrl}
@@ -379,8 +324,7 @@ export default function AvecDashboardPage() {
         memberKycApproved={data.viewer.kycApproved}
       />
 
-      <div className="space-y-3 px-1">
-        <FieldOpsCard groupId={id} />
+      <div className="space-y-3 px-1 md:px-2">
         {g.status === "pending" || showCreateProgress ? (
           <TransactionStepper steps={groupCreationProgressSteps(g.status)} />
         ) : null}
@@ -429,14 +373,7 @@ export default function AvecDashboardPage() {
         ) : null}
         {err ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
-            {err === "offline_cache_in_use"
-              ? "Mode offline: affichage du dernier etat synchronise."
-              : clientErrorText(t, err)}
-          </p>
-        ) : null}
-        {queuedContribCount > 0 ? (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            {queuedContribCount} contribution(s) en attente de synchronisation.
+            {clientErrorText(t, err)}
           </p>
         ) : null}
 
@@ -450,7 +387,7 @@ export default function AvecDashboardPage() {
           </p>
         )}
 
-        <div className="flex gap-1 overflow-x-auto rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-1 scrollbar-none">
+        <div className="flex gap-1 overflow-x-auto rounded-2xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-1.5 scrollbar-none">
           {tabs.map((x) => (
             <button
               key={x.id}
@@ -459,21 +396,21 @@ export default function AvecDashboardPage() {
                 if (x.id !== "meeting") setPayOk(false);
                 setTab(x.id);
               }}
-              className={`relative flex shrink-0 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[9px] font-bold uppercase tracking-wide transition ${
+              className={`relative flex min-w-[3.4rem] shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold uppercase tracking-wide transition ${
                 tab === x.id
-                  ? "bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)]"
+                  ? "bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)] shadow-sm"
                   : "text-[color:var(--fd-muted)]"
               }`}
             >
               {x.dot ? (
                 <span
-                  className={`absolute right-1 top-1 h-2 w-2 rounded-full ${
+                  className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ${
                     x.dot === "brown" ? "bg-amber-800" : "bg-violet-600"
                   }`}
                   aria-hidden
                 />
               ) : null}
-              {x.icon}
+              <span className="[&>svg]:h-5 [&>svg]:w-5">{x.icon}</span>
               <span className="max-w-[4.5rem] truncate">{x.label}</span>
             </button>
           ))}
@@ -511,6 +448,8 @@ export default function AvecDashboardPage() {
               paySuccess={payOk}
               onPay={payShares}
               onSocialFixed={() => void load()}
+              members={data.members}
+              walletBalanceUsdt={walletUsdt}
             />
           ) : !groupActive ? (
             <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
@@ -547,61 +486,18 @@ export default function AvecDashboardPage() {
         {tab === "reports" && <AvecReportsPanel groupId={id} />}
 
         {tab === "treasury" && (
-          <div className="space-y-3">
-            <AvecTreasuryFunds
-              groupId={id}
-              canAdmin={!!canTreasuryOps}
-              onRefreshKey={fundsRefresh}
-            />
-            {canAdmin && treasuryFunds ? (
-              <AvecBucketTransferGovernance
-                groupId={id}
-                penaltiesUsdt={treasuryFunds.penaltiesUsdt}
-                interestUsdt={treasuryFunds.interestUsdt}
-                canPropose={!!canAdmin}
-                onDone={() => setFundsRefresh((n) => n + 1)}
-              />
-            ) : null}
-            <AvecSocialAidPanel
-              groupId={id}
-              myUserId={myUserId}
-              canRequest={!!canContribute}
-              onDone={() => {
-                setFundsRefresh((n) => n + 1);
-                void load();
-              }}
-            />
-            <AvecLoansPanel
-              groupId={id}
-              members={data.members}
-              myUserId={myUserId}
-              onDone={() => {
-                setFundsRefresh((n) => n + 1);
-                void load();
-              }}
-            />
-            {canModerateMembership ? (
-              <>
-                <AvecClosurePanel
-                  groupId={id}
-                  isAdmin={!!canAdmin}
-                  onDone={() => {
-                    setFundsRefresh((n) => n + 1);
-                    void load();
-                  }}
-                />
-                <AvecPayoutPanel
-                  groupId={id}
-                  members={data.members}
-                  myUserId={myUserId}
-                  onDone={() => {
-                    setFundsRefresh((n) => n + 1);
-                    void load();
-                  }}
-                />
-              </>
-            ) : null}
-          </div>
+          <AvecTreasurySections
+            groupId={id}
+            myUserId={myUserId}
+            members={data.members}
+            canContribute={!!canContribute}
+            canAdmin={!!canAdmin}
+            canModerateMembership={!!canModerateMembership}
+            treasuryFunds={treasuryFunds}
+            fundsRefresh={fundsRefresh}
+            onFundsRefresh={() => setFundsRefresh((n) => n + 1)}
+            onReload={() => void load()}
+          />
         )}
       </div>
       <McBuleliPoweredFooter />

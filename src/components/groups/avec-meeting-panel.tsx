@@ -1,19 +1,18 @@
 "use client";
 
+import { avecMoney } from "@/lib/avec/display-currency";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
-import { useOfflineState } from "@/components/offline/offline-provider";
 import { ListPagination, useListPagination } from "@/components/ui/list-pagination";
 import { AvecIconShares, AvecIconSolidarity } from "@/components/groups/avec-icons";
 import { IlluMeeting } from "@/components/groups/avec-illustrations";
-import { avecCls } from "@/components/groups/avec-ui";
+import { avecCls, AvecMoneyNote } from "@/components/groups/avec-ui";
 import { clientErrorText } from "@/lib/client-error-text";
 import {
   isSocialFundPerMeetingMisconfigured,
   maxSocialFundPerMeeting,
 } from "@/lib/avec/social-fund-limits";
-import { listMeetingDraftsByUser } from "@/lib/offline/db";
-import { avecMoney } from "@/lib/avec/display-currency";
+import type { AvecMemberRow } from "@/components/groups/avec-member-list";
 
 export function AvecMeetingPanel({
   groupId,
@@ -26,6 +25,8 @@ export function AvecMeetingPanel({
   onPay,
   onSocialFixed,
   paySuccess = false,
+  members = [],
+  walletBalanceUsdt = null,
 }: {
   groupId?: string;
   shareValue: number;
@@ -34,18 +35,19 @@ export function AvecMeetingPanel({
   canContribute: boolean;
   canFixSocial?: boolean;
   busy: boolean;
-  onPay: (shares: number, paymentSource: "wallet" | "cash_local") => Promise<boolean>;
+  onPay: (shares: number) => Promise<boolean>;
   onSocialFixed?: () => void;
   paySuccess?: boolean;
+  members?: AvecMemberRow[];
+  walletBalanceUsdt?: number | null;
 }) {
   const { t, locale } = useI18n();
-  const { userId } = useOfflineState();
   const [shares, setShares] = useState(1);
   const [justPaid, setJustPaid] = useState(false);
   const [fixSocial, setFixSocial] = useState("");
-  const [paymentSource, setPaymentSource] = useState<"wallet" | "cash_local">("wallet");
   const [fixBusy, setFixBusy] = useState(false);
   const [fixErr, setFixErr] = useState<string | null>(null);
+  const [present, setPresent] = useState<Record<string, boolean>>({});
 
   const sharesTotal = shareValue * shares;
   const meetingTotal = sharesTotal + socialFundPerMeeting;
@@ -55,10 +57,11 @@ export function AvecMeetingPanel({
     shareValue,
     maxShares,
   );
+  const approved = members.filter((m) => m.status === "approved");
 
   async function pay() {
     setJustPaid(false);
-    const ok = await onPay(shares, paymentSource);
+    const ok = await onPay(shares);
     if (ok) setJustPaid(true);
   }
 
@@ -102,16 +105,6 @@ export function AvecMeetingPanel({
     createdAt: string;
   };
   const [history, setHistory] = useState<ContribRow[] | null>(null);
-  const [drafts, setDrafts] = useState<
-    {
-      id: string;
-      updatedAt: string;
-      receiptSummary: {
-        totalQueuedAmount: number;
-        queuedMembers: number;
-      };
-    }[]
-  >([]);
 
   useEffect(() => {
     if (!groupId) return;
@@ -123,20 +116,6 @@ export function AvecMeetingPanel({
       })
       .catch(() => setHistory([]));
   }, [groupId, showPaid]);
-
-  useEffect(() => {
-    if (!userId) return;
-    if (!groupId) return;
-    void listMeetingDraftsByUser(userId, groupId).then((rows) => {
-      setDrafts(
-        rows.map((row) => ({
-          id: row.id,
-          updatedAt: row.updatedAt,
-          receiptSummary: row.receiptSummary,
-        })),
-      );
-    });
-  }, [groupId, showPaid, userId]);
 
   const batches = useMemo(() => {
     if (!history?.length) return [];
@@ -166,6 +145,8 @@ export function AvecMeetingPanel({
 
   const histPag = useListPagination(batches, 10);
   const loc = locale === "fr" ? "fr-FR" : "en-US";
+  const insufficient =
+    walletBalanceUsdt != null && walletBalanceUsdt + 1e-9 < meetingTotal;
 
   return (
     <div className="space-y-3">
@@ -180,7 +161,7 @@ export function AvecMeetingPanel({
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-[color:var(--fd-text)]">{t("avec_tab_meeting")}</p>
             <p className="mt-0.5 text-[10px] leading-snug text-[color:var(--fd-muted)]">
-              {t("avec_meeting_hint_short")}
+              {t("avec_meeting_checkout_hint")}
             </p>
           </div>
         </div>
@@ -204,7 +185,7 @@ export function AvecMeetingPanel({
                 value={fixSocial}
                 onChange={(e) => setFixSocial(e.target.value)}
                 inputMode="decimal"
-                placeholder={`0 – ${socialMax.toFixed(0)}`}
+                placeholder={`0 - ${socialMax.toFixed(0)}`}
                 className={`${avecCls.input} !py-1.5 flex-1 text-xs`}
               />
               <button
@@ -223,7 +204,7 @@ export function AvecMeetingPanel({
         </div>
       ) : null}
 
-      <div className={avecCls.section}>
+      <div className={avecCls.checkoutCard}>
         <p className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
           {t("avec_buy_shares")} · {avecMoney(shareValue)}
         </p>
@@ -240,60 +221,57 @@ export function AvecMeetingPanel({
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--fd-mint)] px-2.5 py-1 text-[10px] font-bold text-[color:var(--fd-primary)]">
-            <AvecIconShares className="h-3.5 w-3.5" />
-            {shares}× {sharesTotal.toFixed(2)}
-          </span>
-          {socialFundPerMeeting > 0 ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold text-amber-900">
-              <AvecIconSolidarity className="h-3.5 w-3.5" />
-              +{socialFundPerMeeting.toFixed(2)}
+        <div className="mt-4 space-y-2 rounded-2xl bg-[color:var(--fd-bg)] px-3.5 py-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--fd-muted)]">
+              <AvecIconShares className="h-3.5 w-3.5" />
+              {shares}× {t("avec_buy_shares")}
             </span>
+            <span className="font-black tabular-nums">{avecMoney(sharesTotal)}</span>
+          </div>
+          {socialFundPerMeeting > 0 ? (
+            <div className="flex items-center justify-between text-xs">
+              <span className="inline-flex items-center gap-1 font-semibold text-amber-800">
+                <AvecIconSolidarity className="h-3.5 w-3.5" />
+                {t("avec_fund_social")}
+              </span>
+              <span className="font-black tabular-nums text-amber-900">
+                {avecMoney(socialFundPerMeeting)}
+              </span>
+            </div>
           ) : null}
-          <span className="text-[10px] font-bold text-[color:var(--fd-muted)]">=</span>
-          <span className="rounded-full bg-[color:var(--fd-primary)] px-3 py-1 text-sm font-black tabular-nums text-white">
-            {avecMoney(meetingTotal)}
-          </span>
+          <div className="flex items-center justify-between border-t border-[color:var(--fd-border)] pt-2">
+            <span className="text-sm font-extrabold text-[color:var(--fd-text)]">
+              {t("avec_meeting_total")}
+            </span>
+            <span className="text-lg font-black tabular-nums text-[color:var(--fd-primary)]">
+              {avecMoney(meetingTotal)}
+            </span>
+          </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setPaymentSource("wallet")}
-            className={`rounded-xl border px-3 py-2 text-xs font-bold ${
-              paymentSource === "wallet"
-                ? "border-[color:var(--fd-primary)] bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)]"
-                : "border-[color:var(--fd-border)] bg-white text-[color:var(--fd-muted)]"
-            }`}
-          >
-            Wallet / MM
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaymentSource("cash_local")}
-            className={`rounded-xl border px-3 py-2 text-xs font-bold ${
-              paymentSource === "cash_local"
-                ? "border-amber-300 bg-amber-50 text-amber-950"
-                : "border-[color:var(--fd-border)] bg-white text-[color:var(--fd-muted)]"
-            }`}
-          >
-            Cash local
-          </button>
-        </div>
+        {walletBalanceUsdt != null ? (
+          <p className="mt-2 text-[11px] text-[color:var(--fd-muted)]">
+            {t("avec_meeting_wallet")}:{" "}
+            <strong className="text-[color:var(--fd-text)]">
+              {avecMoney(walletBalanceUsdt)}
+            </strong>
+          </p>
+        ) : null}
+        <AvecMoneyNote>{t("avec_money_ledger_note")}</AvecMoneyNote>
 
         <button
           type="button"
-          disabled={busy || !canContribute || misconfigured}
+          disabled={busy || !canContribute || misconfigured || insufficient}
           onClick={() => void pay()}
           className={`${avecCls.btnPrimary} mt-4`}
         >
-          {t("group_dash_contribute")}
+          {insufficient
+            ? t("avec_meeting_insufficient")
+            : t("avec_meeting_confirm_pay", { amount: avecMoney(meetingTotal) })}
         </button>
         <p className="mt-2 text-center text-[10px] text-[color:var(--fd-muted)]">
-          {paymentSource === "cash_local"
-            ? "Enregistre comme epargne locale en attente de centralisation."
-            : t("avec_wallet_debit")}
+          {t("avec_wallet_debit")}
         </p>
         {showPaid ? (
           <p
@@ -306,28 +284,42 @@ export function AvecMeetingPanel({
         ) : null}
       </div>
 
+      {approved.length > 0 ? (
+        <div className={avecCls.section}>
+          <p className={avecCls.sectionTitle}>{t("avec_meeting_attendance")}</p>
+          <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
+            {t("avec_meeting_attendance_hint")}
+          </p>
+          <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+            {approved.map((m) => {
+              const id = m.userId;
+              const checked = !!present[id];
+              return (
+                <li key={id}>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-[color:var(--fd-bg)]">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() =>
+                        setPresent((p) => ({ ...p, [id]: !p[id] }))
+                      }
+                      className="h-4 w-4 rounded border-[color:var(--fd-border)]"
+                    />
+                    <span className="truncate text-xs font-semibold text-[color:var(--fd-text)]">
+                      {m.displayName?.trim() || m.email || t("avec_member_fallback")}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
       <div className={avecCls.section}>
         <p className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
           {t("avec_meeting_history_title")}
         </p>
-        {drafts.length > 0 ? (
-          <div className="mt-3 space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-amber-900">
-              Reçus locaux en attente
-            </p>
-            {drafts.slice(0, 3).map((draft) => (
-              <div key={draft.id} className="rounded-xl bg-white/70 px-3 py-2 text-xs text-amber-950">
-                <p className="font-bold">
-                  {draft.receiptSummary.totalQueuedAmount.toFixed(2)} Fc
-                </p>
-                <p className="mt-0.5 text-[11px]">
-                  {draft.receiptSummary.queuedMembers} membre(s) •{" "}
-                  {new Date(draft.updatedAt).toLocaleString(loc)}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : null}
         {history === null ? (
           <p className="mt-2 text-xs text-[color:var(--fd-muted)]">…</p>
         ) : batches.length === 0 ? (
@@ -353,8 +345,8 @@ export function AvecMeetingPanel({
                       </p>
                     ) : null}
                   </div>
-                  <p className="shrink-0 font-mono text-xs font-bold tabular-nums text-[color:var(--fd-primary)]">
-                    {row.total.toFixed(2)} Fc
+                  <p className="shrink-0 text-xs font-bold tabular-nums text-[color:var(--fd-primary)]">
+                    {avecMoney(row.total)}
                   </p>
                 </li>
               ))}
