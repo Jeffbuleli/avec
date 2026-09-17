@@ -9,6 +9,14 @@ export async function GET() {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const data = await listFacilitatorPortfolio(userId);
-  return NextResponse.json({ ok: true, ...data });
+  try {
+    const data = await listFacilitatorPortfolio(userId);
+    return NextResponse.json({ ok: true, ...data });
+  } catch (e) {
+    console.error("[facilitateur/portfolio]", e);
+    return NextResponse.json(
+      { error: "facilitateur_portfolio_failed", message: "portfolio_load_failed" },
+      { status: 500 },
+    );
+  }
 }

@@ -168,7 +168,10 @@ export default function AvecCreatePage() {
   if (createdGroupId && createdStatus !== "active") {
     return (
       <div className="space-y-4 pb-10">
-        <WalletSubpageHeader title={t("group_create_progress_title")} />
+        <WalletSubpageHeader
+          title={t("group_create_progress_title")}
+          backHref="/app/wallet/groups"
+        />
         <TransactionStepper steps={progressSteps} />
         <p className="text-center text-sm text-[color:var(--fd-muted)]">{t("group_create_pending_note")}</p>
         <button
@@ -184,7 +187,11 @@ export default function AvecCreatePage() {
 
   return (
     <div className="space-y-4 pb-10">
-      <WalletSubpageHeader title={t("group_new_title")} subtitle={t("group_new_sub")} />
+      <WalletSubpageHeader
+        title={t("group_new_title")}
+        subtitle={t("group_new_sub")}
+        backHref="/app/wallet/groups"
+      />
 
       {err ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">

@@ -35,7 +35,7 @@ export function clearAuthReturnPath(): void {
 /** Resolve post-auth path from `?next=`, sessionStorage, or fallback. */
 export function resolveAuthReturnPath(
   fromUrl: string | null | undefined,
-  fallback = "/app",
+  fallback = "/app/wallet/groups",
 ): string {
   const trimmed = fromUrl?.trim();
   if (trimmed) {
@@ -44,7 +44,8 @@ export function resolveAuthReturnPath(
     return safe;
   }
   const peeked = peekAuthReturnPath();
-  // Legacy marketing CTAs stored /app/wallet as the default entry — prefer Home.
+  // Legacy McBuleli CTAs stored /app/wallet — on e-AVEC that is "Caisse", not home.
+  // Prefer AVEC hub unless the user explicitly opened a caisse deep-link.
   if (peeked === "/app/wallet") {
     clearAuthReturnPath();
     return safeAppRedirectPath(fallback);

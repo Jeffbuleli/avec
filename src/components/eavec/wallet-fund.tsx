@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { useI18n } from "@/components/i18n-provider";
+import { WalletSubpageHeader } from "@/components/wallet/wallet-subpage-header";
 import { avecCdf } from "@/lib/avec/display-currency";
 import { BRAND_LOGO_MARK_256 } from "@/lib/brand-logo";
 
@@ -35,7 +36,13 @@ export function EavecWalletFundPage() {
 
   return (
     <div className="mx-auto max-w-lg pb-4 pt-2">
-      <div className="flex items-center gap-3">
+      <WalletSubpageHeader
+        title={fr ? "Caisse personnelle" : "Personal wallet"}
+        subtitle={fr ? "Fc · Mobile Money" : "Fc · Mobile Money"}
+        backHref="/app/wallet/groups"
+      />
+
+      <div className="mt-1 flex items-center gap-3 px-0.5">
         <Image
           src={BRAND_LOGO_MARK_256}
           alt=""
@@ -44,21 +51,12 @@ export function EavecWalletFundPage() {
           className="h-10 w-10 rounded-full"
           unoptimized
         />
-        <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#C9A227]">
-            e-AVEC
-          </p>
-          <h1 className="text-xl font-black text-[#0F2D2F]">
-            {fr ? "Caisse personnelle" : "Personal wallet"}
-          </h1>
-        </div>
+        <p className="text-sm leading-relaxed text-[#0F2D2F]/70">
+          {fr
+            ? "Dépôt et retrait en francs congolais via Mobile Money. Le Marché utilise ce solde."
+            : "Deposit and withdraw Congolese francs via Mobile Money. Market uses this balance."}
+        </p>
       </div>
-
-      <p className="mt-3 text-sm leading-relaxed text-[#0F2D2F]/70">
-        {fr
-          ? "Dépôt et retrait en francs congolais (Fc) via Mobile Money. Le Marché et les opérations courantes utilisent ce solde."
-          : "Deposit and withdraw Congolese francs (Fc) via Mobile Money. Market and day-to-day ops use this balance."}
-      </p>
 
       <div className="mt-5 rounded-3xl bg-[#0F2D2F] p-5 text-[#F6E8CD]">
         <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
@@ -83,13 +81,6 @@ export function EavecWalletFundPage() {
           {fr ? "Retrait Mobile Money" : "Mobile Money withdraw"}
         </Link>
       </div>
-
-      <Link
-        href="/app/wallet/groups"
-        className="mt-3 flex min-h-[48px] items-center justify-center rounded-2xl border border-[#0F2D2F]/20 px-5 text-sm font-bold text-[#0F2D2F]"
-      >
-        {fr ? "Retour aux AVEC" : "Back to AVEC groups"}
-      </Link>
 
       <McBuleliPoweredFooter />
     </div>

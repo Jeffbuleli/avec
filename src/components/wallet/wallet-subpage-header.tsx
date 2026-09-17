@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 export function WalletSubpageHeader({
   title,
   subtitle,
-  backHref = "/app/wallet",
+  /** e-AVEC home is groups hub — not McBuleli /app/wallet. */
+  backHref = "/app/wallet/groups",
   action,
   step,
   totalSteps = 0,
