@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start --port 3001",
     "lint": "eslint",
+    "seed:eavec-umoja": "tsx scripts/seed-eavec-umoja-demo.ts",
     "db:studio": "node --env-file=.env ./node_modules/.bin/drizzle-kit studio --dialect=postgresql --schema=./src/db/schema.ts --url=\"$DATABASE_URL\""
   },
   "dependencies": {

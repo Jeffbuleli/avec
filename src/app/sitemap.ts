@@ -3,10 +3,10 @@ import { CANONICAL_PRODUCTION_ORIGIN } from "@/lib/app-url";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  return ["", "/login", "/register"].map((path) => ({
+  return ["", "/login", "/register", "/demo", "/business"].map((path) => ({
     url: `${CANONICAL_PRODUCTION_ORIGIN}${path}`,
     lastModified: now,
     changeFrequency: path === "" ? "weekly" : "monthly",
-    priority: path === "" ? 1 : 0.6,
+    priority: path === "" ? 1 : path === "/demo" || path === "/business" ? 0.8 : 0.6,
   }));
 }

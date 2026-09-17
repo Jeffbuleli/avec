@@ -93,17 +93,17 @@ export default function AvecDashboardPage() {
   const [busy, setBusy] = useState(false);
   const [payOk, setPayOk] = useState(false);
   const [fundsRefresh, setFundsRefresh] = useState(0);
-  const [tab, setTab] = useState<Tab>(() => {
-    const allowed: Tab[] = [
-      "vue",
-      "meeting",
-      "members",
-      "treasury",
-      "dialogue",
-      "reports",
-    ];
-    return allowed.includes(tabFromUrl as Tab) ? (tabFromUrl as Tab) : "vue";
-  });
+  const allowedTabs: Tab[] = [
+    "vue",
+    "meeting",
+    "members",
+    "treasury",
+    "dialogue",
+    "reports",
+  ];
+  const [tab, setTab] = useState<Tab>(() =>
+    allowedTabs.includes(tabFromUrl as Tab) ? (tabFromUrl as Tab) : "vue",
+  );
   const [myUserId, setMyUserId] = useState<string | undefined>();
   const [dialogueUnread, setDialogueUnread] = useState(false);
   const [treasuryFunds, setTreasuryFunds] = useState<{
@@ -111,6 +111,12 @@ export default function AvecDashboardPage() {
     interestUsdt: number;
   } | null>(null);
   const [walletUsdt, setWalletUsdt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (allowedTabs.includes(tabFromUrl as Tab)) {
+      setTab(tabFromUrl as Tab);
+    }
+  }, [tabFromUrl]);
 
   const me = data?.group.me;
   const canModerateMembership = me ? canModerateGroupMembership(me) : false;

@@ -7,6 +7,7 @@ import { AvecProgressRing } from "@/components/groups/avec-charts";
 import { AvecVueGovernanceCard } from "@/components/groups/avec-vue-governance-card";
 import { AvecAiInsightsCard } from "@/components/groups/avec-ai-insights-card";
 import { AvecFinancialPassportPanel } from "@/components/groups/avec-financial-passport-panel";
+import { AvecIntegrityAlertsCard } from "@/components/groups/avec-integrity-alerts-card";
 import { EavecEconomicCycleStrip } from "@/components/eavec-market/market-ui";
 import {
   avecCls,
@@ -257,10 +258,14 @@ export function AvecOverviewPanel({
             <button
               type="button"
               onClick={() => onNavigate("meeting")}
-              className={`${avecCls.btnPrimary} mt-3`}
+              className={`${avecCls.btnPrimary} mt-3 min-h-[48px] text-base`}
             >
               {t("avec_vue_cta_contribute")}
             </button>
+            <p className="mt-1.5 text-center text-[10px] text-[color:var(--fd-muted)]">
+              {locale === "fr" ? "Cotiser" : "Contribute"} ·{" "}
+              <span lang="ln">Koboka</span> · <span lang="sw">Changia</span>
+            </p>
             {myUserId ? (
               <p className="mt-2 text-[11px] font-semibold text-[color:var(--fd-muted)]">
                 {t("avec_vue_my_shares")}:{" "}
@@ -305,6 +310,8 @@ export function AvecOverviewPanel({
           onVoted={() => void loadGov()}
         />
       ) : null}
+
+      <AvecIntegrityAlertsCard groupId={groupId} canExport={Boolean(canModerate)} />
 
       <div className={avecCls.section}>
         <div className="mb-1 flex items-center justify-between gap-2">

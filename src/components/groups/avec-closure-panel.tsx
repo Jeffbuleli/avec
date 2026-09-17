@@ -4,8 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { AvecGovPromptSheet } from "@/components/groups/avec-gov-sheet";
 import { AvecIconClosure, AvecIconSolidarity } from "@/components/groups/avec-icons";
+import { AvecLiteracyHint } from "@/components/groups/avec-literacy-hint";
 import { avecCls } from "@/components/groups/avec-ui";
 import { clientErrorText } from "@/lib/client-error-text";
+import { avecMoney } from "@/lib/avec/display-currency";
 import type { ClosureSnapshot } from "@/lib/avec/group-cycle-closure";
 
 type ClosureState = {
@@ -70,7 +72,7 @@ export function AvecClosurePanel({
   isAdmin: boolean;
   onDone: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -239,9 +241,8 @@ export function AvecClosurePanel({
           <p className="text-[10px] font-bold uppercase text-violet-900">
             {t("group_gov_closure_vote_open")}
           </p>
-          <p className="mt-1 text-lg font-black tabular-nums text-violet-950">
-            {state.collectiveVote.distributableUsdt.toFixed(2)}{" "}
-            <span className="text-sm font-bold">Fc</span>
+          <p className="mt-1 text-2xl font-black tabular-nums text-violet-950">
+            {avecMoney(state.collectiveVote.distributableUsdt)}
           </p>
           <p className="text-[10px] font-semibold text-violet-800">
             {t("group_gov_vote_closes_at")}:{" "}
@@ -254,9 +255,8 @@ export function AvecClosurePanel({
           <p className="text-[10px] font-bold uppercase text-violet-900">
             {t("group_closure_pending_title")}
           </p>
-          <p className="mt-1 text-lg font-black tabular-nums text-violet-950">
-            {state.pending.distributableUsdt.toFixed(2)}{" "}
-            <span className="text-sm font-bold">Fc</span>
+          <p className="mt-1 text-2xl font-black tabular-nums text-violet-950">
+            {avecMoney(state.pending.distributableUsdt)}
           </p>
           <p className="text-[10px] font-semibold text-violet-800">
             {t("group_closure_approvals_progress", {
@@ -273,7 +273,7 @@ export function AvecClosurePanel({
               type="button"
               disabled={busy}
               onClick={() => void approve(state.pending!.id)}
-              className={`${avecCls.btnPrimary} mt-3`}
+              className={`${avecCls.btnPrimary} mt-3 min-h-[48px]`}
             >
               {t("group_closure_approve_btn")}
             </button>
@@ -285,10 +285,15 @@ export function AvecClosurePanel({
             type="button"
             disabled={busy}
             onClick={() => void propose()}
-            className={avecCls.btnPrimary}
+            className={`${avecCls.btnPrimary} min-h-[48px]`}
           >
             {t("group_closure_propose_btn")}
           </button>
+          <AvecLiteracyHint
+            fr={locale === "fr" ? "Partager la caisse" : "Share out the pot"}
+            ln="Kabola mbongo"
+            sw="Gawanya pesa"
+          />
           <button
             type="button"
             disabled={busy}
@@ -301,26 +306,56 @@ export function AvecClosurePanel({
       ) : null}
 
       {snap && snap.members.length > 0 ? (
-        <div className="space-y-1.5">
-          {snap.members.map((m) => (
-            <div
-              key={m.userId}
-              className="flex items-center justify-between gap-2 rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] px-3 py-2"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-xs font-bold">{m.displayName}</p>
-                <p className="text-[10px] text-[color:var(--fd-muted)]">
-                  {m.sharesTotal} {t("group_closure_shares_short")}
-                </p>
-              </div>
-              <p className="shrink-0 text-sm font-black tabular-nums text-[color:var(--fd-primary)]">
-                {m.payoutUsdt.toFixed(2)}
-              </p>
-            </div>
-          ))}
-          <p className="text-center text-[10px] font-semibold text-[color:var(--fd-muted)]">
-            {snap.finalShareValueUsdt.toFixed(4)} Fc / {t("group_closure_shares_short")}
-          </p>
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-gradient-to-br from-violet-700 to-emerald-700 p-4 text-white shadow-lg">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70">
+              Share-out
+            </p>
+            <p className="mt-1 text-2xl font-black tabular-nums">
+              {avecMoney(snap.distributableUsdt)}
+            </p>
+            <p className="mt-1 text-[11px] text-white/80">
+              {snap.totalShares} {t("group_closure_shares_short")} ·{" "}
+              {avecMoney(snap.finalShareValueUsdt)} / {t("group_closure_shares_short")}
+            </p>
+          </div>
+          {(() => {
+            const maxPayout = Math.max(
+              ...snap.members.map((m) => m.payoutUsdt),
+              0.0001,
+            );
+            return snap.members.map((m) => {
+              const pct = Math.round((m.payoutUsdt / maxPayout) * 100);
+              return (
+                <div key={m.userId} className="rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold">{m.displayName}</p>
+                      <p className="text-[10px] text-[color:var(--fd-muted)]">
+                        {m.sharesTotal} {t("group_closure_shares_short")}
+                        {m.gainUsdt !== 0 ? (
+                          <span className={m.gainUsdt >= 0 ? " text-emerald-700" : " text-rose-700"}>
+                            {" "}
+                            · {m.gainUsdt >= 0 ? "+" : ""}
+                            {avecMoney(m.gainUsdt)}
+                          </span>
+                        ) : null}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-sm font-black tabular-nums text-[color:var(--fd-primary)]">
+                      {avecMoney(m.payoutUsdt)}
+                    </p>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-[color:var(--fd-bg)]">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-violet-600 to-emerald-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            });
+          })()}
         </div>
       ) : null}
 

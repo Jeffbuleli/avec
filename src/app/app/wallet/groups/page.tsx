@@ -136,6 +136,25 @@ export default function AvecHubPage() {
         </p>
       ) : null}
 
+      <Link
+        href="/app/facilitateur"
+        className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--fd-primary)]/20 bg-gradient-to-r from-[color:var(--fd-mint)]/50 to-[color:var(--fd-card)] px-4 py-3"
+      >
+        <div>
+          <p className="text-sm font-extrabold text-[color:var(--fd-text)]">
+            {locale === "fr" ? "Facilitateur ONG" : "NGO facilitator"}
+          </p>
+          <p className="text-[11px] text-[color:var(--fd-muted)]">
+            {locale === "fr"
+              ? "Multi-groupes · alertes · export PV"
+              : "Multi-group · alerts · minutes export"}
+          </p>
+        </div>
+        <span className="text-[color:var(--fd-primary)]">
+          <ChevronRight />
+        </span>
+      </Link>
+
       <section className="space-y-2.5">
         <div className="flex items-end justify-between gap-2 px-0.5">
           <h2 className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">

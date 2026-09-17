@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
-import { OfflineOverlay } from "@/components/mobile/offline-overlay";
 import { KycPostLoginSheet } from "@/components/kyc/kyc-post-login-sheet";
 import { KycStatusPoller } from "@/components/kyc/kyc-status-poller";
 import { EavecBottomNav } from "@/components/eavec/bottom-nav";
@@ -92,7 +91,6 @@ export function EavecAppShell({
       </div>
       <KycStatusPoller />
       <KycPostLoginSheet />
-      <OfflineOverlay />
     </div>
   );
 }

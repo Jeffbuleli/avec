@@ -4,20 +4,24 @@
  *
  *   npm run seed:eavec-umoja
  *
- * Requires DATABASE_URL. Creates 10 demo users + group + contributions + loans.
+ * Requires DATABASE_URL. Creates 10 demo users + group + contributions + loans
+ * + open governance vote + Passport consent.
  * Password for all demo users: DemoUmoja!2026
  */
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { loadEnvFile } from "node:process";
 import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import {
   getDb,
   groupAvecLoans,
+  groupPassportConsents,
+  groupProposals,
   groupSavingsGroups,
   groupSavingsMemberships,
+  groupVotes,
   groupWalletLedgerEntries,
   users,
 } from "../src/db";
@@ -36,9 +40,9 @@ function loadLocalEnv(): void {
 
 loadLocalEnv();
 
-const DEMO_PASSWORD = "DemoUmoja!2026";
-const GROUP_NAME = "AVEC Umoja";
-const EMAILS = Array.from({ length: 10 }, (_, i) => {
+export const DEMO_PASSWORD = "DemoUmoja!2026";
+export const GROUP_NAME = "AVEC Umoja";
+export const EMAILS = Array.from({ length: 10 }, (_, i) => {
   const n = String(i + 1).padStart(2, "0");
   return `demo-umoja-${n}@eavec.demo`;
 });
@@ -75,6 +79,8 @@ async function ensureUser(args: {
         displayName: args.displayName,
         balance: args.balance,
         kycStatus: "approved",
+        emailVerifiedAt: new Date(),
+        passwordHash: args.passwordHash,
       })
       .where(eq(users.id, existing.id));
     return existing.id;
@@ -89,6 +95,7 @@ async function ensureUser(args: {
       role: "user",
       balance: args.balance,
       kycStatus: "approved",
+      emailVerifiedAt: new Date(),
       countryCode: "CD",
     })
     .returning({ id: users.id });
@@ -158,11 +165,23 @@ async function main() {
       })
       .returning();
     group = created;
+  } else {
+    await db
+      .update(groupSavingsGroups)
+      .set({
+        status: "active",
+        subscriptionStatus: "active",
+        publicDescription:
+          "Demo AVEC for hackathon walkthrough — Umoja community savings (sandbox data).",
+        address: "Gombe, Kinshasa",
+      })
+      .where(eq(groupSavingsGroups.id, group.id));
   }
 
   for (let i = 0; i < userIds.length; i++) {
     const uid = userIds[i]!;
-    const role = i === 0 ? "admin" : i <= 2 ? "co_admin" : i === 3 ? "committee" : "member";
+    const role =
+      i === 0 ? "admin" : i <= 2 ? "co_admin" : i === 3 ? "committee" : "member";
     const [m] = await db
       .select({ id: groupSavingsMemberships.id })
       .from(groupSavingsMemberships)
@@ -216,7 +235,9 @@ async function main() {
             ...fundBucketMeta("savings"),
             demo: true,
           },
-          createdAt: new Date(Date.now() - (8 - week) * 7 * 86400000 - i * 3600000),
+          createdAt: new Date(
+            Date.now() - (8 - week) * 7 * 86400000 - i * 3600000,
+          ),
         });
       }
     }
@@ -277,12 +298,161 @@ async function main() {
     console.log("Seeded 3 demo loans (1 repaid, 2 active)");
   }
 
+  const [existingProposal] = await db
+    .select({ id: groupProposals.id })
+    .from(groupProposals)
+    .where(
+      and(
+        eq(groupProposals.groupId, group.id),
+        eq(groupProposals.type, "loan_medium"),
+        eq(groupProposals.status, "voting"),
+      ),
+    )
+    .limit(1);
+
+  if (!existingProposal) {
+    const beneficiaryId = userIds[7]!;
+    const [proposal] = await db
+      .insert(groupProposals)
+      .values({
+        groupId: group.id,
+        authorUserId: adminId,
+        type: "loan_medium",
+        riskTier: "B",
+        status: "voting",
+        title: "Crédit AGR — Isaac W. (petit commerce)",
+        justification:
+          "Demande de 180 USD pour stock de denrées. Historique de parts régulier. Vote comité (démo VUK’AFRIK).",
+        financialImpactUsdt: "180",
+        beneficiaryUserId: beneficiaryId,
+        payload: {
+          amountUsdt: 180,
+          loanTermDays: 90,
+          demo: true,
+        },
+        requiredQuorumPct: 50,
+        requiredMajorityPct: 66,
+        voteOpensAt: new Date(Date.now() - 2 * 3600000),
+        voteClosesAt: new Date(Date.now() + 5 * 86400000),
+        voteAudience: "committee",
+      })
+      .returning({ id: groupProposals.id });
+
+    const voters = [userIds[0]!, userIds[1]!, userIds[3]!];
+    for (const voterId of voters) {
+      await db.insert(groupVotes).values({
+        proposalId: proposal.id,
+        voterUserId: voterId,
+        choice: "yes",
+        weight: "1",
+      });
+    }
+    console.log("Seeded open governance vote (loan_medium) + 3 yes votes");
+  }
+
+  const passportMemberId = userIds[4]!; // Fatou B. — active loan borrower
+  const [existingConsent] = await db
+    .select({ id: groupPassportConsents.id })
+    .from(groupPassportConsents)
+    .where(
+      and(
+        eq(groupPassportConsents.groupId, group.id),
+        eq(groupPassportConsents.memberUserId, passportMemberId),
+        isNull(groupPassportConsents.revokedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!existingConsent) {
+    await db.insert(groupPassportConsents).values({
+      groupId: group.id,
+      memberUserId: passportMemberId,
+      partnerLabel: "FOGEC (démo)",
+      scopes: "summary,score,savings,loans",
+      expiresAt: new Date(Date.now() + 30 * 86400000),
+    });
+    console.log("Seeded Passport consent (Fatou B. → FOGEC démo)");
+  }
+
+  const manifest = {
+    groupName: GROUP_NAME,
+    groupId: group.id,
+    inviteCode: group.inviteCode,
+    password: DEMO_PASSWORD,
+    adminEmail: EMAILS[0],
+    memberEmails: EMAILS,
+    walkthrough: [
+      { t: "0–15s", step: "Vue", path: `/app/wallet/groups/${group.id}?tab=vue` },
+      {
+        t: "15–35s",
+        step: "Réunion (parts)",
+        path: `/app/wallet/groups/${group.id}?tab=meeting`,
+      },
+      {
+        t: "35–60s",
+        step: "Caisse / crédits + vote",
+        path: `/app/wallet/groups/${group.id}?tab=treasury`,
+      },
+      {
+        t: "60–90s",
+        step: "Passport + insights IA (Vue)",
+        path: `/app/wallet/groups/${group.id}?tab=vue`,
+      },
+    ],
+    loginAdmin: `/login?email=${encodeURIComponent(EMAILS[0]!)}&next=${encodeURIComponent(`/app/wallet/groups/${group.id}?tab=vue`)}`,
+  };
+
+  const docsDir = path.resolve(process.cwd(), "docs");
+  if (!existsSync(docsDir)) mkdirSync(docsDir, { recursive: true });
+  writeFileSync(
+    path.join(docsDir, "DEMO-UMOJA.json"),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8",
+  );
+  writeFileSync(
+    path.join(docsDir, "DEMO-UMOJA.md"),
+    `# AVEC Umoja — démo VUK’AFRIK / jury
+
+Compte sandbox pour pitch 90 s. **Ne pas utiliser en production réelle.**
+
+## Accès
+
+| Rôle | Email | Mot de passe |
+|------|-------|--------------|
+| Présidente (admin) | \`${EMAILS[0]}\` | \`${DEMO_PASSWORD}\` |
+| Co-admin | \`${EMAILS[1]}\` | idem |
+| Membre + Passport | \`${EMAILS[4]}\` (Fatou B.) | idem |
+
+- **Groupe :** ${GROUP_NAME}
+- **groupId :** \`${group.id}\`
+- **Code invitation :** \`${group.inviteCode}\`
+- **Page jury :** [/demo](/demo)
+
+## Script 90 s
+
+1. **0–15 s — Vue** : caisse, cycle, alertes → preuve de transparence.
+2. **15–35 s — Réunion** : parts 1–5 + caisse sociale (Fc / MoMo).
+3. **35–60 s — Caisse** : crédits actifs + vote ouvert « Crédit AGR — Isaac ».
+4. **60–90 s — Passport** (scroll Vue) : score fiabilité + consentement FOGEC démo + insight IA.
+
+Login admin prérempli :
+
+\`\`\`
+${manifest.loginAdmin}
+\`\`\`
+
+Relancer le seed : \`npm run seed:eavec-umoja\`
+`,
+    "utf8",
+  );
+
   console.log("AVEC Umoja demo ready");
   console.log(`  groupId: ${group.id}`);
   console.log(`  inviteCode: ${group.inviteCode}`);
   console.log(`  admin: ${EMAILS[0]} / ${DEMO_PASSWORD}`);
   console.log(`  members: ${EMAILS.length}`);
-  console.log("  Walkthrough: login → Groups → AVEC Umoja → Vue (insights + passport) → Caisse loans");
+  console.log("  Docs: docs/DEMO-UMOJA.md · docs/DEMO-UMOJA.json");
+  console.log("  Jury page: /demo");
 }
 
 main().catch((e) => {

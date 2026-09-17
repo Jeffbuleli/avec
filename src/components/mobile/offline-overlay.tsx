@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 
+/** Sticky banner for offline / weak network — works on landing + app. */
 export function OfflineOverlay() {
   const { t } = useI18n();
   const [online, setOnline] = useState(true);
@@ -23,14 +24,15 @@ export function OfflineOverlay() {
 
   return (
     <div
-      className="fixed inset-x-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[90] flex items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50/95 px-4 py-3 text-left shadow-xl backdrop-blur-sm lg:bottom-4 lg:left-auto lg:right-4 lg:max-w-sm"
+      className="fixed inset-x-3 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-[90] flex items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50/95 px-4 py-3 text-left shadow-xl backdrop-blur-sm lg:bottom-4 lg:left-auto lg:right-4 lg:max-w-sm"
       role="alert"
     >
       <WifiOffIcon />
       <div>
         <p className="text-sm font-semibold text-amber-950">{t("offline_title")}</p>
-        <p className="max-w-xs text-xs text-amber-900/80">
-          {t("offline_hint")} Vos actions peuvent etre enregistrees puis synchronisees plus tard.
+        <p className="max-w-xs text-xs text-amber-900/80">{t("offline_hint")}</p>
+        <p className="mt-1 max-w-xs text-[11px] font-medium text-amber-900/70">
+          {t("offline_sync_later")}
         </p>
       </div>
     </div>
@@ -40,11 +42,11 @@ export function OfflineOverlay() {
 function WifiOffIcon() {
   return (
     <svg
-      width="48"
-      height="48"
+      width="40"
+      height="40"
       viewBox="0 0 24 24"
       fill="none"
-      className="text-amber-700"
+      className="shrink-0 text-amber-700"
       aria-hidden
     >
       <path

@@ -1,8 +1,10 @@
 "use client";
 
 import { useOfflineState } from "@/components/offline/offline-provider";
+import { useI18n } from "@/components/i18n-provider";
 
 export function OfflineStatusBar() {
+  const { t, locale } = useI18n();
   const { online, queueCount, syncing, failedCount, lastSyncAt, syncNow } =
     useOfflineState();
   const tone = !online
@@ -14,16 +16,22 @@ export function OfflineStatusBar() {
         : "bg-emerald-100 text-emerald-900";
 
   const label = !online
-    ? "Offline - actions saved on this device"
+    ? t("offline_bar_offline")
     : syncing
-      ? "Sync in progress"
+      ? t("offline_bar_syncing")
       : failedCount > 0
-        ? `${failedCount} action(s) need attention`
+        ? t("offline_bar_failed").replace("{n}", String(failedCount))
         : queueCount > 0
-          ? `${queueCount} action(s) queued`
+          ? t("offline_bar_queued").replace("{n}", String(queueCount))
           : lastSyncAt
-            ? `Synced ${new Date(lastSyncAt).toLocaleTimeString()}`
-            : "Ready for field sync";
+            ? t("offline_bar_synced").replace(
+                "{time}",
+                new Date(lastSyncAt).toLocaleTimeString(
+                  locale === "fr" ? "fr-CD" : "en-GB",
+                  { hour: "2-digit", minute: "2-digit" },
+                ),
+              )
+            : t("offline_bar_ready");
 
   return (
     <div className={`rounded-2xl px-3 py-2 text-xs font-semibold ${tone}`}>
@@ -35,7 +43,7 @@ export function OfflineStatusBar() {
             onClick={() => void syncNow()}
             className="rounded-full border border-current/20 px-2.5 py-1 text-[11px] font-bold"
           >
-            Sync
+            {t("offline_bar_sync_btn")}
           </button>
         ) : null}
       </div>

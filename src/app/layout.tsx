@@ -6,6 +6,7 @@ import { I18nProvider } from "@/components/i18n-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConditionalLangSwitch } from "@/components/conditional-lang-switch";
 import { OfflineProvider } from "@/components/offline/offline-provider";
+import { OfflineOverlay } from "@/components/mobile/offline-overlay";
 import { RegisterServiceWorker } from "@/components/pwa/register-service-worker";
 import { PwaInstallBanner } from "@/components/pwa/install-banner";
 import { HostGuard } from "@/components/pwa/host-guard";
@@ -22,7 +23,7 @@ const poppins = Poppins({
 const metadataBaseUrl = getMetadataOrigin() || undefined;
 
 const desc =
-  "e-AVEC — associations villageoises d’épargne et de crédit numériques. Parts, caisse sociale, crédits internes et gouvernance. USD, CDF et Mobile Money.";
+  "e-AVEC sécurise la caisse des associations villageoises d’épargne et de crédit (AVEC) : parts, votes, crédits et historique portable — en Fc, avec Mobile Money. Pas une banque.";
 
 const ogImageAlt = "e-AVEC — digital village savings groups";
 
@@ -103,6 +104,7 @@ export default async function RootLayout({
               <PwaInstallBanner />
               <SessionRefresher />
               {children}
+              <OfflineOverlay />
             </OfflineProvider>
           </I18nProvider>
         </ThemeProvider>

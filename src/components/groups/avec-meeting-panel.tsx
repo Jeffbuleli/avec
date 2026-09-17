@@ -7,6 +7,7 @@ import { ListPagination, useListPagination } from "@/components/ui/list-paginati
 import { AvecIconShares, AvecIconSolidarity } from "@/components/groups/avec-icons";
 import { IlluMeeting } from "@/components/groups/avec-illustrations";
 import { avecCls, AvecMoneyNote } from "@/components/groups/avec-ui";
+import { AvecLiteracyHint } from "@/components/groups/avec-literacy-hint";
 import { clientErrorText } from "@/lib/client-error-text";
 import {
   isSocialFundPerMeetingMisconfigured,
@@ -208,13 +209,13 @@ export function AvecMeetingPanel({
         <p className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
           {t("avec_buy_shares")} · {avecMoney(shareValue)}
         </p>
-        <div className="mt-3 flex flex-wrap justify-center gap-2">
+        <div className="mt-3 flex flex-wrap justify-center gap-2.5">
           {Array.from({ length: maxShares }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               type="button"
               onClick={() => setShares(n)}
-              className={`${avecCls.shareChip} ${shares === n ? avecCls.shareChipOn : avecCls.shareChipOff}`}
+              className={`${avecCls.shareChip} min-h-12 min-w-12 text-base ${shares === n ? avecCls.shareChipOn : avecCls.shareChipOff}`}
             >
               {n}
             </button>
@@ -264,12 +265,17 @@ export function AvecMeetingPanel({
           type="button"
           disabled={busy || !canContribute || misconfigured || insufficient}
           onClick={() => void pay()}
-          className={`${avecCls.btnPrimary} mt-4`}
+          className={`${avecCls.btnPrimary} mt-4 min-h-[52px] text-base`}
         >
           {insufficient
             ? t("avec_meeting_insufficient")
             : t("avec_meeting_confirm_pay", { amount: avecMoney(meetingTotal) })}
         </button>
+        <AvecLiteracyHint
+          fr={locale === "fr" ? "Payer les parts" : "Pay shares"}
+          ln="Futa biparti"
+          sw="Lipa hisa"
+        />
         <p className="mt-2 text-center text-[10px] text-[color:var(--fd-muted)]">
           {t("avec_wallet_debit")}
         </p>
