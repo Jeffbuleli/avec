@@ -7,16 +7,14 @@
 │                                     │
 │      [ QR → e-avec.org ]            │
 │                                     │
-│  VUK’AFRIK 2026 · Finance/Fintech   │
-│  Pullman · Kinshasa · 23–25 sept.   │
+│  Slides J1 : e-avec.org/slides      │
 │                                     │
+│  VUK’AFRIK 2026 · Finance/Fintech   │
 │  Pas une banque · pas d’agrément BCC│
 └─────────────────────────────────────┘
 ```
 
 | Cible | URL |
 |---|---|
-| Principal | `https://e-avec.org` |
-| Slides (équipe) | `https://mcbuleli.org/hackathon/slides/vukafrik-eavec-j1/present` |
-
-**Ne pas imprimer** `e-avec.org/demo`.
+| Produit | `https://e-avec.org` |
+| Slides J1 | `https://e-avec.org/slides/vukafrik-eavec-j1/present` |

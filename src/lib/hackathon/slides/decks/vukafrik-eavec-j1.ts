@@ -20,9 +20,9 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
   moduleLabelEn: "Day 1 · Theory",
   estimatedMinutes: 12,
   speakerHintFr:
-    "J1 = slides seulement. ← → pour naviguer, F plein écran, L On Air. Démo pratique = e-avec.org (prod) à partir de J2.",
+    "J1 = slides seulement. ← → pour naviguer, F plein écran, N notes. Démo pratique = e-avec.org (prod) à partir de J2.",
   speakerHintEn:
-    "Day 1 = slides only. ← → navigate, F fullscreen, L On Air. Live product = e-avec.org (prod) from Day 2.",
+    "Day 1 = slides only. ← → navigate, F fullscreen, N notes. Live product = e-avec.org (prod) from Day 2.",
   slides: [
     s({
       id: "cover",
@@ -225,12 +225,12 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       subtitle: "Suite : pratique sur e-avec.org · McBuleli",
       bullets: [
         { text: "Produit : e-avec.org" },
-        { text: "Slides : mcbuleli.org/hackathon/slides" },
+        { text: "Slides : e-avec.org/slides" },
         { text: "Village : Finance / Fintech" },
       ],
       ctas: [
         { label: "e-AVEC", href: "https://e-avec.org" },
-        { label: "Slides hub", href: "/hackathon/slides" },
+        { label: "Slides", href: "/slides" },
       ],
       illustration: "vibe-loop",
       notes:
