@@ -2,6 +2,7 @@
 
 import { useI18n } from "@/components/i18n-provider";
 
+/** Only show when role/status needs attention — not for every approved member. */
 export function AvecRoleStrip({
   role,
   status,
@@ -17,14 +18,15 @@ export function AvecRoleStrip({
       </p>
     );
   }
+  if (role !== "admin" && role !== "co_admin" && role !== "committee") {
+    return null;
+  }
   const key =
     role === "admin"
       ? "avec_role_admin"
       : role === "co_admin"
         ? "avec_role_coadmin"
-        : role === "committee"
-          ? "avec_role_committee"
-          : "avec_role_member";
+        : "avec_role_committee";
   return (
     <p className="rounded-xl border border-[color:var(--fd-primary)]/20 bg-[color:var(--fd-mint)]/50 px-3 py-2 text-center text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-primary)]">
       {t(key)}

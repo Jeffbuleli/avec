@@ -90,8 +90,7 @@ export function AvecGroupHero({
             {t("group_field_share_value")}
           </p>
           <p className="mt-0.5 text-sm font-black tabular-nums text-[color:var(--fd-primary)]">
-            {shareValueUsdt.toFixed(0)}
-            <span className="text-[10px]"> USD</span>
+            {avecMoney(shareValueUsdt)}
           </p>
         </div>
 

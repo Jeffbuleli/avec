@@ -6675,7 +6675,7 @@ export const fr: Messages = {
   avec_tab_treasury: "Caisse",
   avec_tab_dialogue: "Dialogue",
   avec_meeting_hint: "Achat de parts à la réunion (1-5). Valeur fixe pour ce cycle.",
-  avec_meeting_hint_short: "1-5 parts · USD fixe/part",
+  avec_meeting_hint_short: "1-5 parts · Fc fixe/part",
   avec_social_misconfigured_title: "Cotisation solidarité trop élevée",
   avec_social_misconfigured_body:
     "Configuré {current} USD/réunion - max {max} USD. Corrigez ci-dessous pour payer.",
