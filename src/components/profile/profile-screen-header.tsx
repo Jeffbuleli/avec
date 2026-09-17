@@ -25,14 +25,14 @@ export function ProfileScreenHeader({ title }: { title: string }) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 -mx-4 mb-2 border-b border-[rgba(74,103,79,0.12)] bg-[var(--fd-bg)] px-4 pb-3 pt-0 backdrop-blur-md">
-        <div className="flex min-h-[44px] items-center justify-between gap-3">
-          <h1 className="text-lg font-bold tracking-tight text-[var(--fd-text)]">
+      <header className="sticky top-0 z-30 mb-2 border-b border-[rgba(74,103,79,0.12)] bg-[var(--fd-bg)] pb-3 pt-0 backdrop-blur-md">
+        <div className="flex min-h-[44px] min-w-0 items-center justify-between gap-2">
+          <h1 className="min-w-0 truncate text-lg font-bold tracking-tight text-[var(--fd-text)]">
             {title}
           </h1>
           <button
             type="button"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[var(--fd-border)] bg-white text-[var(--fd-primary)] shadow-[0_2px_8px_rgba(28,25,23,0.06)] active:scale-95"
+            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--fd-border)] bg-white text-[var(--fd-primary)] shadow-[0_2px_8px_rgba(28,25,23,0.06)] active:scale-95"
             aria-label={t("notifications_title")}
             onClick={() => setNotifOpen(true)}
           >

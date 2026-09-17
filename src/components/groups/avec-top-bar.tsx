@@ -43,8 +43,8 @@ export function AvecTopBar({
   const region = countryCode ? countryShortLabel(locale, countryCode) : "";
 
   return (
-    <div className="sticky top-0 z-20 -mx-3 border-b border-[color:var(--fd-border)] bg-[color:var(--fd-bg)] sm:-mx-4 md:-mx-5 lg:-mx-6">
-      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2.5 sm:px-4 md:px-5 lg:px-6">
+    <div className="sticky top-0 z-20 border-b border-[color:var(--fd-border)] bg-[color:var(--fd-bg)]">
+      <header className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 py-2.5">
         <div className="min-w-0 justify-self-start">
           <p className="truncate text-sm font-extrabold leading-tight text-[color:var(--fd-text)]">
             {groupName}
@@ -69,11 +69,11 @@ export function AvecTopBar({
         </div>
 
         <div className="flex min-w-0 flex-col items-end justify-self-end gap-1">
-          <p className="flex max-w-[9rem] items-center justify-end gap-1 truncate text-right text-xs font-bold text-[color:var(--fd-text)]">
+          <p className="flex max-w-full items-center justify-end gap-1 truncate text-right text-xs font-bold text-[color:var(--fd-text)]">
             <span className="truncate">{pseudo}</span>
             {memberKycApproved ? <KycVerifiedBadge compact /> : null}
           </p>
-          <div className="flex items-center gap-1.5">
+          <div className="flex max-w-full flex-wrap items-center justify-end gap-1.5">
             {settingsHref ? (
               <Link
                 href={settingsHref}
@@ -91,7 +91,7 @@ export function AvecTopBar({
           </div>
         </div>
       </header>
-      {tabs ? <div className="px-3 pb-2 sm:px-4 md:px-5 lg:px-6">{tabs}</div> : null}
+      {tabs ? <div className="min-w-0 pb-2">{tabs}</div> : null}
     </div>
   );
 }

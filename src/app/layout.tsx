@@ -91,10 +91,10 @@ export default async function RootLayout({
     <html
       lang={locale}
       translate="no"
-      className={`notranslate ${poppins.variable} ${poppins.className} h-full scroll-smooth antialiased`}
+      className={`notranslate ${poppins.variable} ${poppins.className} h-full scroll-smooth antialiased overflow-x-hidden`}
       suppressHydrationWarning
     >
-      <body className="min-h-full text-[#0F2D2F]">
+      <body className="min-h-full min-w-0 overflow-x-hidden text-[#0F2D2F]">
         <ThemeProvider>
           <I18nProvider initialLocale={locale}>
             <OfflineProvider>

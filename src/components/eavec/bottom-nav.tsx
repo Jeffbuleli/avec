@@ -22,7 +22,7 @@ export function EavecBottomNav({ marcheWorld = false }: { marcheWorld?: boolean 
       aria-label="Main"
     >
       <div
-        className={`pointer-events-auto flex w-full max-w-md items-stretch justify-around rounded-full px-1 py-1 backdrop-blur-md md:max-w-lg ${
+        className={`pointer-events-auto flex w-full max-w-[min(28rem,calc(100%-0.5rem))] items-stretch justify-around rounded-full px-1 py-1 backdrop-blur-md ${
           marcheWorld
             ? "border border-[rgba(7,18,16,0.12)] bg-[rgba(244,247,246,0.92)] shadow-[0_12px_40px_rgba(7,18,16,0.14)]"
             : "fd-nav-glow"
