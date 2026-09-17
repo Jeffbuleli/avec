@@ -9,6 +9,7 @@ import {
 import { getMyMembershipOrNull } from "@/lib/group-savings-permissions";
 import { numFromNumeric } from "@/lib/wallet-types";
 import { computeLoanCharges } from "@/lib/avec/loan-terms";
+import { avecMoney } from "@/lib/avec/display-currency";
 import {
   assistantOpenAiEnabled,
   completeChatJson,
@@ -123,8 +124,6 @@ async function loadGroupSnapshot(
     recentContributionTrendPct,
   };
 }
-
-import { avecMoney } from "@/lib/avec/display-currency";
 
 /** Deterministic insights from structured aggregates — never invents numbers. */
 export function buildDeterministicInsights(
