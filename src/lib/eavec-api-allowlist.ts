@@ -2,6 +2,7 @@
 const ALLOWED_PREFIXES = [
   "/api/auth",
   "/api/groups",
+  "/api/eavec/market",
   "/api/admin/groups",
   "/api/kyc",
   "/api/profile",

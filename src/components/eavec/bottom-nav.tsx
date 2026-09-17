@@ -7,13 +7,13 @@ import { APP_NAV_ITEMS, isAppNavActive } from "@/lib/app-nav-items";
 
 export function EavecBottomNav() {
   const pathname = usePathname();
-  const { t, locale } = useI18n();
+  const { locale } = useI18n();
   const fr = locale === "fr";
 
   const labelFor = (href: string) => {
-    if (href === "/app/wallet/groups") return fr ? "AVEC" : "AVEC";
-    if (href === "/app/wallet") return fr ? "Caisse" : "Wallet";
-    return t("nav_profile");
+    if (href === "/app/wallet/groups") return "AVEC";
+    if (href === "/app/marche") return fr ? "Marché" : "Market";
+    return fr ? "Moi" : "Me";
   };
 
   return (
@@ -67,19 +67,21 @@ function NavIcon({ href, active }: { href: string; active: boolean }) {
       </svg>
     );
   }
-  if (href === "/app/wallet") {
+  if (href === "/app/marche") {
     return (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <rect
-          x="3"
-          y="6"
-          width="18"
-          height="13"
-          rx="2.5"
+        <path
+          d="M4 7h16l-1.2 11.2a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 7Z"
           stroke={stroke}
           strokeWidth="1.8"
+          strokeLinejoin="round"
         />
-        <path d="M3 10h18" stroke={stroke} strokeWidth="1.8" />
+        <path
+          d="M8 7V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V7"
+          stroke={stroke}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
       </svg>
     );
   }

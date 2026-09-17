@@ -1579,6 +1579,46 @@ export const groupAuditLog = pgTable(
   ],
 );
 
+/**
+ * e-AVEC Marché — community marketplace listings (goods/services).
+ * Ledger asset remains USDT internally; UI shows USD/CDF.
+ */
+export const eavecMarketListings = pgTable(
+  "eavec_market_listings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    sellerUserId: uuid("seller_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    groupId: uuid("group_id").references(() => groupSavingsGroups.id, {
+      onDelete: "set null",
+    }),
+    title: varchar("title", { length: 120 }).notNull(),
+    description: text("description"),
+    category: varchar("category", { length: 32 }).notNull(),
+    currency: varchar("currency", { length: 8 }).notNull().default("USD"),
+    price: numeric("price", { precision: 18, scale: 2 }).notNull(),
+    quantity: integer("quantity").notNull().default(1),
+    locationLabel: varchar("location_label", { length: 128 }),
+    countryCode: varchar("country_code", { length: 8 }),
+    imageUrl: text("image_url"),
+    status: varchar("status", { length: 16 }).notNull().default("available"),
+    kind: varchar("kind", { length: 16 }).notNull().default("product"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("eavec_market_listings_status_cat_idx").on(t.status, t.category),
+    index("eavec_market_listings_seller_idx").on(t.sellerUserId),
+    index("eavec_market_listings_created_idx").on(t.createdAt),
+    index("eavec_market_listings_group_idx").on(t.groupId),
+  ],
+);
+
 /** Cross-cutting audit trail for platform staff actions (super-admin global view). */
 
 /**

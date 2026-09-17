@@ -14,8 +14,8 @@ export function EavecSideNav() {
 
   const labelFor = (href: string) => {
     if (href === "/app/wallet/groups") return "AVEC";
-    if (href === "/app/wallet") return fr ? "Caisse" : "Wallet";
-    return fr ? "Profil" : "Profile";
+    if (href === "/app/marche") return fr ? "Marché" : "Market";
+    return fr ? "Moi" : "Me";
   };
 
   return (
@@ -50,6 +50,12 @@ export function EavecSideNav() {
             </Link>
           );
         })}
+        <Link
+          href="/app/wallet"
+          className="mt-2 rounded-xl px-3 py-2 text-xs font-semibold text-[#0F2D2F]/60 hover:bg-[#F6E8CD]"
+        >
+          {fr ? "Caisse (USD/CDF)" : "Wallet (USD/CDF)"}
+        </Link>
       </nav>
     </aside>
   );

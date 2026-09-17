@@ -19,6 +19,7 @@ import { AvecAiInsightsCard } from "@/components/groups/avec-ai-insights-card";
 import { AvecFinancialPassportPanel } from "@/components/groups/avec-financial-passport-panel";
 import { AvecMemberQuickActions } from "@/components/groups/avec-member-quick-actions";
 import { avecCls } from "@/components/groups/avec-ui";
+import { EavecEconomicCycleStrip } from "@/components/eavec-market/market-ui";
 import { p2pDisplayName } from "@/lib/p2p-display";
 import type { GovernanceVoteMeta } from "@/lib/avec/governance/types";
 import type { AvecMemberRow } from "@/components/groups/avec-member-list";
@@ -105,7 +106,7 @@ export function AvecOverviewPanel({
   canAdmin?: boolean;
   onNavigate: (tab: "meeting" | "members" | "treasury" | "dialogue") => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [ledger, setLedger] = useState<LedgerRow[]>([]);
   const [funds, setFunds] = useState<FundBuckets | null>(null);
   const [openVote, setOpenVote] = useState<GovernanceVoteMeta | null>(null);
@@ -243,6 +244,8 @@ export function AvecOverviewPanel({
           </div>
         </div>
       </div>
+
+      <EavecEconomicCycleStrip locale={locale} />
 
       {funds ? (
         <div className={`${avecCls.section}`}>

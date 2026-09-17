@@ -815,11 +815,11 @@ export async function contributeToGroup(args: {
     .limit(1);
   const partsLabel = shares != null ? ` · ${shares} parts` : "";
   const socialLabel =
-    socialPerMeeting > 0 ? ` · social ${socialPerMeeting.toFixed(2)} USDT` : "";
+    socialPerMeeting > 0 ? ` · social ${socialPerMeeting.toFixed(2)} USD` : "";
   await insertGroupActivitySystemMessage({
     groupId: args.groupId,
     actorUserId: args.userId,
-    body: `${u?.email ?? "Member"} → ${amt.toFixed(2)} USDT${partsLabel}${socialLabel}${
+    body: `${u?.email ?? "Member"} → ${amt.toFixed(2)} USD${partsLabel}${socialLabel}${
       paymentSource === "cash_local" ? " · cash local" : ""
     }`,
   });
