@@ -12,6 +12,11 @@ export function buildContentSecurityPolicy(): string {
     "blob:",
     "https://img.youtube.com",
     "https://i.ytimg.com",
+    "https://images.unsplash.com",
+    "https://plus.unsplash.com",
+    "https://images.pexels.com",
+    "https://picsum.photos",
+    "https://fastly.picsum.photos",
     ...mediaOrigins,
   ];
   const mediaSources = ["'self'", "blob:", ...mediaOrigins];
