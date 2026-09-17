@@ -43,7 +43,7 @@ export function AvecLoanDecisionMessage({
         <div className="flex justify-between gap-2">
           <dt className="text-[color:var(--fd-muted)]">{t("group_loan_amount")}</dt>
           <dd className="font-bold tabular-nums text-cyan-900">
-            {meta.amountUsdt.toFixed(2)} USD
+            {meta.amountUsdt.toFixed(2)} Fc
           </dd>
         </div>
         <div className="flex justify-between gap-2">

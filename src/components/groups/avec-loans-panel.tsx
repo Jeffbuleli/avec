@@ -8,6 +8,7 @@ import type { AvecMemberRow } from "@/components/groups/avec-member-list";
 import { AvecLoanRatesGovernance } from "@/components/groups/avec-loan-rates-governance";
 import { clientErrorText } from "@/lib/client-error-text";
 import { p2pDisplayName } from "@/lib/p2p-display";
+import { avecMoney } from "@/lib/avec/display-currency";
 
 type PendingLoan = {
   id: string;
@@ -340,12 +341,12 @@ export function AvecLoansPanel({
         <div className="mb-3 rounded-2xl border border-cyan-200/60 bg-cyan-50/50 p-3">
           <p className="mb-2 text-xs font-bold text-cyan-900">{t("group_loan_request_title")}</p>
           <p className="mb-2 text-[10px] tabular-nums text-[color:var(--fd-muted)]">
-            max {myMaxLoan.toFixed(0)} USD
+            max {avecMoney(myMaxLoan)}
           </p>
           <input
             value={memberAmount}
             onChange={(e) => setMemberAmount(e.target.value)}
-            placeholder="USD"
+            placeholder="Fc"
             inputMode="decimal"
             className={avecCls.input}
           />
@@ -366,7 +367,7 @@ export function AvecLoansPanel({
             {t("group_loan_member_request_title")}
           </p>
           <p className="text-lg font-black tabular-nums">
-            {r.amountUsdt.toFixed(2)} <span className="text-xs">USD</span> · {r.borrowerDisplay}
+            {avecMoney(r.amountUsdt)} · {r.borrowerDisplay}
           </p>
           {canManage ? (
             <div className="mt-2 flex flex-wrap gap-2">
@@ -390,7 +391,7 @@ export function AvecLoansPanel({
             {t("group_loan_pending_title")}
           </p>
           <p className="text-lg font-black tabular-nums">
-            {pending.amountUsdt.toFixed(2)} USD → {pending.borrowerDisplay}
+            {avecMoney(pending.amountUsdt)} → {pending.borrowerDisplay}
           </p>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-cyan-100">
             <div
@@ -436,7 +437,7 @@ export function AvecLoansPanel({
           <input
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="USD"
+            placeholder="Fc"
             inputMode="decimal"
             className={avecCls.input}
           />
@@ -472,7 +473,7 @@ export function AvecLoansPanel({
                 ) : null}
               </div>
               <p className="mt-1 text-sm font-black tabular-nums text-cyan-900">
-                {l.totalDueUsdt.toFixed(2)} USD
+                {avecMoney(l.totalDueUsdt)}
               </p>
               {(canManage || l.borrowerUserId === myUserId) && l.totalDueUsdt > 0 ? (
                 <div className="mt-2 flex gap-2">
@@ -502,7 +503,7 @@ export function AvecLoansPanel({
         <ul className="mt-2 max-h-24 space-y-1 overflow-y-auto border-t border-[color:var(--fd-border)] pt-2">
           {history.map((h) => (
             <li key={h.id} className="text-[9px] text-[color:var(--fd-muted)]">
-              {h.borrowerDisplay} · {h.principalUsdt.toFixed(0)} USD ·{" "}
+              {h.borrowerDisplay} · {avecMoney(h.principalUsdt)} ·{" "}
               {h.status === "rejected" ? "✕" : "✓"}
               {h.rejectionReason ? ` — ${h.rejectionReason}` : ""}
             </li>

@@ -6,6 +6,7 @@ import { GroupStatusBadge } from "@/components/groups/group-status-badge";
 import { countryShortLabel } from "@/lib/country-label";
 import { avecCls } from "@/components/groups/avec-ui";
 import { GroupLogoImg } from "@/components/groups/group-logo-img";
+import { avecMoney } from "@/lib/avec/display-currency";
 
 export function AvecGroupHero({
   name,

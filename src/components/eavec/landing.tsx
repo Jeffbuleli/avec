@@ -46,8 +46,8 @@ export function EavecLanding() {
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-[#F6E8CD]/80">
               {fr
-                ? "Parts, caisse sociale, crédits internes, gouvernance et clôture de cycle — en USD et CDF, avec dépôt Mobile Money pour l’inclusion financière."
-                : "Shares, social fund, internal loans, governance and cycle share-out — in USD and CDF, with Mobile Money deposits for financial inclusion."}
+                ? "Parts, caisse sociale, crédits internes, gouvernance et clôture de cycle — en Fc, avec dépôt Mobile Money pour l’inclusion financière."
+                : "Shares, social fund, internal loans, governance and cycle share-out — in Fc, with Mobile Money deposits for financial inclusion."}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -95,8 +95,8 @@ export function EavecLanding() {
             {
               t: fr ? "Mobile Money" : "Mobile Money",
               d: fr
-                ? "Dépôt et retrait USD/CDF via Orange, M-Pesa et Airtel (PawaPay)."
-                : "USD/CDF deposit and withdraw via Orange, M-Pesa and Airtel (PawaPay).",
+                ? "Dépôt et retrait Fc via Orange, M-Pesa et Airtel (PawaPay)."
+                : "Fc deposit and withdraw via Orange, M-Pesa and Airtel (PawaPay).",
             },
           ].map((card) => (
             <article

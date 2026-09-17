@@ -5,6 +5,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { AvecIconTreasury } from "@/components/groups/avec-icons";
 import { avecCls } from "@/components/groups/avec-ui";
 import { clientErrorText } from "@/lib/client-error-text";
+import { avecMoney } from "@/lib/avec/display-currency";
 
 type Funds = {
   totalUsdt: number;
@@ -107,7 +108,7 @@ export function AvecTreasuryFunds({
     void load();
   }, [load, onRefreshKey]);
 
-  const fmt = (n: number) => `${n.toFixed(2)} USD`;
+  const fmt = (n: number) => avecMoney(n);
 
   async function submitCoverage() {
     const amountUsdt = Number(coverageAmount.replace(",", "."));
@@ -143,7 +144,7 @@ export function AvecTreasuryFunds({
           <p className={avecCls.sectionTitle}>{t("avec_treasury_title")}</p>
           <p className="text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
             {funds ? funds.totalUsdt.toFixed(0) : "…"}
-            <span className="ml-1 text-xs font-bold">USD</span>
+            <span className="ml-1 text-xs font-bold">Fc</span>
           </p>
         </div>
       </div>
@@ -225,7 +226,7 @@ export function AvecTreasuryFunds({
                   value={coverageAmount}
                   onChange={(e) => setCoverageAmount(e.target.value)}
                   inputMode="decimal"
-                  placeholder="Montant centralise (USD)"
+                  placeholder="Montant centralise (Fc)"
                   className="wallet-input w-full rounded-xl border px-3 py-2 text-sm"
                 />
                 <input

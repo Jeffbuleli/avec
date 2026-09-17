@@ -54,7 +54,7 @@ export function EavecSideNav() {
           href="/app/wallet"
           className="mt-2 rounded-xl px-3 py-2 text-xs font-semibold text-[#0F2D2F]/60 hover:bg-[#F6E8CD]"
         >
-          {fr ? "Caisse (USD/CDF)" : "Wallet (USD/CDF)"}
+          {fr ? "Caisse (Fc)" : "Wallet (Fc)"}
         </Link>
       </nav>
     </aside>

@@ -193,7 +193,7 @@ export function AvecSettingsSections({
                       </span>
                     </div>
                     <p className="mt-1 font-mono text-[10px] tabular-nums text-[color:var(--fd-primary)]">
-                      {Number(x.amountUsdt).toFixed(2)} USD
+                      {Number(x.amountUsdt).toFixed(2)} Fc
                     </p>
                     <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
                       {x.attemptedAt

@@ -5,33 +5,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { McBuleliPoweredFooter } from "@/components/brand/mcbuleli-powered-footer";
 import { useI18n } from "@/components/i18n-provider";
-import { useOfflineState } from "@/components/offline/offline-provider";
-import {
-  EAVEC_PRIMARY_CURRENCY,
-  EAVEC_SECONDARY_CURRENCY,
-  eavecDisplayAsset,
-} from "@/lib/eavec-currency";
+import { avecCdf } from "@/lib/avec/display-currency";
 import { BRAND_LOGO_MARK_256 } from "@/lib/brand-logo";
 
 type WalletSummary = {
   lines?: { asset?: string; balance?: string | number }[];
 };
 
-function formatBalance(asset: string, balance: string, locale: "fr" | "en") {
-  const n = Number(balance);
-  if (!Number.isFinite(n)) return balance;
-  const loc = locale === "fr" ? "fr-FR" : "en-US";
-  if (asset === "CDF") {
-    return `${Math.round(n).toLocaleString(loc)} ${EAVEC_SECONDARY_CURRENCY}`;
-  }
-  return `${n.toLocaleString(loc, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${EAVEC_PRIMARY_CURRENCY}`;
-}
-
 export function EavecWalletFundPage() {
   const { locale } = useI18n();
   const fr = locale === "fr";
-  const { queueCount, failedCount, online, lastSyncAt, syncNow } = useOfflineState();
-  const [usd, setUsd] = useState<string | null>(null);
   const [cdf, setCdf] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -45,17 +28,7 @@ export function EavecWalletFundPage() {
         setErr(data.error ?? "wallet_not_found");
         return;
       }
-      const usdRow = data.lines?.find(
-        (b) => eavecDisplayAsset(b.asset ?? "") === EAVEC_PRIMARY_CURRENCY,
-      );
-      const cdfRow = data.lines?.find((b) => b.asset === EAVEC_SECONDARY_CURRENCY);
-      setUsd(
-        usdRow?.balance != null
-          ? String(usdRow.balance)
-          : data.lines?.find((b) => b.asset === "USDT")?.balance != null
-            ? String(data.lines!.find((b) => b.asset === "USDT")!.balance)
-            : "0",
-      );
+      const cdfRow = data.lines?.find((b) => b.asset === "CDF");
       setCdf(cdfRow?.balance != null ? String(cdfRow.balance) : "0");
     })();
   }, []);
@@ -83,38 +56,28 @@ export function EavecWalletFundPage() {
 
       <p className="mt-3 text-sm leading-relaxed text-[#0F2D2F]/70">
         {fr
-          ? "Dépôt et retrait via Mobile Money (Orange, M-Pesa, Airtel). Les parts AVEC sont débitées de votre solde USD."
-          : "Deposit and withdraw via Mobile Money (Orange, M-Pesa, Airtel). AVEC shares are debited from your USD balance."}
+          ? "Dépôt et retrait en francs congolais (Fc) via Mobile Money. Le Marché et les opérations courantes utilisent ce solde."
+          : "Deposit and withdraw Congolese francs (Fc) via Mobile Money. Market and day-to-day ops use this balance."}
       </p>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-3xl bg-[#0F2D2F] p-5 text-[#F6E8CD]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
-            {EAVEC_PRIMARY_CURRENCY}
-          </p>
-          <p className="mt-2 text-3xl font-black tabular-nums">
-            {err ? "—" : usd != null ? formatBalance("USD", usd, locale) : "…"}
-          </p>
-        </div>
-        <div className="rounded-3xl border border-[#0F2D2F]/15 bg-[#F6E8CD]/40 p-5 text-[#0F2D2F]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#0F2D2F]/50">
-            {EAVEC_SECONDARY_CURRENCY}
-          </p>
-          <p className="mt-2 text-3xl font-black tabular-nums">
-            {err ? "—" : cdf != null ? formatBalance("CDF", cdf, locale) : "…"}
-          </p>
-        </div>
+      <div className="mt-5 rounded-3xl bg-[#0F2D2F] p-5 text-[#F6E8CD]">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
+          Fc
+        </p>
+        <p className="mt-2 text-3xl font-black tabular-nums">
+          {err ? "—" : cdf != null ? avecCdf(cdf) : "…"}
+        </p>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Link
-          href="/app/wallet/fiat/deposit?asset=USD"
+          href="/app/wallet/fiat/deposit?asset=CDF"
           className="flex min-h-[52px] items-center justify-center rounded-2xl bg-[#0F2D2F] px-5 text-sm font-extrabold text-[#F6E8CD]"
         >
           {fr ? "Dépôt Mobile Money" : "Mobile Money deposit"}
         </Link>
         <Link
-          href="/app/wallet/fiat/withdraw?asset=USD"
+          href="/app/wallet/fiat/withdraw?asset=CDF"
           className="flex min-h-[52px] items-center justify-center rounded-2xl border border-[#0F2D2F]/20 px-5 text-sm font-bold text-[#0F2D2F]"
         >
           {fr ? "Retrait Mobile Money" : "Mobile Money withdraw"}
@@ -127,33 +90,6 @@ export function EavecWalletFundPage() {
       >
         {fr ? "Retour aux AVEC" : "Back to AVEC groups"}
       </Link>
-
-      <div className="mt-4 rounded-2xl border border-[#0F2D2F]/10 bg-white/70 p-4 text-sm text-[#0F2D2F]">
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#0F2D2F]/55">
-          Sync terrain
-        </p>
-        <p className="mt-1 font-semibold">
-          {online
-            ? `${queueCount} action(s) en attente`
-            : "Mode offline actif - vos actions sont gardees localement"}
-        </p>
-        <p className="mt-1 text-xs text-[#0F2D2F]/65">
-          {failedCount > 0
-            ? `${failedCount} action(s) demandent une verification`
-            : lastSyncAt
-              ? `Derniere sync: ${new Date(lastSyncAt).toLocaleString(fr ? "fr-FR" : "en-US")}`
-              : "Aucune synchronisation complete pour le moment"}
-        </p>
-        {online ? (
-          <button
-            type="button"
-            onClick={() => void syncNow()}
-            className="mt-3 rounded-xl bg-[#0F2D2F] px-3 py-2 text-xs font-bold text-[#F6E8CD]"
-          >
-            {fr ? "Synchroniser maintenant" : "Sync now"}
-          </button>
-        ) : null}
-      </div>
 
       <McBuleliPoweredFooter />
     </div>

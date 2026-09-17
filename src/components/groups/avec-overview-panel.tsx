@@ -19,6 +19,7 @@ import { AvecAiInsightsCard } from "@/components/groups/avec-ai-insights-card";
 import { AvecFinancialPassportPanel } from "@/components/groups/avec-financial-passport-panel";
 import { AvecMemberQuickActions } from "@/components/groups/avec-member-quick-actions";
 import { avecCls } from "@/components/groups/avec-ui";
+import { avecMoney } from "@/lib/avec/display-currency";
 import { EavecEconomicCycleStrip } from "@/components/eavec-market/market-ui";
 import { p2pDisplayName } from "@/lib/p2p-display";
 import type { GovernanceVoteMeta } from "@/lib/avec/governance/types";
@@ -225,8 +226,7 @@ export function AvecOverviewPanel({
               {t("avec_treasury_total")}
             </p>
             <p className="mt-0.5 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
-              {group.balanceUsdt.toFixed(0)}
-              <span className="ml-0.5 text-xs font-bold">USDT</span>
+              {avecMoney(group.balanceUsdt)}
             </p>
             <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
               {t("avec_vue_saved_members", { amount: totalSaved.toFixed(0) })}
@@ -237,8 +237,7 @@ export function AvecOverviewPanel({
               {t("avec_fund_available")}
             </p>
             <p className="mt-0.5 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
-              {funds ? funds.availableUsdt.toFixed(0) : "-"}
-              <span className="ml-0.5 text-xs font-bold">USDT</span>
+              {funds ? avecMoney(funds.availableUsdt) : "-"}
             </p>
             <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">{t("avec_treasury_available_hint")}</p>
           </div>

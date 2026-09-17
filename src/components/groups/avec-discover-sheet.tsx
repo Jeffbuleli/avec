@@ -101,7 +101,7 @@ export function AvecDiscoverSheet({
             </p>
           </div>
           <p className="text-[10px] text-[color:var(--fd-muted)]">
-            {t("group_field_share_value")}: {group.shareValueUsdt.toFixed(0)} USDT
+            {t("group_field_share_value")}: {group.shareValueUsdt.toFixed(0)} Fc
           </p>
         </div>
 

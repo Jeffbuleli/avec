@@ -13,6 +13,7 @@ import {
   maxSocialFundPerMeeting,
 } from "@/lib/avec/social-fund-limits";
 import { listMeetingDraftsByUser } from "@/lib/offline/db";
+import { avecMoney } from "@/lib/avec/display-currency";
 
 export function AvecMeetingPanel({
   groupId,
@@ -224,7 +225,7 @@ export function AvecMeetingPanel({
 
       <div className={avecCls.section}>
         <p className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
-          {t("avec_buy_shares")} · {shareValue.toFixed(2)} USD
+          {t("avec_buy_shares")} · {avecMoney(shareValue)}
         </p>
         <div className="mt-3 flex flex-wrap justify-center gap-2">
           {Array.from({ length: maxShares }, (_, i) => i + 1).map((n) => (
@@ -252,7 +253,7 @@ export function AvecMeetingPanel({
           ) : null}
           <span className="text-[10px] font-bold text-[color:var(--fd-muted)]">=</span>
           <span className="rounded-full bg-[color:var(--fd-primary)] px-3 py-1 text-sm font-black tabular-nums text-white">
-            {meetingTotal.toFixed(2)} USD
+            {avecMoney(meetingTotal)}
           </span>
         </div>
 
@@ -317,7 +318,7 @@ export function AvecMeetingPanel({
             {drafts.slice(0, 3).map((draft) => (
               <div key={draft.id} className="rounded-xl bg-white/70 px-3 py-2 text-xs text-amber-950">
                 <p className="font-bold">
-                  {draft.receiptSummary.totalQueuedAmount.toFixed(2)} USD
+                  {draft.receiptSummary.totalQueuedAmount.toFixed(2)} Fc
                 </p>
                 <p className="mt-0.5 text-[11px]">
                   {draft.receiptSummary.queuedMembers} membre(s) •{" "}
@@ -353,7 +354,7 @@ export function AvecMeetingPanel({
                     ) : null}
                   </div>
                   <p className="shrink-0 font-mono text-xs font-bold tabular-nums text-[color:var(--fd-primary)]">
-                    {row.total.toFixed(2)} USD
+                    {row.total.toFixed(2)} Fc
                   </p>
                 </li>
               ))}

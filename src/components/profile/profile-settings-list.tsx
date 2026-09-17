@@ -106,7 +106,7 @@ export function ProfileSettingsList({
   showAdmin: boolean;
   variant?: "default" | "eavec";
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const eavecMode = variant === "eavec";
 
   const kycApproved = isKycApproved(meta.kycStatus);
@@ -168,36 +168,65 @@ export function ProfileSettingsList({
           title={t("profile_security_heading")}
           subtitle={t("profile_secure_cta")}
         />
-        <SettingsRow
-          href="/app/profile/payments"
-          icon={<ProfileIconCard />}
-          tone="sky"
-          title={t("profile_tile_payments")}
-          subtitle={t("profile_tile_payments_sub")}
-          badge={paymentBadge}
-          badgeTone={meta.paymentMethodsCount > 0 ? "ok" : "muted"}
-        />
-        <SettingsRow
-          href="/app/profile/addresses"
-          icon={
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
-              <path d="M7 10h4M7 14h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          }
-          tone="mint"
-          title={t("profile_row_addresses")}
-          subtitle={t("profile_row_addresses_sub")}
-        />
-        <SettingsRow
-          href="/app/profile/referrals"
-          icon={<ProfileIconGift />}
-          tone="amber"
-          title={t("profile_referral_title")}
-          subtitle={t("profile_tile_invite_sub")}
-          badge={referralBadge}
-          badgeTone="ok"
-        />
+        {eavecMode ? (
+          <>
+            <SettingsRow
+              href="/app/wallet"
+              icon={<ProfileIconCard />}
+              tone="sky"
+              title={locale.startsWith("fr") ? "Caisse (Fc)" : "Wallet (Fc)"}
+              subtitle={
+                locale.startsWith("fr")
+                  ? "Solde, dépôt et retrait Mobile Money"
+                  : "Balance, Mobile Money deposit & withdraw"
+              }
+            />
+            <SettingsRow
+              href="/app/marche/merchant"
+              icon={<ProfileIconMerchant />}
+              tone="mint"
+              title={locale.startsWith("fr") ? "Mode Marchand" : "Merchant mode"}
+              subtitle={
+                locale.startsWith("fr")
+                  ? "Ventes, notes et litiges"
+                  : "Sales, ratings and disputes"
+              }
+            />
+          </>
+        ) : (
+          <>
+            <SettingsRow
+              href="/app/profile/payments"
+              icon={<ProfileIconCard />}
+              tone="sky"
+              title={t("profile_tile_payments")}
+              subtitle={t("profile_tile_payments_sub")}
+              badge={paymentBadge}
+              badgeTone={meta.paymentMethodsCount > 0 ? "ok" : "muted"}
+            />
+            <SettingsRow
+              href="/app/profile/addresses"
+              icon={
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+                  <path d="M7 10h4M7 14h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              }
+              tone="mint"
+              title={t("profile_row_addresses")}
+              subtitle={t("profile_row_addresses_sub")}
+            />
+            <SettingsRow
+              href="/app/profile/referrals"
+              icon={<ProfileIconGift />}
+              tone="amber"
+              title={t("profile_referral_title")}
+              subtitle={t("profile_tile_invite_sub")}
+              badge={referralBadge}
+              badgeTone="ok"
+            />
+          </>
+        )}
         <SettingsRow
           href="/app/profile/settings"
           icon={<ProfileIconGear />}
