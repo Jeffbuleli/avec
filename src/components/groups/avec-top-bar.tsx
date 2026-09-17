@@ -43,8 +43,8 @@ export function AvecTopBar({
   const region = countryCode ? countryShortLabel(locale, countryCode) : "";
 
   return (
-    <div className="sticky top-0 z-20 mb-3">
-      <header className="fd-app-topbar grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 py-2">
+    <div className="sticky top-0 z-20 -mx-3 border-b border-[color:var(--fd-border)] bg-[color:var(--fd-bg)] sm:-mx-4 md:-mx-5 lg:-mx-6">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2.5 sm:px-4 md:px-5 lg:px-6">
         <div className="min-w-0 justify-self-start">
           <p className="truncate text-sm font-extrabold leading-tight text-[color:var(--fd-text)]">
             {groupName}
@@ -58,11 +58,11 @@ export function AvecTopBar({
 
         <div className="flex shrink-0 justify-center">
           {groupLogoUrl ? (
-            <span className="flex h-11 w-11 overflow-hidden rounded-full border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] shadow-sm">
+            <span className="flex h-10 w-10 overflow-hidden rounded-full border border-[color:var(--fd-border)] bg-[color:var(--fd-card)]">
               <GroupLogoImg url={groupLogoUrl} />
             </span>
           ) : (
-            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">
               {groupName.slice(0, 2).toUpperCase()}
             </span>
           )}
@@ -91,11 +91,7 @@ export function AvecTopBar({
           </div>
         </div>
       </header>
-      {tabs ? (
-        <div className="border-b border-[color:var(--fd-border)] bg-[color:var(--fd-bg)] px-1 pb-1.5 pt-0 md:px-2">
-          {tabs}
-        </div>
-      ) : null}
+      {tabs ? <div className="px-3 pb-2 sm:px-4 md:px-5 lg:px-6">{tabs}</div> : null}
     </div>
   );
 }

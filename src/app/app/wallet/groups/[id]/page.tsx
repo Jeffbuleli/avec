@@ -318,7 +318,7 @@ export default function AvecDashboardPage() {
   const showSuspended = g.status === "suspended";
 
   return (
-    <div className="mx-auto w-full max-w-lg pb-10 md:max-w-3xl lg:max-w-5xl">
+    <div className="w-full pb-10">
       <AvecTopBar
         groupName={g.name}
         groupLogoUrl={g.logoUrl}
@@ -329,7 +329,7 @@ export default function AvecDashboardPage() {
         memberKycApproved={data.viewer.kycApproved}
         settingsHref={`/app/wallet/groups/${g.id}/settings`}
         tabs={
-          <div className="flex gap-1 overflow-x-auto rounded-2xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-1.5 scrollbar-none">
+          <div className="flex gap-1 overflow-x-auto rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-1 scrollbar-none">
             {tabs.map((x) => (
               <button
                 key={x.id}
@@ -338,7 +338,7 @@ export default function AvecDashboardPage() {
                   if (x.id !== "meeting") setPayOk(false);
                   setTab(x.id);
                 }}
-                className={`relative flex min-w-[3.4rem] shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold uppercase tracking-wide transition ${
+                className={`relative flex min-w-[3.25rem] flex-1 flex-col items-center gap-0.5 rounded-lg px-1.5 py-2 text-[9px] font-bold uppercase tracking-wide transition sm:min-w-[3.6rem] sm:px-2 ${
                   tab === x.id
                     ? "bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)] shadow-sm"
                     : "text-[color:var(--fd-muted)]"
@@ -346,21 +346,21 @@ export default function AvecDashboardPage() {
               >
                 {x.dot ? (
                   <span
-                    className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ${
+                    className={`absolute right-1 top-1 h-2 w-2 rounded-full ${
                       x.dot === "brown" ? "bg-amber-800" : "bg-violet-600"
                     }`}
                     aria-hidden
                   />
                 ) : null}
-                <span className="[&>svg]:h-5 [&>svg]:w-5">{x.icon}</span>
-                <span className="max-w-[4.5rem] truncate">{x.label}</span>
+                <span className="[&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5">{x.icon}</span>
+                <span className="max-w-full truncate">{x.label}</span>
               </button>
             ))}
           </div>
         }
       />
 
-      <div className="space-y-3 px-1 md:px-2">
+      <div className="mt-3 space-y-3">
         {g.status === "pending" || showCreateProgress ? (
           <TransactionStepper steps={groupCreationProgressSteps(g.status)} />
         ) : null}

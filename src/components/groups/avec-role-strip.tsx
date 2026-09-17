@@ -2,13 +2,16 @@
 
 import { useI18n } from "@/components/i18n-provider";
 
-/** Only show when role/status needs attention — not for every approved member. */
+/** Pending alert on dashboard; role label lives in Paramètres. */
 export function AvecRoleStrip({
   role,
   status,
+  variant = "dashboard",
 }: {
   role: string;
   status: string;
+  /** dashboard = pending only; settings = full role label */
+  variant?: "dashboard" | "settings";
 }) {
   const { t } = useI18n();
   if (status !== "approved") {
@@ -18,15 +21,16 @@ export function AvecRoleStrip({
       </p>
     );
   }
-  if (role !== "admin" && role !== "co_admin" && role !== "committee") {
-    return null;
-  }
+  if (variant === "dashboard") return null;
+
   const key =
     role === "admin"
       ? "avec_role_admin"
       : role === "co_admin"
         ? "avec_role_coadmin"
-        : "avec_role_committee";
+        : role === "committee"
+          ? "avec_role_committee"
+          : "avec_role_member";
   return (
     <p className="rounded-xl border border-[color:var(--fd-primary)]/20 bg-[color:var(--fd-mint)]/50 px-3 py-2 text-center text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-primary)]">
       {t(key)}

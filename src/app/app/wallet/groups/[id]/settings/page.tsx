@@ -7,10 +7,8 @@ import { AvecProfileForm } from "@/components/groups/avec-profile-form";
 import { AvecCharterGovernance } from "@/components/groups/avec-charter-governance";
 import { AvecSettingsSections } from "@/components/groups/avec-settings-sections";
 import { AvecTopBar } from "@/components/groups/avec-top-bar";
+import { AvecRoleStrip } from "@/components/groups/avec-role-strip";
 import { GroupStatusBadge } from "@/components/groups/group-status-badge";
-import { avecCls } from "@/components/groups/avec-ui";
-import { avecMoney } from "@/lib/avec/display-currency";
-import { countryShortLabel } from "@/lib/country-label";
 import { daysUntil, isReminderDay } from "@/lib/group-savings-reminders";
 import { clientErrorText } from "@/lib/client-error-text";
 import {
@@ -46,9 +44,6 @@ type Dashboard = {
     maxSharesPerMeeting: number;
     cycleDurationDays: number;
     meetingIntervalDays: number;
-    contributionAmountUsdt?: string;
-    maxMembers?: number;
-    cycleNumber?: number;
     me: { role: string; status: string };
   };
   viewer: {
@@ -58,7 +53,6 @@ type Dashboard = {
     kycApproved?: boolean;
   };
   members: MemberRow[];
-  memberCount?: number;
 };
 
 export default function GroupSettingsPage() {
@@ -225,7 +219,7 @@ export default function GroupSettingsPage() {
 
   if (!id || !data) {
     return (
-      <div className="space-y-3 px-1 pb-10">
+      <div className="w-full space-y-3 pb-10">
         <h1 className="text-lg font-bold text-[color:var(--fd-text)]">
           {t("group_settings_title")}
         </h1>
@@ -266,7 +260,7 @@ export default function GroupSettingsPage() {
     ) : null;
 
   return (
-    <div className="space-y-3 px-1 pb-10">
+    <div className="w-full space-y-3 pb-10">
       <AvecTopBar
         groupName={g.name}
         groupLogoUrl={g.logoUrl ?? null}
@@ -285,59 +279,11 @@ export default function GroupSettingsPage() {
         </h1>
       </div>
 
-      <div className={avecCls.section}>
-        <p className={avecCls.sectionTitle}>{g.name}</p>
-        {(g.countryCode || g.address) && (
-          <p className="mt-1 text-[11px] text-[color:var(--fd-muted)]">
-            {[
-              g.countryCode ? countryShortLabel(locale, g.countryCode) : null,
-              g.address?.trim() || null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        )}
-        {g.publicDescription ? (
-          <p className="mt-2 text-xs leading-snug text-[color:var(--fd-text)]/85">
-            {g.publicDescription}
-          </p>
-        ) : null}
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-          <div>
-            <p className="text-sm font-black tabular-nums">
-              {data.memberCount ??
-                data.members.filter((m) => m.status === "approved").length}
-              {g.maxMembers != null ? (
-                <span className="text-[10px] font-semibold text-[color:var(--fd-muted)]">
-                  /{g.maxMembers}
-                </span>
-              ) : null}
-            </p>
-            <p className="text-[9px] font-bold uppercase text-[color:var(--fd-muted)]">
-              {t("avec_vue_members")}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-black tabular-nums text-[color:var(--fd-primary)]">
-              {avecMoney(Number(g.contributionAmountUsdt) || 0)}
-            </p>
-            <p className="text-[9px] font-bold uppercase text-[color:var(--fd-muted)]">
-              {t("group_field_share_value")}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-black tabular-nums">{g.meetingIntervalDays}j</p>
-            <p className="text-[9px] font-bold uppercase text-[color:var(--fd-muted)]">
-              {t("group_field_meeting_days")}
-            </p>
-            {g.cycleNumber != null ? (
-              <p className="text-[8px] text-[color:var(--fd-muted)]">
-                {t("avec_vue_cycle")} #{g.cycleNumber}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </div>
+      <AvecRoleStrip
+        role={me?.role ?? "member"}
+        status={me?.status ?? "pending"}
+        variant="settings"
+      />
 
       {canAdmin ? (
         <AvecProfileForm

@@ -42,7 +42,7 @@ export function EavecAppShell({
       className={`relative mx-auto flex min-h-dvh w-full flex-col pt-[env(safe-area-inset-top)] pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:flex-row lg:pb-6 lg:pt-0 ${
         onMarche
           ? "max-w-none bg-[color:var(--mk-paper,#f4f7f6)]"
-          : "max-w-lg bg-[var(--fd-bg)] lg:max-w-6xl xl:max-w-7xl"
+          : "max-w-lg bg-[var(--fd-bg)] md:max-w-3xl lg:max-w-6xl xl:max-w-7xl"
       }`}
     >
       <div className="hidden lg:block">
@@ -50,7 +50,7 @@ export function EavecAppShell({
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         {showTopBar ? (
-          <div className="sticky top-0 z-40 px-3 pt-2 md:px-4 lg:px-5 lg:pt-4">
+          <div className="sticky top-0 z-40 border-b border-[color:var(--fd-border)] bg-[var(--fd-bg)] px-3 pt-2 md:px-4 lg:px-5 lg:pt-4">
             <div className="fd-app-topbar px-2 py-1.5">
               <EavecTopBar
                 email={email}
@@ -64,7 +64,9 @@ export function EavecAppShell({
           className={`flex-1 ${
             onMarche
               ? "px-3 pt-0 sm:px-4 md:px-5 lg:mx-auto lg:w-full lg:max-w-6xl lg:px-6 xl:max-w-7xl"
-              : "px-3 sm:px-4 pt-2 md:px-5 lg:px-6"
+              : onAvecGroupFlow
+                ? "px-3 pt-0 sm:px-4 md:px-5 lg:px-6"
+                : "px-3 sm:px-4 pt-2 md:px-5 lg:px-6"
           }`}
         >
           {showReturnToMcbuleli && !onMarche ? (
