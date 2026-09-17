@@ -1,14 +1,11 @@
-# AVEC Umoja — démo VUK’AFRIK / jury (P0)
+# AVEC Umoja — démo VUK’AFRIK / jury
 
 Compte sandbox pour pitch 90 s. **Ne pas utiliser en production réelle.**
 
 ## Seed
 
 ```bash
-# Depuis le repo Avec (même DATABASE_URL que McBuleli)
-npm run seed:eavec-umoja
-
-# Ou depuis McBuleliP2P
+# Depuis le repo Avec (même DATABASE_URL que prod)
 npm run seed:eavec-umoja
 ```
 
@@ -22,25 +19,21 @@ Génère `docs/DEMO-UMOJA.json` + met à jour ce fichier avec le `groupId` réel
 | Co-admin | `demo-umoja-02@eavec.demo` | idem |
 | Membre + Passport | `demo-umoja-05@eavec.demo` (Fatou B.) | idem |
 
-## Page jury
+## Liens
 
-- Production : https://e-avec.org/demo
-- Business : https://e-avec.org/business
-- Facilitateur : https://e-avec.org/app/facilitateur (après login admin)
-- Local : http://localhost:3001/demo
+- Jury : https://e-avec.org/demo  
+- App : https://e-avec.org  
+- Business : https://e-avec.org/business  
+- Facilitateur : https://e-avec.org/app/facilitateur (login admin)  
+- Pack pitch : [docs/vukafrik/README.md](./vukafrik/README.md)
 
-## P1 (différenciation)
+## Script 90 s (résumé)
 
-- Alertes intégrité sur Vue (anti-détournement)
-- Share-out visuel (Caisse → Clôture)
-- Labels LN/SW sous CTA critiques
-- Export PV facilitateur (Imprimer → PDF)
+1. **0–30 s — Vue** : caisse Fc → Cotiser  
+2. **30–50 s — Réunion** : parts 1–5 + solidarité  
+3. **50–70 s — Caisse** : fonds / prêts / vote  
+4. **70–90 s — Passport** : historique portable + disclaimer BCC  
 
-## Script 90 s
+Détail : [vukafrik/SCRIPT-90S.md](./vukafrik/SCRIPT-90S.md)
 
-1. **0–15 s — Vue** : caisse, cycle, alertes  
-2. **15–35 s — Réunion** : parts 1–5 + caisse sociale  
-3. **35–60 s — Caisse** : crédits + vote ouvert « Crédit AGR — Isaac »  
-4. **60–90 s — Passport** (scroll Vue) : score + consentement FOGEC démo + insights IA  
-
-Disclaimer pitch : *e-AVEC n’est pas une banque et ne revendique aucun agrément BCC.*
+Disclaimer : *e-AVEC n’est pas une banque et ne revendique aucun agrément BCC.*
