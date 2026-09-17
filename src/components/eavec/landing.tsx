@@ -37,12 +37,6 @@ export function EavecLanding() {
         <div className="flex items-center gap-3">
           <LangSwitch />
           <Link
-            href="/demo"
-            className="hidden rounded-full border border-[#C9A227]/50 px-3 py-1.5 text-xs font-bold text-[#C9A227] sm:inline-flex"
-          >
-            Demo
-          </Link>
-          <Link
             href="/login"
             className="rounded-full border border-[#F6E8CD]/30 px-4 py-2 text-sm font-semibold"
           >
@@ -70,19 +64,13 @@ export function EavecLanding() {
                 href="/register"
                 className="inline-flex min-h-[48px] items-center rounded-full bg-[#F6E8CD] px-6 text-sm font-extrabold text-[#0F2D2F]"
               >
-                {fr ? "Créer" : "Create"}
+                {fr ? "Créer une AVEC" : "Create an AVEC"}
               </Link>
               <Link
-                href="/demo"
-                className="inline-flex min-h-[48px] items-center rounded-full border border-[#C9A227]/55 px-6 text-sm font-bold"
-              >
-                Demo
-              </Link>
-              <Link
-                href="/business"
+                href="/login?next=%2Fapp%2Fwallet%2Fgroups"
                 className="inline-flex min-h-[48px] items-center rounded-full border border-[#F6E8CD]/35 px-6 text-sm font-bold"
               >
-                Business
+                {fr ? "Rejoindre" : "Join"}
               </Link>
             </div>
           </div>
@@ -117,6 +105,14 @@ export function EavecLanding() {
           {fr
             ? "e-AVEC n’est pas une banque · pas d’agrément BCC."
             : "e-AVEC is not a bank · no BCC license."}
+          {" · "}
+          <Link href="/demo" className="underline decoration-[#C9A227]/50 text-[#C9A227]">
+            {fr ? "Essai jury (sandbox)" : "Jury sandbox"}
+          </Link>
+          {" · "}
+          <Link href="/business" className="underline decoration-[#F6E8CD]/30">
+            Business
+          </Link>
         </p>
       </main>
 

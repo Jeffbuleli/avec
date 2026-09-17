@@ -8,11 +8,9 @@ import { AvecVueGovernanceCard } from "@/components/groups/avec-vue-governance-c
 import { AvecAiInsightsCard } from "@/components/groups/avec-ai-insights-card";
 import { AvecFinancialPassportPanel } from "@/components/groups/avec-financial-passport-panel";
 import { AvecIntegrityAlertsCard } from "@/components/groups/avec-integrity-alerts-card";
-import { EavecEconomicCycleStrip } from "@/components/eavec-market/market-ui";
 import {
   avecCls,
   AvecFeedRow,
-  AvecMoneyNote,
 } from "@/components/groups/avec-ui";
 import type { GovernanceVoteMeta } from "@/lib/avec/governance/types";
 import type { AvecMemberRow } from "@/components/groups/avec-member-list";
@@ -20,11 +18,7 @@ import type { AvecMemberRow } from "@/components/groups/avec-member-list";
 type FundBuckets = {
   savingsUsdt: number;
   socialUsdt: number;
-  penaltiesUsdt?: number;
-  interestUsdt?: number;
-  reserveUsdt?: number;
   lentUsdt: number;
-  creditUsdt?: number;
   availableUsdt: number;
 };
 
@@ -33,7 +27,6 @@ type LedgerEntry = {
   entryType: string;
   amount: string;
   createdAt: string;
-  meta?: Record<string, unknown> | null;
 };
 
 function cycleProgressPct(createdAt: string, cycleDays: number): number {
@@ -45,13 +38,7 @@ function cycleProgressPct(createdAt: string, cycleDays: number): number {
 
 function entryLabel(
   entryType: string,
-  labels: {
-    contribution: string;
-    loan: string;
-    social: string;
-    payout: string;
-    movement: string;
-  },
+  labels: Record<string, string>,
 ): string {
   if (entryType.includes("contribution")) return labels.contribution;
   if (entryType.includes("loan")) return labels.loan;
@@ -61,6 +48,10 @@ function entryLabel(
   return labels.movement;
 }
 
+/**
+ * Vue = decision screen: treasury → next action → alerts → recent → me.
+ * Heavy analytics stay behind a short "Conseils" toggle.
+ */
 export function AvecOverviewPanel({
   groupId,
   group,
@@ -98,7 +89,7 @@ export function AvecOverviewPanel({
   const [openVote, setOpenVote] = useState<GovernanceVoteMeta | null>(null);
   const [pendingPayouts, setPendingPayouts] = useState(0);
   const [feed, setFeed] = useState<LedgerEntry[]>([]);
-  const [showMore, setShowMore] = useState(false);
+  const [showTips, setShowTips] = useState(false);
 
   const loadGov = useCallback(async () => {
     const res = await fetch(`/api/groups/${groupId}/governance/proposals`, {
@@ -121,7 +112,7 @@ export function AvecOverviewPanel({
         if (fj.funds) setFunds(fj.funds as FundBuckets);
         const aj = await a.json().catch(() => ({}));
         if (Array.isArray(aj.ledger)) {
-          setFeed((aj.ledger as LedgerEntry[]).slice(0, 5));
+          setFeed((aj.ledger as LedgerEntry[]).slice(0, 3));
         }
       })
       .catch(() => {});
@@ -147,12 +138,8 @@ export function AvecOverviewPanel({
   const loc = locale === "fr" ? "fr-FR" : "en-US";
 
   const alerts = useMemo(() => {
-    const items: {
-      key: string;
-      label: string;
-      tone: string;
-      onClick?: () => void;
-    }[] = [];
+    const items: { key: string; label: string; tone: string; onClick?: () => void }[] =
+      [];
     if (openVote) {
       items.push({
         key: "vote",
@@ -164,7 +151,7 @@ export function AvecOverviewPanel({
     if (pendingCount > 0) {
       items.push({
         key: "pending",
-        label: `${pendingCount} - ${t("avec_vue_members")}`,
+        label: `${pendingCount} · ${t("avec_vue_members")}`,
         tone: "bg-amber-100 text-amber-900 ring-amber-300",
         onClick: () => onNavigate("members"),
       });
@@ -172,7 +159,7 @@ export function AvecOverviewPanel({
     if (pendingPayouts > 0 && canModerate) {
       items.push({
         key: "payout",
-        label: `${pendingPayouts} - ${t("avec_tab_treasury")}`,
+        label: `${pendingPayouts} · ${t("avec_tab_treasury")}`,
         tone: "bg-sky-100 text-sky-900 ring-sky-300",
         onClick: () => onNavigate("treasury"),
       });
@@ -197,110 +184,94 @@ export function AvecOverviewPanel({
 
   return (
     <div className="space-y-3">
-      <div className={avecCls.layoutVue}>
-        <div className={avecCls.heroBalance}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70">
-            {t("avec_vue_treasury")}
-          </p>
-          <p className="mt-1 text-3xl font-black tabular-nums tracking-tight">
-            {avecMoney(treasury)}
-          </p>
-          <AvecMoneyNote>
-            <span className="text-white/65">{t("avec_money_ledger_note")}</span>
-          </AvecMoneyNote>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <div className="rounded-xl bg-white/10 px-3 py-2.5 backdrop-blur-sm">
-              <p className="text-[9px] font-bold uppercase text-white/65">
-                {t("avec_vue_cycle")} #{group.cycleNumber ?? 1}
-              </p>
-              <p className="mt-1 text-xl font-black tabular-nums">{cyclePct}%</p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/20">
-                <div
-                  className="h-full rounded-full bg-white"
-                  style={{ width: `${cyclePct}%` }}
-                />
-              </div>
-            </div>
-            <div className="rounded-xl bg-white/10 px-3 py-2 backdrop-blur-sm">
-              <p className="text-[9px] font-bold uppercase text-white/65">
-                {t("avec_vue_members")}
-              </p>
-              <div className="mt-1 flex items-center gap-2">
-                <AvecProgressRing value={memberCount} max={group.maxMembers} size={44} />
-                <p className="text-lg font-black tabular-nums">
-                  {memberCount}
-                  <span className="text-xs font-semibold text-white/60">
-                    /{group.maxMembers}
-                  </span>
-                </p>
-              </div>
-              {pending > 0 ? (
-                <p className="mt-0.5 text-[9px] text-amber-200">
-                  +{pending} {t("avec_vue_pending_short")}
-                </p>
-              ) : null}
+      <div className={avecCls.heroBalance}>
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70">
+          {t("avec_vue_treasury")}
+        </p>
+        <p className="mt-1 text-3xl font-black tabular-nums tracking-tight">
+          {avecMoney(treasury)}
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-white/10 px-3 py-2.5">
+            <p className="text-[9px] font-bold uppercase text-white/65">
+              {t("avec_vue_cycle")} #{group.cycleNumber ?? 1}
+            </p>
+            <p className="mt-1 text-xl font-black tabular-nums">{cyclePct}%</p>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/20">
+              <div
+                className="h-full rounded-full bg-white"
+                style={{ width: `${cyclePct}%` }}
+              />
             </div>
           </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className={avecCls.checkoutCard}>
-            <p className={avecCls.sectionTitle}>{t("avec_vue_next_action")}</p>
-            <p className="mt-2 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
-              {avecMoney(nextMeetingTotal)}
+          <div className="rounded-xl bg-white/10 px-3 py-2">
+            <p className="text-[9px] font-bold uppercase text-white/65">
+              {t("avec_vue_members")}
             </p>
-            <p className="mt-1 text-[11px] text-[color:var(--fd-muted)]">
-              {t("avec_vue_next_action_hint", {
-                share: avecMoney(shareValue),
-                social: avecMoney(socialPer),
-              })}
-            </p>
-            <button
-              type="button"
-              onClick={() => onNavigate("meeting")}
-              className={`${avecCls.btnPrimary} mt-3 min-h-[48px] text-base`}
-            >
-              {t("avec_vue_cta_contribute")}
-            </button>
-            <p className="mt-1.5 text-center text-[10px] text-[color:var(--fd-muted)]">
-              {locale === "fr" ? "Cotiser" : "Contribute"} ·{" "}
-              <span lang="ln">Koboka</span> · <span lang="sw">Changia</span>
-            </p>
-            {myUserId ? (
-              <p className="mt-2 text-[11px] font-semibold text-[color:var(--fd-muted)]">
-                {t("avec_vue_my_shares")}:{" "}
-                <span className="text-[color:var(--fd-text)]">{myShares}</span>
-                {" · "}
-                {t("avec_vue_my_position")}:{" "}
-                <span className="tabular-nums text-[color:var(--fd-primary)]">
-                  {avecMoney(myShares * shareValue)}
+            <div className="mt-1 flex items-center gap-2">
+              <AvecProgressRing value={memberCount} max={group.maxMembers} size={40} />
+              <p className="text-lg font-black tabular-nums">
+                {memberCount}
+                <span className="text-xs font-semibold text-white/60">
+                  /{group.maxMembers}
                 </span>
               </p>
+            </div>
+            {pending > 0 ? (
+              <p className="mt-0.5 text-[9px] text-amber-200">+{pending}</p>
             ) : null}
           </div>
-
-          {alerts.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {alerts.map((a) =>
-                a.onClick ? (
-                  <button
-                    key={a.key}
-                    type="button"
-                    onClick={a.onClick}
-                    className={`${avecCls.alertChip} ${a.tone}`}
-                  >
-                    {a.label}
-                  </button>
-                ) : (
-                  <span key={a.key} className={`${avecCls.alertChip} ${a.tone}`}>
-                    {a.label}
-                  </span>
-                ),
-              )}
-            </div>
-          ) : null}
         </div>
       </div>
+
+      <div className={avecCls.checkoutCard}>
+        <p className={avecCls.sectionTitle}>{t("avec_vue_next_action")}</p>
+        <p className="mt-2 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
+          {avecMoney(nextMeetingTotal)}
+        </p>
+        <p className="mt-1 text-[11px] text-[color:var(--fd-muted)]">
+          {t("avec_vue_next_action_hint", {
+            share: avecMoney(shareValue),
+            social: avecMoney(socialPer),
+          })}
+        </p>
+        <button
+          type="button"
+          onClick={() => onNavigate("meeting")}
+          className={`${avecCls.btnPrimary} mt-3 min-h-[48px]`}
+        >
+          {t("avec_vue_cta_contribute")}
+        </button>
+        {myUserId ? (
+          <p className="mt-2 text-center text-[11px] text-[color:var(--fd-muted)]">
+            {myShares} {t("avec_vue_my_shares").toLowerCase()} ·{" "}
+            <span className="font-bold text-[color:var(--fd-primary)]">
+              {avecMoney(myShares * shareValue)}
+            </span>
+          </p>
+        ) : null}
+      </div>
+
+      {alerts.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {alerts.map((a) =>
+            a.onClick ? (
+              <button
+                key={a.key}
+                type="button"
+                onClick={a.onClick}
+                className={`${avecCls.alertChip} ${a.tone}`}
+              >
+                {a.label}
+              </button>
+            ) : (
+              <span key={a.key} className={`${avecCls.alertChip} ${a.tone}`}>
+                {a.label}
+              </span>
+            ),
+          )}
+        </div>
+      ) : null}
 
       {openVote ? (
         <AvecVueGovernanceCard
@@ -311,7 +282,9 @@ export function AvecOverviewPanel({
         />
       ) : null}
 
-      <AvecIntegrityAlertsCard groupId={groupId} canExport={Boolean(canModerate)} />
+      {canModerate ? (
+        <AvecIntegrityAlertsCard groupId={groupId} canExport />
+      ) : null}
 
       <div className={avecCls.section}>
         <div className="mb-1 flex items-center justify-between gap-2">
@@ -325,7 +298,7 @@ export function AvecOverviewPanel({
           </button>
         </div>
         {feed.length === 0 ? (
-          <p className="py-3 text-center text-xs text-[color:var(--fd-muted)]">
+          <p className="py-2 text-center text-xs text-[color:var(--fd-muted)]">
             {t("avec_vue_feed_empty")}
           </p>
         ) : (
@@ -342,8 +315,6 @@ export function AvecOverviewPanel({
               meta={new Date(e.createdAt).toLocaleString(loc, {
                 day: "2-digit",
                 month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
               })}
               amount={avecMoney(e.amount)}
             />
@@ -352,23 +323,9 @@ export function AvecOverviewPanel({
       </div>
 
       {myUserId ? (
-        <div className={avecCls.section} id="avec-me">
-          <p className={avecCls.sectionTitle}>{t("avec_vue_me_title")}</p>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            <AvecKpiLocal label={t("avec_vue_my_shares")} value={String(myShares)} />
-            <AvecKpiLocal
-              label={t("avec_vue_my_position")}
-              value={avecMoney(myShares * shareValue)}
-            />
-            <button
-              type="button"
-              onClick={() => onNavigate("treasury")}
-              className="rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-bg)] px-2 py-2 text-center text-[10px] font-bold text-[color:var(--fd-primary)]"
-            >
-              {t("avec_vue_my_loans_cta")}
-            </button>
-          </div>
-          <div className="mt-3" id="avec-passport">
+        <div className={avecCls.section} id="avec-passport">
+          <p className={avecCls.sectionTitle}>{t("avec_passport_title")}</p>
+          <div className="mt-2">
             <AvecFinancialPassportPanel groupId={groupId} compact />
           </div>
         </div>
@@ -376,27 +333,13 @@ export function AvecOverviewPanel({
 
       <button
         type="button"
-        onClick={() => setShowMore((v) => !v)}
-        className="w-full text-center text-[11px] font-bold text-[color:var(--fd-muted)] underline"
+        onClick={() => setShowTips((v) => !v)}
+        className="w-full py-1 text-center text-[11px] font-bold text-[color:var(--fd-muted)]"
       >
-        {showMore ? t("avec_vue_less") : t("avec_vue_more")}
+        {showTips ? t("avec_vue_less") : t("avec_vue_more")}
       </button>
 
-      {showMore ? (
-        <div className="space-y-3">
-          <EavecEconomicCycleStrip locale={locale} />
-          <AvecAiInsightsCard groupId={groupId} />
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function AvecKpiLocal({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={avecCls.kpi}>
-      <p className={avecCls.kpiLabel}>{label}</p>
-      <p className={`${avecCls.kpiValue} !text-sm`}>{value}</p>
+      {showTips ? <AvecAiInsightsCard groupId={groupId} /> : null}
     </div>
   );
 }

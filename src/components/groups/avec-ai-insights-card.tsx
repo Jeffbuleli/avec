@@ -7,28 +7,16 @@ type Insight = {
   id: string;
   textEn: string;
   textFr: string;
-  source: string;
-  confidence: string;
 };
 
-type Snapshot = {
-  totalSavingsUsdt: number;
-  activeLoans: number;
-  outstandingLoansUsdt: number;
-  overdueLoans: number;
-  memberCount: number;
-  cycleNumber: number;
-};
-
+/** Plain tips for the group — no internal source / mode jargon. */
 export function AvecAiInsightsCard({ groupId }: { groupId: string }) {
   const { t, locale } = useI18n();
   const [insights, setInsights] = useState<Insight[]>([]);
-  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
-  const [mode, setMode] = useState<string>("deterministic");
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState(false);
 
   const load = useCallback(async () => {
-    setErr(null);
+    setErr(false);
     try {
       const res = await fetch(
         `/api/groups/${groupId}/insights?locale=${locale === "fr" ? "fr" : "en"}`,
@@ -36,14 +24,12 @@ export function AvecAiInsightsCard({ groupId }: { groupId: string }) {
       );
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setErr((j as { error?: string }).error ?? "failed");
+        setErr(true);
         return;
       }
-      setInsights((j as { insights?: Insight[] }).insights ?? []);
-      setSnapshot((j as { snapshot?: Snapshot }).snapshot ?? null);
-      setMode((j as { mode?: string }).mode ?? "deterministic");
+      setInsights(((j as { insights?: Insight[] }).insights ?? []).slice(0, 3));
     } catch {
-      setErr("failed");
+      setErr(true);
     }
   }, [groupId, locale]);
 
@@ -51,46 +37,31 @@ export function AvecAiInsightsCard({ groupId }: { groupId: string }) {
     void load();
   }, [load]);
 
+  if (err) {
+    return (
+      <p className="text-xs text-[color:var(--fd-muted)]">
+        {t("avec_ai_insights_error")}
+      </p>
+    );
+  }
+
+  if (insights.length === 0) return null;
+
   return (
     <section className="rounded-2xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-3">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
-          {t("avec_ai_insights_title")}
-        </h3>
-        <span className="rounded-md bg-[color:var(--fd-bg)] px-1.5 py-0.5 text-[9px] font-bold uppercase text-[color:var(--fd-muted)]">
-          {mode === "llm_enriched" ? t("avec_ai_mode_llm") : t("avec_ai_mode_rules")}
-        </span>
-      </div>
-      {snapshot ? (
-        <p className="mt-1 text-[10px] text-[color:var(--fd-muted)]">
-          {t("avec_ai_snapshot_line")
-            .replace("{savings}", snapshot.totalSavingsUsdt.toFixed(0))
-            .replace("{members}", String(snapshot.memberCount))
-            .replace("{cycle}", String(snapshot.cycleNumber))}
-        </p>
-      ) : null}
-      {err ? (
-        <p className="mt-2 text-xs text-rose-700">{t("avec_ai_insights_error")}</p>
-      ) : (
-        <ul className="mt-2 space-y-2">
-          {insights.map((ins) => (
-            <li
-              key={ins.id}
-              className="rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-bg)] px-2.5 py-2"
-            >
-              <p className="text-xs leading-relaxed text-[color:var(--fd-text)]">
-                {locale === "fr" ? ins.textFr : ins.textEn}
-              </p>
-              <p className="mt-1 text-[9px] text-[color:var(--fd-muted)]">
-                {t("avec_ai_source")}: {ins.source} · {ins.confidence}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="mt-2 text-[9px] leading-snug text-[color:var(--fd-muted)]">
-        {t("avec_ai_disclaimer")}
-      </p>
+      <h3 className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
+        {t("avec_ai_insights_title")}
+      </h3>
+      <ul className="mt-2 space-y-1.5">
+        {insights.map((ins) => (
+          <li
+            key={ins.id}
+            className="rounded-xl bg-[color:var(--fd-bg)] px-2.5 py-2 text-xs leading-snug text-[color:var(--fd-text)]"
+          >
+            {locale === "fr" ? ins.textFr : ins.textEn}
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

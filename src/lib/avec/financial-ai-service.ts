@@ -124,34 +124,38 @@ async function loadGroupSnapshot(
   };
 }
 
+import { avecMoney } from "@/lib/avec/display-currency";
+
 /** Deterministic insights from structured aggregates — never invents numbers. */
 export function buildDeterministicInsights(
   snap: GroupFinancialSnapshot,
 ): FinancialInsight[] {
   const insights: FinancialInsight[] = [];
+  const savings = avecMoney(snap.totalSavingsUsdt);
+  const outstanding = avecMoney(snap.outstandingLoansUsdt);
 
   insights.push({
     id: "treasury",
-    textEn: `Group savings total ${snap.totalSavingsUsdt.toFixed(2)} USDT across ${snap.memberCount} members (cycle ${snap.cycleNumber}).`,
-    textFr: `Épargne du groupe : ${snap.totalSavingsUsdt.toFixed(2)} USDT pour ${snap.memberCount} membres (cycle ${snap.cycleNumber}).`,
-    source: "group_wallet_ledger_entries.group_contribution_in",
+    textEn: `The group has ${savings} in savings (${snap.memberCount} members, cycle ${snap.cycleNumber}).`,
+    textFr: `Le groupe a ${savings} d’épargne (${snap.memberCount} membres, cycle ${snap.cycleNumber}).`,
+    source: "ledger",
     confidence: "high",
   });
 
   if (snap.activeLoans > 0) {
     insights.push({
       id: "loans_active",
-      textEn: `${snap.activeLoans} active loan(s); outstanding principal ${snap.outstandingLoansUsdt.toFixed(2)} USDT.`,
-      textFr: `${snap.activeLoans} crédit(s) actif(s) ; capital restant ${snap.outstandingLoansUsdt.toFixed(2)} USDT.`,
-      source: "group_avec_loans.status=disbursed",
+      textEn: `${snap.activeLoans} active loan(s) · ${outstanding} still owed.`,
+      textFr: `${snap.activeLoans} crédit(s) en cours · ${outstanding} restant(s) dus.`,
+      source: "loans",
       confidence: "high",
     });
   } else {
     insights.push({
       id: "loans_none",
-      textEn: "No active loans in this group right now.",
-      textFr: "Aucun crédit actif dans ce groupe pour le moment.",
-      source: "group_avec_loans",
+      textEn: "No active loans right now.",
+      textFr: "Aucun crédit en cours.",
+      source: "loans",
       confidence: "high",
     });
   }
@@ -159,17 +163,17 @@ export function buildDeterministicInsights(
   if (snap.overdueLoans > 0) {
     insights.push({
       id: "overdue",
-      textEn: `Watch risk: ${snap.overdueLoans} loan(s) are past the penalty window.`,
-      textFr: `Risque à surveiller : ${snap.overdueLoans} crédit(s) en retard (fenêtre de pénalité).`,
-      source: "computeLoanCharges.isOverdue",
+      textEn: `Attention: ${snap.overdueLoans} late loan(s).`,
+      textFr: `Attention : ${snap.overdueLoans} crédit(s) en retard.`,
+      source: "loans",
       confidence: "high",
     });
   } else if (snap.repaidLoans > 0) {
     insights.push({
       id: "repay_ok",
-      textEn: `${snap.repaidLoans} loan(s) fully repaid; no overdue loans detected.`,
-      textFr: `${snap.repaidLoans} crédit(s) remboursé(s) ; aucun retard détecté.`,
-      source: "group_avec_loans + loan-terms",
+      textEn: `${snap.repaidLoans} loan(s) repaid · no lateness.`,
+      textFr: `${snap.repaidLoans} crédit(s) remboursé(s) · pas de retard.`,
+      source: "loans",
       confidence: "high",
     });
   }
@@ -180,18 +184,18 @@ export function buildDeterministicInsights(
       id: "trend",
       textEn:
         t >= 0
-          ? `Savings contributions rose about ${t}% vs the prior 30 days.`
-          : `Savings contributions fell about ${Math.abs(t)}% vs the prior 30 days.`,
+          ? `Contributions up ~${t}% vs last month.`
+          : `Contributions down ~${Math.abs(t)}% vs last month.`,
       textFr:
         t >= 0
-          ? `Les contributions d'épargne ont augmenté d'environ ${t} % vs les 30 jours précédents.`
-          : `Les contributions d'épargne ont baissé d'environ ${Math.abs(t)} % vs les 30 jours précédents.`,
-      source: "ledger contributions last 60 days",
+          ? `Cotisations en hausse d’environ ${t} % vs le mois dernier.`
+          : `Cotisations en baisse d’environ ${Math.abs(t)} % vs le mois dernier.`,
+      source: "ledger",
       confidence: snap.contributionCount >= 4 ? "medium" : "low",
     });
   }
 
-  return insights;
+  return insights.slice(0, 3);
 }
 
 export async function getGroupFinancialInsights(args: {
