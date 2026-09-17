@@ -57,10 +57,15 @@ export function EavecSlidesMcClient({
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) {
+        const msg =
+          (j as { error?: string; message?: string }).error ||
+          (j as { message?: string }).message;
         setErr(
           res.status === 401
             ? "Connectez-vous pour piloter le Live."
-            : (j as { error?: string }).error ?? "Échec",
+            : res.status === 404
+              ? "API slides indisponible (redeploy)."
+              : msg || `Échec (${res.status})`,
         );
         return;
       }

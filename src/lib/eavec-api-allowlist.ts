@@ -13,6 +13,7 @@ const ALLOWED_PREFIXES = [
   "/api/config/withdraw-quote",
   "/api/config/withdraw-fees",
   "/api/notifications",
+  "/api/slides",
   "/api/webhooks/didit",
   "/api/internal/governance",
   "/api/version",
