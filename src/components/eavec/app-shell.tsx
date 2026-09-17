@@ -9,7 +9,6 @@ import { KycStatusPoller } from "@/components/kyc/kyc-status-poller";
 import { EavecBottomNav } from "@/components/eavec/bottom-nav";
 import { EavecSideNav } from "@/components/eavec/side-nav";
 import { EavecTopBar } from "@/components/eavec/top-bar";
-import { OfflineStatusBar } from "@/components/offline/offline-status-bar";
 
 const MCBULELI_RETURN_PATH = "/app/wallet/groups";
 
@@ -76,11 +75,6 @@ export function EavecAppShell({
               >
                 {returnLabel}
               </Link>
-            </div>
-          ) : null}
-          {!onMarche ? (
-            <div className="mb-3">
-              <OfflineStatusBar />
             </div>
           ) : null}
           {children}

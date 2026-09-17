@@ -54,6 +54,15 @@ export async function assertGroupFacilitatorAccess(args: {
 
 /** Deterministic anti-misappropriation / governance risk signals for Vue. */
 export async function buildIntegrityAlerts(groupId: string): Promise<IntegrityAlert[]> {
+  try {
+    return await buildIntegrityAlertsUnsafe(groupId);
+  } catch (e) {
+    console.error("[integrity-alerts]", groupId, e);
+    return [];
+  }
+}
+
+async function buildIntegrityAlertsUnsafe(groupId: string): Promise<IntegrityAlert[]> {
   const db = getDb();
   const alerts: IntegrityAlert[] = [];
   const since = new Date(Date.now() - 30 * 86400000);
@@ -258,7 +267,7 @@ export async function listFacilitatorPortfolio(userId: string) {
         eq(groupSavingsGroups.type, "avec"),
       ),
     )
-    .orderBy(desc(groupSavingsGroups.updatedAt))
+    .orderBy(desc(groupSavingsGroups.createdAt))
     .limit(50);
 
   const out = [];
@@ -268,35 +277,53 @@ export async function listFacilitatorPortfolio(userId: string) {
     let memberCount = 0;
     let openVotes = 0;
     let integrityHigh = 0;
+    let alertCount = 0;
     try {
-      const funds = await getGroupFundSummary(r.groupId);
-      availableUsdt = funds.availableUsdt;
-      lentUsdt = funds.lentUsdt;
-    } catch {
-      /* ignore */
+      try {
+        const funds = await getGroupFundSummary(r.groupId);
+        availableUsdt = funds.availableUsdt;
+        lentUsdt = funds.lentUsdt;
+      } catch {
+        /* ignore fund errors */
+      }
+      try {
+        const [mc] = await db
+          .select({ c: sql<number>`count(*)::int` })
+          .from(groupSavingsMemberships)
+          .where(
+            and(
+              eq(groupSavingsMemberships.groupId, r.groupId),
+              eq(groupSavingsMemberships.status, "approved"),
+            ),
+          );
+        memberCount = mc?.c ?? 0;
+      } catch {
+        /* ignore */
+      }
+      try {
+        const [vc] = await db
+          .select({ c: sql<number>`count(*)::int` })
+          .from(groupProposals)
+          .where(
+            and(
+              eq(groupProposals.groupId, r.groupId),
+              eq(groupProposals.status, "voting"),
+            ),
+          );
+        openVotes = vc?.c ?? 0;
+      } catch {
+        /* ignore */
+      }
+      try {
+        const alerts = await buildIntegrityAlerts(r.groupId);
+        integrityHigh = alerts.filter((a) => a.severity === "high").length;
+        alertCount = alerts.length;
+      } catch {
+        /* ignore integrity — never fail the whole portfolio */
+      }
+    } catch (e) {
+      console.error("[facilitateur/portfolio] group", r.groupId, e);
     }
-    const [mc] = await db
-      .select({ c: sql<number>`count(*)::int` })
-      .from(groupSavingsMemberships)
-      .where(
-        and(
-          eq(groupSavingsMemberships.groupId, r.groupId),
-          eq(groupSavingsMemberships.status, "approved"),
-        ),
-      );
-    memberCount = mc?.c ?? 0;
-    const [vc] = await db
-      .select({ c: sql<number>`count(*)::int` })
-      .from(groupProposals)
-      .where(
-        and(
-          eq(groupProposals.groupId, r.groupId),
-          eq(groupProposals.status, "voting"),
-        ),
-      );
-    openVotes = vc?.c ?? 0;
-    const alerts = await buildIntegrityAlerts(r.groupId);
-    integrityHigh = alerts.filter((a) => a.severity === "high").length;
 
     out.push({
       ...r,
@@ -305,7 +332,7 @@ export async function listFacilitatorPortfolio(userId: string) {
       memberCount,
       openVotes,
       integrityHigh,
-      alertCount: alerts.length,
+      alertCount,
     });
   }
 
