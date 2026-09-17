@@ -1,47 +1,58 @@
-# VUK’AFRIK 2026 — Pack préparatif e-AVEC
+# VUK’AFRIK 2026 — Pack e-AVEC (retravail)
 
-**Événement :** Foire innovation & entrepreneuriat · Pullman Hôtel, Kinshasa · **23–25 sept. 2026**  
-**Village :** **Finance, Fintech & Assurance** (secondaire : Startups/PME)  
-**Produit :** [e-avec.org](https://e-avec.org) · McBuleli  
-**Inscription :** [vukafrik.org/register](https://vukafrik.org/register) · `info@congocs.org` · +243 89 847 0448  
+**Événement :** Pullman Hôtel, Kinshasa · **23–25 sept. 2026**  
+**Village :** **Finance, Fintech & Assurance**  
+**Inscription :** [vukafrik.org/register](https://vukafrik.org/register)
 
-Fichiers du pack :
+## Règles de ce pack
+
+| Oui | Non |
+|---|---|
+| **J1 = théorie** — slides seulement (format Silikin / McBuleli Hackathon) | Pas de démo live le J1 |
+| Pratique = **e-avec.org en prod** (groupe déjà en production) | **Pas** https://e-avec.org/demo |
+| Présenter via [mcbuleli.org/hackathon/slides](https://mcbuleli.org/hackathon/slides) | Canva improvisé comme source de vérité |
+
+---
+
+## Deck officiel (comme Silikin)
+
+| | |
+|---|---|
+| **Slug** | `vukafrik-eavec-j1` |
+| **Hub** | https://mcbuleli.org/hackathon/slides |
+| **Présenter** | https://mcbuleli.org/hackathon/slides/vukafrik-eavec-j1/present |
+| **On Air** | `/hackathon/live` (projecteur) |
+| **Durée** | ~12 min · 13 slides |
+| **Code** | `src/lib/hackathon/slides/decks/vukafrik-eavec-j1.ts` |
+
+Navigation speaker : `←` `→` · `F` plein écran · `L` On Air.
+
+---
+
+## Calendrier 3 jours
+
+| Jour | Format | Livrable |
+|---|---|---|
+| **J1** | **Théorie** — ce deck | Problème → solution → impact → BM |
+| **J2** | **Pratique** — prod | Parcours sur [e-avec.org](https://e-avec.org) (compte / groupe déjà en prod) |
+| **J3** | Pitch jury | Deck + prod live + QR |
+
+---
+
+## Fichiers
 
 | Fichier | Usage |
 |---|---|
-| [CHECKLIST.md](./CHECKLIST.md) | Avant / pendant / après les 3 jours |
-| [PITCH-SLIDES.md](./PITCH-SLIDES.md) | 8 slides jury (copier dans Canva / Keynote) |
-| [SCRIPT-90S.md](./SCRIPT-90S.md) | Démo live chronométrée |
-| [QR-HANDOUT.md](./QR-HANDOUT.md) | Flyer A6 / QR papier |
-| [BM-ONEPAGER.md](./BM-ONEPAGER.md) | Business model 1 page |
-| `../DEMO-UMOJA.md` | Comptes sandbox + seed |
+| [CHECKLIST.md](./CHECKLIST.md) | Avant / J1 / J2–J3 |
+| [PITCH-SLIDES.md](./PITCH-SLIDES.md) | Miroir texte du deck (speaker notes papier) |
+| [PRATIQUE-PROD.md](./PRATIQUE-PROD.md) | Parcours J2+ sur e-avec.org (pas /demo) |
+| [QR-HANDOUT.md](./QR-HANDOUT.md) | Flyer → e-avec.org |
+| [BM-ONEPAGER.md](./BM-ONEPAGER.md) | BM 1 page |
 
 ---
 
 ## Positionnement (une phrase)
 
-> **e-AVEC digitalise la caisse AVEC** : parts, crédits, votes et historique portable (Passport) — pour que l’épargne communautaire soit **visible, gouvernée et bancable**, sans se faire passer pour une banque.
+> **e-AVEC** rend la caisse AVEC **visible, gouvernée et bancable** — sans se faire passer pour une banque.
 
-Disclaimer obligatoire : *e-AVEC n’est pas une banque et ne revendique aucun agrément BCC.*
-
----
-
-## Grille jury (modèle McBuleli Hackathon)
-
-| Critère | % | Angle e-AVEC |
-|---|---|---|
-| Innovation | 25 | Gouvernance + Passport + alertes intégrité |
-| Impact | 25 | Transparence caisse · anti-détournement · inclusion Fc/MoMo |
-| Tech | 20 | Prototype live · offline-aware · seed Umoja |
-| Business model | 15 | B2B2C ONG / facilitateurs / abo groupe |
-| Présentation | 15 | Problème → démo 90 s → BM clair |
-
----
-
-## Rôles équipe (J1–J3)
-
-| Jour | Focus |
-|---|---|
-| **J1** | Problème AVEC + village + persona (présidente / trésorière / ONG) |
-| **J2** | Démo 90 s rodée + pitch 8 slides + BM |
-| **J3** | Jury + public + QR + backup offline (captures) |
+*Disclaimer : e-AVEC n’est pas une banque et ne revendique aucun agrément BCC.*

@@ -1,10 +1,11 @@
 import { vibeCodingMasterclassDeck } from "@/lib/hackathon/slides/decks/vibe-coding-masterclass";
+import { vukafrikEavecJ1Deck } from "@/lib/hackathon/slides/decks/vukafrik-eavec-j1";
 import type {
   HackathonDeck,
   HackathonDeckMeta,
 } from "@/lib/hackathon/slides/types";
 
-const DECKS: HackathonDeck[] = [vibeCodingMasterclassDeck];
+const DECKS: HackathonDeck[] = [vibeCodingMasterclassDeck, vukafrikEavecJ1Deck];
 
 export function listHackathonDecks(): HackathonDeckMeta[] {
   return DECKS.map((deck) => ({
@@ -38,4 +39,4 @@ export function getHackathonDeckSlide(slug: string, index: number) {
   };
 }
 
-export { vibeCodingMasterclassDeck };
+export { vibeCodingMasterclassDeck, vukafrikEavecJ1Deck };
