@@ -23,7 +23,6 @@ import { AvecMeetingPanel } from "@/components/groups/avec-meeting-panel";
 import { AvecOverviewPanel } from "@/components/groups/avec-overview-panel";
 import { AvecTreasurySections } from "@/components/groups/avec-treasury-sections";
 import { AvecReportsPanel } from "@/components/groups/avec-reports-panel";
-import { AvecGroupHero } from "@/components/groups/avec-group-hero";
 import { AvecRoleStrip } from "@/components/groups/avec-role-strip";
 import { AvecTopBar } from "@/components/groups/avec-top-bar";
 import {
@@ -328,6 +327,37 @@ export default function AvecDashboardPage() {
         memberDisplayName={data.viewer.displayName}
         memberPiUsername={data.viewer.piUsername}
         memberKycApproved={data.viewer.kycApproved}
+        settingsHref={`/app/wallet/groups/${g.id}/settings`}
+        tabs={
+          <div className="flex gap-1 overflow-x-auto rounded-2xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-1.5 scrollbar-none">
+            {tabs.map((x) => (
+              <button
+                key={x.id}
+                type="button"
+                onClick={() => {
+                  if (x.id !== "meeting") setPayOk(false);
+                  setTab(x.id);
+                }}
+                className={`relative flex min-w-[3.4rem] shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold uppercase tracking-wide transition ${
+                  tab === x.id
+                    ? "bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)] shadow-sm"
+                    : "text-[color:var(--fd-muted)]"
+                }`}
+              >
+                {x.dot ? (
+                  <span
+                    className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ${
+                      x.dot === "brown" ? "bg-amber-800" : "bg-violet-600"
+                    }`}
+                    aria-hidden
+                  />
+                ) : null}
+                <span className="[&>svg]:h-5 [&>svg]:w-5">{x.icon}</span>
+                <span className="max-w-[4.5rem] truncate">{x.label}</span>
+              </button>
+            ))}
+          </div>
+        }
       />
 
       <div className="space-y-3 px-1 md:px-2">
@@ -339,32 +369,6 @@ export default function AvecDashboardPage() {
             {t("group_create_pending_note")}
           </p>
         ) : null}
-
-        <AvecGroupHero
-          name={g.name}
-          logoUrl={g.logoUrl}
-          countryCode={g.countryCode}
-          address={g.address}
-          publicDescription={g.publicDescription}
-          status={g.status}
-          memberCount={data.memberCount}
-          maxMembers={g.maxMembers}
-          minMembers={g.minMembers}
-          shareValueUsdt={shareValue}
-          meetingIntervalDays={g.meetingIntervalDays}
-          cycleNumber={g.cycleNumber}
-        />
-
-        <div className="flex justify-end">
-          {canAdmin ? (
-            <Link
-              href={`/app/wallet/groups/${g.id}/settings`}
-              className="text-[10px] font-bold text-[color:var(--fd-primary)] underline"
-            >
-              {t("group_dash_settings")}
-            </Link>
-          ) : null}
-        </div>
 
         <AvecRoleStrip role={me?.role ?? "member"} status={me?.status ?? "pending"} />
 
@@ -392,35 +396,6 @@ export default function AvecDashboardPage() {
                 : t("group_reminder_due_soon")}
           </p>
         )}
-
-        <div className="flex gap-1 overflow-x-auto rounded-2xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-1.5 scrollbar-none">
-          {tabs.map((x) => (
-            <button
-              key={x.id}
-              type="button"
-              onClick={() => {
-                if (x.id !== "meeting") setPayOk(false);
-                setTab(x.id);
-              }}
-              className={`relative flex min-w-[3.4rem] shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-bold uppercase tracking-wide transition ${
-                tab === x.id
-                  ? "bg-[color:var(--fd-mint)] text-[color:var(--fd-primary)] shadow-sm"
-                  : "text-[color:var(--fd-muted)]"
-              }`}
-            >
-              {x.dot ? (
-                <span
-                  className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ${
-                    x.dot === "brown" ? "bg-amber-800" : "bg-violet-600"
-                  }`}
-                  aria-hidden
-                />
-              ) : null}
-              <span className="[&>svg]:h-5 [&>svg]:w-5">{x.icon}</span>
-              <span className="max-w-[4.5rem] truncate">{x.label}</span>
-            </button>
-          ))}
-        </div>
 
         {tab === "vue" &&
           (groupActive ? (

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { countryShortLabel } from "@/lib/country-label";
 import { p2pDisplayName } from "@/lib/p2p-display";
@@ -17,6 +18,8 @@ export function AvecTopBar({
   memberPiUsername,
   memberKycApproved,
   backHref,
+  settingsHref,
+  tabs,
 }: {
   groupName: string;
   groupLogoUrl: string | null;
@@ -26,6 +29,9 @@ export function AvecTopBar({
   memberPiUsername?: string | null;
   memberKycApproved?: boolean;
   backHref?: string;
+  settingsHref?: string;
+  /** Sticky tab strip glued under the title bar. */
+  tabs?: ReactNode;
 }) {
   const { t, locale } = useI18n();
   const pseudo = p2pDisplayName({
@@ -37,43 +43,60 @@ export function AvecTopBar({
   const region = countryCode ? countryShortLabel(locale, countryCode) : "";
 
   return (
-    <header className="fd-app-topbar sticky top-0 z-20 mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 py-2">
-      <div className="min-w-0 justify-self-start">
-        <p className="truncate text-sm font-extrabold leading-tight text-[color:var(--fd-text)]">
-          {groupName}
-        </p>
-        {region ? (
-          <p className="mt-0.5 truncate text-[10px] font-medium text-[color:var(--fd-muted)]">
-            {region}
+    <div className="sticky top-0 z-20 mb-3">
+      <header className="fd-app-topbar grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 py-2">
+        <div className="min-w-0 justify-self-start">
+          <p className="truncate text-sm font-extrabold leading-tight text-[color:var(--fd-text)]">
+            {groupName}
           </p>
-        ) : null}
-      </div>
+          {region ? (
+            <p className="mt-0.5 truncate text-[10px] font-medium text-[color:var(--fd-muted)]">
+              {region}
+            </p>
+          ) : null}
+        </div>
 
-      <div className="flex shrink-0 justify-center">
-        {groupLogoUrl ? (
-          <span className="flex h-11 w-11 overflow-hidden rounded-full border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] shadow-sm">
-            <GroupLogoImg url={groupLogoUrl} />
-          </span>
-        ) : (
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">
-            {groupName.slice(0, 2).toUpperCase()}
-          </span>
-        )}
-      </div>
+        <div className="flex shrink-0 justify-center">
+          {groupLogoUrl ? (
+            <span className="flex h-11 w-11 overflow-hidden rounded-full border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] shadow-sm">
+              <GroupLogoImg url={groupLogoUrl} />
+            </span>
+          ) : (
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--fd-primary)]/25 bg-[color:var(--fd-mint)] text-xs font-black text-[color:var(--fd-primary)]">
+              {groupName.slice(0, 2).toUpperCase()}
+            </span>
+          )}
+        </div>
 
-      <div className="flex min-w-0 flex-col items-end justify-self-end gap-1">
-        <p className="flex max-w-[9rem] items-center justify-end gap-1 truncate text-right text-xs font-bold text-[color:var(--fd-text)]">
-          <span className="truncate">{pseudo}</span>
-          {memberKycApproved ? <KycVerifiedBadge compact /> : null}
-        </p>
-        <Link
-          href={backHref ?? "/app/wallet/groups"}
-          className="rounded-lg border border-[color:var(--fd-border)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--fd-primary)]"
-        >
-          {t("group_back")}
-        </Link>
-      </div>
-    </header>
+        <div className="flex min-w-0 flex-col items-end justify-self-end gap-1">
+          <p className="flex max-w-[9rem] items-center justify-end gap-1 truncate text-right text-xs font-bold text-[color:var(--fd-text)]">
+            <span className="truncate">{pseudo}</span>
+            {memberKycApproved ? <KycVerifiedBadge compact /> : null}
+          </p>
+          <div className="flex items-center gap-1.5">
+            {settingsHref ? (
+              <Link
+                href={settingsHref}
+                className="rounded-lg border border-[color:var(--fd-border)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--fd-primary)]"
+              >
+                {t("group_dash_settings")}
+              </Link>
+            ) : null}
+            <Link
+              href={backHref ?? "/app/wallet/groups"}
+              className="rounded-lg border border-[color:var(--fd-border)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--fd-primary)]"
+            >
+              {t("group_back")}
+            </Link>
+          </div>
+        </div>
+      </header>
+      {tabs ? (
+        <div className="border-b border-[color:var(--fd-border)] bg-[color:var(--fd-bg)] px-1 pb-1.5 pt-0 md:px-2">
+          {tabs}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
