@@ -30,17 +30,24 @@ export function EavecAppShell({
   const pathname = usePathname();
   const { locale } = useI18n();
   const onProfile = pathname.startsWith("/app/profile");
+  const onMarche = pathname.startsWith("/app/marche");
   const onAvecGroupFlow =
     pathname.startsWith("/app/wallet/groups/") &&
     pathname !== "/app/wallet/groups" &&
     !pathname.endsWith("/new") &&
     !pathname.endsWith("/join");
-  const showTopBar = !onProfile && !onAvecGroupFlow;
+  const showTopBar = !onProfile && !onAvecGroupFlow && !onMarche;
   const returnLabel = locale === "fr" ? "Retour vers McBuleli" : "Back to McBuleli";
 
   return (
-    <div className="relative mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-[var(--fd-bg)] pt-[env(safe-area-inset-top)] pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:max-w-6xl lg:flex-row lg:pb-6 lg:pt-0">
-      <div className="hidden lg:block">
+    <div
+      className={`relative mx-auto flex min-h-dvh w-full flex-col pt-[env(safe-area-inset-top)] pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:flex-row lg:pb-6 lg:pt-0 ${
+        onMarche
+          ? "max-w-none bg-[color:var(--mk-paper,#f4f7f6)]"
+          : "max-w-lg bg-[var(--fd-bg)] lg:max-w-6xl"
+      }`}
+    >
+      <div className={`hidden lg:block ${onMarche ? "lg:!hidden" : ""}`}>
         <EavecSideNav />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
@@ -55,8 +62,14 @@ export function EavecAppShell({
             </div>
           </div>
         ) : null}
-        <main className="flex-1 px-4 pt-2 md:px-5 lg:px-6">
-          {showReturnToMcbuleli ? (
+        <main
+          className={`flex-1 ${
+            onMarche
+              ? "px-4 pt-0 md:px-5 lg:mx-auto lg:max-w-6xl lg:px-6"
+              : "px-4 pt-2 md:px-5 lg:px-6"
+          }`}
+        >
+          {showReturnToMcbuleli && !onMarche ? (
             <div className="mb-3">
               <Link
                 href={`/app/mcbuleli-handoff?next=${encodeURIComponent(MCBULELI_RETURN_PATH)}`}
@@ -66,13 +79,15 @@ export function EavecAppShell({
               </Link>
             </div>
           ) : null}
-          <div className="mb-3">
-            <OfflineStatusBar />
-          </div>
+          {!onMarche ? (
+            <div className="mb-3">
+              <OfflineStatusBar />
+            </div>
+          ) : null}
           {children}
         </main>
         <div className="lg:hidden">
-          <EavecBottomNav />
+          <EavecBottomNav marcheWorld={onMarche} />
         </div>
       </div>
       <KycStatusPoller />

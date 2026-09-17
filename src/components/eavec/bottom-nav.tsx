@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
 import { APP_NAV_ITEMS, isAppNavActive } from "@/lib/app-nav-items";
 
-export function EavecBottomNav() {
+export function EavecBottomNav({ marcheWorld = false }: { marcheWorld?: boolean }) {
   const pathname = usePathname();
   const { locale } = useI18n();
   const fr = locale === "fr";
@@ -21,7 +21,13 @@ export function EavecBottomNav() {
       className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 flex justify-center px-4 pb-[calc(0.65rem+env(safe-area-inset-bottom))] pt-2"
       aria-label="Main"
     >
-      <div className="fd-nav-glow pointer-events-auto flex w-full max-w-md items-stretch justify-around rounded-full px-1 py-1 backdrop-blur-md md:max-w-lg">
+      <div
+        className={`pointer-events-auto flex w-full max-w-md items-stretch justify-around rounded-full px-1 py-1 backdrop-blur-md md:max-w-lg ${
+          marcheWorld
+            ? "border border-[rgba(7,18,16,0.12)] bg-[rgba(244,247,246,0.92)] shadow-[0_12px_40px_rgba(7,18,16,0.14)]"
+            : "fd-nav-glow"
+        }`}
+      >
         {APP_NAV_ITEMS.map((p) => {
           const active = isAppNavActive(pathname, p.href);
           return (
@@ -29,13 +35,25 @@ export function EavecBottomNav() {
               key={p.href}
               href={p.href}
               className={`relative flex min-h-[48px] min-w-[48px] flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 transition-transform active:scale-95 ${
-                active ? "fd-nav-active" : "fd-nav-idle"
+                marcheWorld
+                  ? active
+                    ? "bg-[#071210] text-[#f4f7f6]"
+                    : "text-[#5a6e6a]"
+                  : active
+                    ? "fd-nav-active"
+                    : "fd-nav-idle"
               }`}
             >
-              <NavIcon href={p.href} active={active} />
+              <NavIcon href={p.href} active={active} marcheWorld={marcheWorld} />
               <span
                 className={`max-w-[4.75rem] truncate text-[10px] leading-tight ${
-                  active ? "font-bold text-[#0F2D2F]" : "font-semibold"
+                  marcheWorld
+                    ? active
+                      ? "font-bold text-[#f4f7f6]"
+                      : "font-semibold"
+                    : active
+                      ? "font-bold text-[#0F2D2F]"
+                      : "font-semibold"
                 }`}
               >
                 {labelFor(p.href)}
@@ -48,8 +66,22 @@ export function EavecBottomNav() {
   );
 }
 
-function NavIcon({ href, active }: { href: string; active: boolean }) {
-  const stroke = active ? "#0F2D2F" : "currentColor";
+function NavIcon({
+  href,
+  active,
+  marcheWorld,
+}: {
+  href: string;
+  active: boolean;
+  marcheWorld: boolean;
+}) {
+  const stroke = marcheWorld
+    ? active
+      ? "#f4f7f6"
+      : "#5a6e6a"
+    : active
+      ? "#0F2D2F"
+      : "currentColor";
   if (href === "/app/wallet/groups") {
     return (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
