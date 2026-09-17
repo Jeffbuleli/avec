@@ -151,6 +151,18 @@ const SCOPES = {
       key: ({ req }) => rateLimitKeyIp("api:safefind-case", req),
     },
   ],
+  eavec_market_order: [
+    {
+      limit: 30,
+      windowMs: 60 * 60_000,
+      key: ({ userId }) => `api:eavec-market-order:user:${userId}`,
+    },
+    {
+      limit: 80,
+      windowMs: 60 * 60_000,
+      key: ({ req }) => rateLimitKeyIp("api:eavec-market-order", req),
+    },
+  ],
   eavec_market_create: [
     {
       limit: 20,
