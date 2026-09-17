@@ -3,7 +3,6 @@
 import { avecMoney } from "@/lib/avec/display-currency";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
-import { AvecProgressRing } from "@/components/groups/avec-charts";
 import { AvecVueGovernanceCard } from "@/components/groups/avec-vue-governance-card";
 import { AvecAiInsightsCard } from "@/components/groups/avec-ai-insights-card";
 import { AvecFinancialPassportPanel } from "@/components/groups/avec-financial-passport-panel";
@@ -29,13 +28,6 @@ type LedgerEntry = {
   createdAt: string;
 };
 
-function cycleProgressPct(createdAt: string, cycleDays: number): number {
-  const start = new Date(createdAt).getTime();
-  const elapsed = Date.now() - start;
-  const total = cycleDays * 86400000;
-  return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
-}
-
 function entryLabel(
   entryType: string,
   labels: Record<string, string>,
@@ -49,13 +41,11 @@ function entryLabel(
 }
 
 /**
- * Vue = decision screen: treasury → next action → alerts → recent → me.
- * Heavy analytics stay behind a short "Conseils" toggle.
+ * Vue = one job: caisse + next pay. Members/cycle live in the group hero only.
  */
 export function AvecOverviewPanel({
   groupId,
   group,
-  memberCount,
   members,
   pendingCount,
   myUserId,
@@ -127,8 +117,6 @@ export function AvecOverviewPanel({
     }
   }, [groupId, canModerate, loadGov]);
 
-  const cyclePct = cycleProgressPct(group.createdAt, group.cycleDurationDays);
-  const pending = members.filter((m) => m.status === "pending").length;
   const me = members.find((m) => m.userId === myUserId);
   const myShares = Number(me?.sharesTotal ?? 0) || 0;
   const shareValue = Number(group.contributionAmountUsdt) || 0;
@@ -191,37 +179,6 @@ export function AvecOverviewPanel({
         <p className="mt-1 text-3xl font-black tabular-nums tracking-tight">
           {avecMoney(treasury)}
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-xl bg-white/10 px-3 py-2.5">
-            <p className="text-[9px] font-bold uppercase text-white/65">
-              {t("avec_vue_cycle")} #{group.cycleNumber ?? 1}
-            </p>
-            <p className="mt-1 text-xl font-black tabular-nums">{cyclePct}%</p>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/20">
-              <div
-                className="h-full rounded-full bg-white"
-                style={{ width: `${cyclePct}%` }}
-              />
-            </div>
-          </div>
-          <div className="rounded-xl bg-white/10 px-3 py-2">
-            <p className="text-[9px] font-bold uppercase text-white/65">
-              {t("avec_vue_members")}
-            </p>
-            <div className="mt-1 flex items-center gap-2">
-              <AvecProgressRing value={memberCount} max={group.maxMembers} size={40} />
-              <p className="text-lg font-black tabular-nums">
-                {memberCount}
-                <span className="text-xs font-semibold text-white/60">
-                  /{group.maxMembers}
-                </span>
-              </p>
-            </div>
-            {pending > 0 ? (
-              <p className="mt-0.5 text-[9px] text-amber-200">+{pending}</p>
-            ) : null}
-          </div>
-        </div>
       </div>
 
       <div className={avecCls.checkoutCard}>
