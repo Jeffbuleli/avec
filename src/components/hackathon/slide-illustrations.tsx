@@ -991,6 +991,181 @@ function AgendaIllu() {
   );
 }
 
+function AvecCircle() {
+  const uid = "ac";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        {[0, 1, 2, 3, 4, 5].map((i) => {
+          const a = (i / 6) * Math.PI * 2 - Math.PI / 2;
+          const cx = 160 + Math.cos(a) * 58;
+          const cy = 108 + Math.sin(a) * 48;
+          return (
+            <circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r="14"
+              fill={i % 2 === 0 ? `url(#${uid}-accent)` : "#fff"}
+              stroke="var(--slide-accent, #1f6b43)"
+              strokeWidth="2"
+            />
+          );
+        })}
+        <circle cx="160" cy="108" r="22" fill={`url(#${uid}-accent)`} />
+        <text x="160" y="113" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="800">
+          AVEC
+        </text>
+      </g>
+    </Frame>
+  );
+}
+
+function AvecCashbox() {
+  const uid = "ab";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        <rect x="88" y="70" width="144" height="100" rx="14" fill="#fff" stroke="var(--slide-accent,#1f6b43)" strokeWidth="3" />
+        <rect x="88" y="70" width="144" height="28" rx="14" fill={`url(#${uid}-accent)`} />
+        <circle cx="160" cy="128" r="16" fill={`url(#${uid}-accent)`} opacity="0.9" />
+        <path d="M160 118v20M150 128h20" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+        <rect x="118" y="48" width="84" height="10" rx="4" fill="var(--slide-accent,#1f6b43)" opacity="0.35" />
+      </g>
+    </Frame>
+  );
+}
+
+function AvecOpaque() {
+  const uid = "ao";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        <rect x="70" y="55" width="100" height="120" rx="10" fill="#fff" stroke="#cbd5e1" strokeWidth="2" />
+        <path d="M82 78h76M82 98h60M82 118h70M82 138h48" stroke="#94a3b8" strokeWidth="4" strokeLinecap="round" opacity="0.5" />
+        <rect x="160" y="70" width="90" height="90" rx="12" fill={`url(#${uid}-accent)`} opacity="0.92" />
+        <path d="M178 115h54M185 132h40" stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity="0.35" />
+        <circle cx="205" cy="100" r="14" fill="#fff" opacity="0.25" />
+        <text x="205" y="178" textAnchor="middle" fill="var(--hk-text,#222)" fontSize="11" fontWeight="800">
+          opaque
+        </text>
+      </g>
+    </Frame>
+  );
+}
+
+function AvecLedger() {
+  const uid = "al";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        <rect x="60" y="48" width="120" height="140" rx="12" fill="#fff" stroke="var(--slide-accent,#1f6b43)" strokeWidth="2.5" />
+        <rect x="72" y="64" width="96" height="12" rx="4" fill={`url(#${uid}-accent)`} opacity="0.85" />
+        {[0, 1, 2, 3, 4].map((i) => (
+          <rect key={i} x="72" y={90 + i * 18} width={70 + (i % 3) * 8} height="8" rx="3" fill="#e2e8f0" />
+        ))}
+        <rect x="175" y="72" width="90" height="100" rx="14" fill={`url(#${uid}-accent)`} />
+        <text x="220" y="118" textAnchor="middle" fill="#fff" fontSize="18" fontWeight="900">
+          Fc
+        </text>
+        <text x="220" y="142" textAnchor="middle" fill="#fff" fontSize="10" fontWeight="700" opacity="0.85">
+          visible
+        </text>
+      </g>
+    </Frame>
+  );
+}
+
+function AvecVote() {
+  const uid = "av";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        <rect x="70" y="60" width="180" height="110" rx="16" fill="#fff" stroke="var(--slide-accent,#1f6b43)" strokeWidth="2.5" />
+        <text x="160" y="92" textAnchor="middle" fill="var(--hk-text,#222)" fontSize="13" fontWeight="800">
+          Crédit AGR ?
+        </text>
+        <rect x="95" y="110" width="60" height="36" rx="10" fill={`url(#${uid}-accent)`} />
+        <text x="125" y="133" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="800">
+          Oui
+        </text>
+        <rect x="165" y="110" width="60" height="36" rx="10" fill="#e2e8f0" />
+        <text x="195" y="133" textAnchor="middle" fill="var(--hk-text,#222)" fontSize="12" fontWeight="800">
+          Non
+        </text>
+      </g>
+    </Frame>
+  );
+}
+
+function AvecPassport() {
+  const uid = "ap";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        <rect x="95" y="42" width="130" height="150" rx="14" fill={`url(#${uid}-accent)`} />
+        <rect x="110" y="58" width="100" height="55" rx="8" fill="#fff" opacity="0.2" />
+        <circle cx="160" cy="85" r="18" fill="#fff" opacity="0.9" />
+        <rect x="118" y="128" width="84" height="8" rx="3" fill="#fff" opacity="0.55" />
+        <rect x="118" y="144" width="64" height="8" rx="3" fill="#fff" opacity="0.35" />
+        <rect x="118" y="160" width="74" height="8" rx="3" fill="#fff" opacity="0.35" />
+        <text x="160" y="205" textAnchor="middle" fill="var(--hk-text,#222)" fontSize="11" fontWeight="800">
+          Passport
+        </text>
+      </g>
+    </Frame>
+  );
+}
+
+function AvecMomo() {
+  const uid = "am";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        <rect x="120" y="40" width="80" height="140" rx="14" fill="#0f172a" />
+        <rect x="128" y="52" width="64" height="100" rx="6" fill={`url(#${uid}-accent)`} />
+        <text x="160" y="108" textAnchor="middle" fill="#fff" fontSize="14" fontWeight="900">
+          MoMo
+        </text>
+        <circle cx="160" cy="165" r="5" fill="#fff" opacity="0.5" />
+        <path d="M70 100h40M210 100h40" stroke="var(--slide-accent,#1f6b43)" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="60" cy="100" r="12" fill={`url(#${uid}-accent)`} />
+        <circle cx="260" cy="100" r="12" fill={`url(#${uid}-accent)`} />
+      </g>
+    </Frame>
+  );
+}
+
+function AvecImpact() {
+  const uid = "ai2";
+  return (
+    <Frame uid={uid}>
+      <g filter={`url(#${uid}-shadow)`}>
+        {[40, 70, 100, 130].map((h, i) => (
+          <rect
+            key={h}
+            x={78 + i * 48}
+            y={170 - h}
+            width="32"
+            height={h}
+            rx="8"
+            fill={i === 3 ? `url(#${uid}-accent)` : "#cbd5e1"}
+            opacity={i === 3 ? 1 : 0.55 + i * 0.1}
+          />
+        ))}
+        <path
+          d="M70 160 C120 150, 180 90, 250 55"
+          stroke="var(--slide-accent,#1f6b43)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <circle cx="250" cy="55" r="8" fill={`url(#${uid}-accent)`} />
+      </g>
+    </Frame>
+  );
+}
+
 function Generic({ label }: { label: string }) {
   const uid = "gen";
   return (
@@ -1033,6 +1208,14 @@ const MAP: Record<SlideIllustrationId, () => ReactNode> = {
   agenda: AgendaIllu,
   "tools-grid": ToolsGrid,
   limits: LimitsIllu,
+  "avec-circle": AvecCircle,
+  "avec-cashbox": AvecCashbox,
+  "avec-opaque": AvecOpaque,
+  "avec-ledger": AvecLedger,
+  "avec-vote": AvecVote,
+  "avec-passport": AvecPassport,
+  "avec-momo": AvecMomo,
+  "avec-impact": AvecImpact,
 };
 
 export function SlideIllustration({ id, className }: Props) {

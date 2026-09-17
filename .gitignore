@@ -33,3 +33,7 @@ next-env.d.ts
 /drizzle-push*.log
 /migrate-*.log
 /godot/.godot/
+
+# e-AVEC slides LIVE/MC session store
+.data/
+

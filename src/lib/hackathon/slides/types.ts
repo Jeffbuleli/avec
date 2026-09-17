@@ -41,7 +41,16 @@ export type SlideIllustrationId =
   | "homework"
   | "agenda"
   | "tools-grid"
-  | "limits";
+  | "limits"
+  /** e-AVEC / VUK’AFRIK professional SVGs */
+  | "avec-circle"
+  | "avec-cashbox"
+  | "avec-opaque"
+  | "avec-ledger"
+  | "avec-vote"
+  | "avec-passport"
+  | "avec-momo"
+  | "avec-impact";
 
 export type SlideBullet = {
   text: string;

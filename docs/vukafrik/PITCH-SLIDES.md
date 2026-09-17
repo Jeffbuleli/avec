@@ -1,19 +1,16 @@
-# Miroir texte — deck `vukafrik-eavec-j1`
+# Miroir deck (piloté MC → LIVE)
 
-UI : https://e-avec.org/slides/vukafrik-eavec-j1/present
-
-1. Titre — e-AVEC  
-2. Plan 3 jours  
-3. Village Finance / Fintech  
-4. Section problème  
-5. Réalité terrain  
-6. Personas  
-7. Section solution  
-8. Quatre piliers  
+1. Titre e-AVEC  
+2. Contexte AVEC / VSLA  
+3. Problème — caisse opaque  
+4. Personas  
+5. Solution e-AVEC  
+6. Quatre piliers  
+7. Ancrage terrain (Fc / MoMo / réseau)  
+8. Passport  
 9. Impact  
-10. BM  
-11. Grille jury  
-12. Disclaimer BCC  
-13. Closing → e-avec.org  
+10. BM B2B2C  
+11. Disclaimer BCC  
+12. Closing  
 
-Pas de lien `/demo` ni `mcbuleli.org/hackathon`.
+Pilotage : `/slides/mc` · Diffusion : `/slides/live`

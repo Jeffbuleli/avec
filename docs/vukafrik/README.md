@@ -1,50 +1,23 @@
-# VUK’AFRIK 2026 — Pack e-AVEC
+# VUK’AFRIK — Slides e-AVEC
 
-**Événement :** Pullman · Kinshasa · **23–25 sept. 2026**  
-**Village :** **Finance, Fintech & Assurance**  
-**Inscription :** [vukafrik.org/register](https://vukafrik.org/register)
+## Deux écrans seulement (modèle Silikin)
 
-## Règles
+| Rôle | URL | Usage |
+|---|---|---|
+| Hub | https://e-avec.org/slides | Choisir LIVE ou MC |
+| **LIVE** | https://e-avec.org/slides/live | Projecteur salle |
+| **MC** | https://e-avec.org/slides/mc | Télécommande (login) |
 
-| Oui | Non |
-|---|---|
-| **J1 = théorie** — slides sur **e-avec.org** | Pas de démo live le J1 |
-| Pratique = **e-avec.org prod** | Pas `/demo` |
-| Modèle UX = Silikin / McBuleli Hackathon | Ne pas modifier `mcbuleli.org/hackathon` |
+1. Ouvrir **LIVE** sur le grand écran  
+2. Ouvrir **MC** sur le téléphone du speaker → **Passer On Air**  
+3. Suiv. / Préc. depuis MC  
 
----
+## Contenu
 
-## Deck officiel (sur e-avec.org)
+Deck J1 théorique : problématique AVEC (caisse opaque, cahier fragile — thèmes CARE / VSLA) → e-AVEC (Réunion, Caisse, Vote, Passport) → impact → BM → disclaimer BCC.
 
-| | |
-|---|---|
-| **Hub** | https://e-avec.org/slides |
-| **Présenter** | https://e-avec.org/slides/vukafrik-eavec-j1/present |
-| **Préparer** | https://e-avec.org/slides/vukafrik-eavec-j1 |
-| **Durée** | ~12 min · 13 slides |
-| **Code** | `src/lib/hackathon/slides/decks/vukafrik-eavec-j1.ts` |
+Illustrations : SVG professionnels dédiés AVEC (pas photos stock).
 
-Raccourcis : `←` `→` · `F` plein écran · `N` notes speaker.
+## Pratique produit
 
----
-
-## Calendrier
-
-| Jour | Format |
-|---|---|
-| **J1** | Théorie — `/slides/.../present` |
-| **J2+** | Pratique — [e-avec.org](https://e-avec.org) (prod) |
-| **J3** | Pitch jury |
-
-## Fichiers
-
-| Fichier | Usage |
-|---|---|
-| [CHECKLIST.md](./CHECKLIST.md) | Avant / J1 / J2+ |
-| [PITCH-SLIDES.md](./PITCH-SLIDES.md) | Miroir texte |
-| [PRATIQUE-PROD.md](./PRATIQUE-PROD.md) | Parcours prod |
-| [QR-HANDOUT.md](./QR-HANDOUT.md) | Flyer → e-avec.org |
-| [BM-ONEPAGER.md](./BM-ONEPAGER.md) | BM |
-
-> **e-AVEC** rend la caisse AVEC **visible, gouvernée et bancable**.  
-> *Pas une banque · pas d’agrément BCC.*
+[e-avec.org](https://e-avec.org) en production — **pas** `/demo`.
