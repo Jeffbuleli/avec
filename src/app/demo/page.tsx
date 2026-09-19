@@ -98,7 +98,7 @@ export default function DemoPage() {
           <LangSwitch />
           <Link
             href="/"
-            className="rounded-full border border-[#F6E8CD]/30 px-3 py-1.5 text-xs font-semibold"
+            className="rounded-full border border-[#F6E8CD]/55 px-3 py-1.5 text-xs font-semibold text-[#F6E8CD]"
           >
             {fr ? "Accueil" : "Home"}
           </Link>
@@ -112,24 +112,24 @@ export default function DemoPage() {
             src="/assets/landing/meeting-caisse.jpg"
             alt=""
             fill
-            className="object-cover opacity-35"
+            className="object-cover opacity-25"
             sizes="100vw"
             unoptimized
             priority
           />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,45,47,0.88),rgba(7,26,27,0.96))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,45,47,0.94),rgba(7,26,27,0.98))]" />
         </div>
         <div className="relative mx-auto max-w-5xl px-5 pb-12 pt-8">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#C9A227]">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#E8C96A]">
             VUK&apos;AFRIK · Sandbox
           </p>
           <div className="mt-4 flex items-center gap-3">
             <DemoIcon kind="play" />
-            <h1 className="text-3xl font-black leading-tight sm:text-4xl">
+            <h1 className="text-3xl font-black leading-tight text-[#F6E8CD] sm:text-4xl">
               {fr ? "Démo 90 secondes - AVEC Umoja" : "90-second demo - AVEC Umoja"}
             </h1>
           </div>
-          <p className="mt-3 max-w-2xl pl-[52px] text-sm leading-relaxed text-[#F6E8CD]/75 sm:text-base">
+          <p className="mt-3 max-w-2xl pl-[52px] text-sm leading-relaxed text-[#F6E8CD]/90 sm:text-base">
             {fr
               ? "Sandbox guidée pour le jury : problème AVEC (caisse opaque) - solution e-AVEC (réunion, vote, Passport). Données fictives, pas une banque."
               : "Guided jury sandbox: AVEC problem (opaque cash box) - e-AVEC solution (meeting, vote, Passport). Fictional data, not a bank."}
@@ -184,7 +184,7 @@ export default function DemoPage() {
                 <DemoIcon kind={card.icon} />
                 <h2 className="text-sm font-extrabold">{card.t}</h2>
               </div>
-              <p className="mt-2 pl-[52px] text-xs leading-relaxed text-[#F6E8CD]/6">
+              <p className="mt-2 pl-[52px] text-sm leading-relaxed text-[#F6E8CD]/88">
                 {card.d}
               </p>
             </article>
@@ -212,14 +212,14 @@ export default function DemoPage() {
                   {fr ? "Connexion jury" : "Jury login"}
                 </h2>
               </div>
-              <p className="mt-2 pl-[52px] text-xs text-[#F6E8CD]/55">
+              <p className="mt-2 pl-[52px] text-sm text-[#F6E8CD]/88">
                 {fr
                   ? "Un clic ouvre l'admin Umoja sur la Vue."
                   : "One click opens Umoja admin on Overview."}
               </p>
 
               {!data ? (
-                <p className="mt-5 text-sm text-[#F6E8CD]/7">…</p>
+                <p className="mt-5 text-sm text-[#F6E8CD]/90">…</p>
               ) : !ready ? (
                 <div className="mt-5 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
                   {fr
@@ -241,12 +241,12 @@ export default function DemoPage() {
                     value={`${data.groupName ?? ""} (${data.inviteCode ?? ""})`}
                   />
                   {data.openVote ? (
-                    <p className="text-[#F6E8CD]/7">
+                    <p className="text-[#F6E8CD]/90">
                       {fr ? "Vote ouvert :" : "Open vote:"} {data.openVote.title}
                     </p>
                   ) : null}
                   {data.passport ? (
-                    <p className="text-[#F6E8CD]/7">
+                    <p className="text-[#F6E8CD]/90">
                       Passport → {data.passport.partnerLabel}
                     </p>
                   ) : null}
@@ -272,7 +272,7 @@ export default function DemoPage() {
               {fr ? "Script 90 s" : "90s script"}
             </h2>
           </div>
-          <p className="mt-2 pl-[52px] text-xs text-[#F6E8CD]/55">
+          <p className="mt-2 pl-[52px] text-sm text-[#F6E8CD]/88">
             {fr
               ? "Chaque étape ouvre l'onglet exact - dire la phrase, montrer l'écran, passer."
               : "Each step opens the exact tab - say the line, show the screen, move on."}
@@ -286,19 +286,19 @@ export default function DemoPage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C9A227]/20 text-xs font-extrabold text-[#C9A227]">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C9A227]/25 text-xs font-extrabold text-[#E8C96A]">
                         {i + 1}
                       </span>
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-[#C9A227]">
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-[#E8C96A]">
                           {step.t}
                         </p>
-                        <p className="text-sm font-semibold">
+                        <p className="text-sm font-semibold text-[#F6E8CD]">
                           {fr ? step.labelFr : step.labelEn}
                         </p>
                       </div>
                     </div>
-                    <p className="mt-2 pl-11 text-xs leading-relaxed text-[#F6E8CD]/55">
+                    <p className="mt-2 pl-11 text-sm leading-relaxed text-[#F6E8CD]/88">
                       {fr
                         ? step.sayFr ??
                           "Montrer l'écran, une phrase, passer."
@@ -312,7 +312,7 @@ export default function DemoPage() {
                         ? `/login?email=${encodeURIComponent(data.adminEmail)}&next=${encodeURIComponent(step.path)}`
                         : step.path
                     }
-                    className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#F6E8CD]/35 px-4 text-xs font-bold"
+                    className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full border border-[#F6E8CD]/55 bg-[#F6E8CD]/10 px-4 text-xs font-bold text-[#F6E8CD]"
                   >
                     {fr ? "Aller" : "Go"}
                   </Link>
@@ -330,7 +330,7 @@ export default function DemoPage() {
               {fr ? "Ce que le jury doit voir" : "What the jury should see"}
             </h2>
           </div>
-          <p className="mt-2 pl-[52px] text-xs text-[#F6E8CD]/55">
+          <p className="mt-2 pl-[52px] text-sm text-[#F6E8CD]/88">
             {fr
               ? "Trois moments du rituel AVEC - le digital épouse le terrain."
               : "Three moments of the AVEC ritual - digital mirrors the field."}
@@ -384,8 +384,8 @@ export default function DemoPage() {
                   />
                 </div>
                 <figcaption className="mt-2">
-                  <p className="text-sm font-extrabold">{s.t}</p>
-                  <p className="text-xs text-[#F6E8CD]/55">{s.d}</p>
+                  <p className="text-sm font-extrabold text-[#F6E8CD]">{s.t}</p>
+                  <p className="text-sm text-[#F6E8CD]/88">{s.d}</p>
                 </figcaption>
               </figure>
             ))}
@@ -401,7 +401,7 @@ export default function DemoPage() {
                 {fr ? "Cette page = sandbox" : "This page = sandbox"}
               </h3>
             </div>
-            <p className="mt-2 pl-[52px] text-xs leading-relaxed text-[#F6E8CD]/6">
+            <p className="mt-2 pl-[52px] text-sm leading-relaxed text-[#F6E8CD]/88">
               {fr
                 ? "/demo prépare le jury avec Umoja. Idéal pour répéter le pitch 90 s."
                 : "/demo prepares the jury with Umoja. Ideal to rehearse the 90s pitch."}
@@ -414,7 +414,7 @@ export default function DemoPage() {
                 {fr ? "Pratique = production" : "Practice = production"}
               </h3>
             </div>
-            <p className="mt-2 pl-[52px] text-xs leading-relaxed text-[#F6E8CD]/6">
+            <p className="mt-2 pl-[52px] text-sm leading-relaxed text-[#F6E8CD]/88">
               {fr
                 ? "En session pratique VUK, préférer un groupe réel sur e-avec.org (pas le sandbox)."
                 : "In VUK practice sessions, prefer a real group on e-avec.org (not the sandbox)."}
@@ -425,13 +425,13 @@ export default function DemoPage() {
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/live"
-            className="inline-flex min-h-[44px] items-center rounded-full border border-[#F6E8CD]/3 px-5 text-xs font-bold"
+            className="inline-flex min-h-[44px] items-center rounded-full border border-[#F6E8CD]/55 px-5 text-xs font-bold text-[#F6E8CD]"
           >
             LIVE
           </Link>
           <Link
             href="/mc"
-            className="inline-flex min-h-[44px] items-center rounded-full border border-[#F6E8CD]/3 px-5 text-xs font-bold"
+            className="inline-flex min-h-[44px] items-center rounded-full border border-[#F6E8CD]/55 px-5 text-xs font-bold text-[#F6E8CD]"
           >
             MC
           </Link>
@@ -443,23 +443,25 @@ export default function DemoPage() {
           </Link>
         </div>
 
-        <p className="mt-10 text-xs leading-relaxed text-[#F6E8CD]/45">
+        <p className="mt-10 text-sm leading-relaxed text-[#F6E8CD]/80">
           {fr
             ? "e-AVEC n'est pas une banque et ne revendique aucun agrément BCC. Données sandbox Umoja uniquement."
             : "e-AVEC is not a bank and claims no BCC license. Umoja sandbox data only."}
         </p>
       </main>
 
-      <McBuleliPoweredFooter className="border-[#F6E8CD]/10 [&_span]:text-[#F6E8CD]/55 [&_a]:text-[#C9A227]" />
+      <McBuleliPoweredFooter className="border-[#F6E8CD]/15 text-[#F6E8CD]/80 [&_p]:text-[#F6E8CD]/80 [&_a]:text-[#E8C96A]" />
     </div>
   );
 }
 
 function Cred({ label, value }: { label: string; value: string }) {
   return (
-    <p>
-      <span className="text-[#F6E8CD]/5">{label} · </span>
-      <code className="rounded bg-black/30 px-1.5 py-0.5 text-[13px]">{value}</code>
+    <p className="text-[#F6E8CD]">
+      <span className="font-semibold text-[#E8C96A]">{label} · </span>
+      <code className="rounded bg-[#F6E8CD]/12 px-1.5 py-0.5 text-[13px] font-semibold text-[#F6E8CD]">
+        {value}
+      </code>
     </p>
   );
 }
@@ -478,7 +480,7 @@ function DemoIcon({
     | "sandbox"
     | "prod";
 }) {
-  const stroke = "#C9A227";
+  const stroke = "#E8C96A";
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden className="shrink-0">
       {kind === "play" && (
