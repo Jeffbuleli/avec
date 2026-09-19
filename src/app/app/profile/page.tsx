@@ -36,7 +36,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-4">
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-4 pb-4 sm:max-w-xl md:max-w-2xl">
       <ProfileScreenHeader title={d.profile_title} />
       <ProfileHero dash={dash} locale={locale} />
       <ProfileSecurityMeter />

@@ -138,7 +138,7 @@ function TransferForm() {
   }
 
   return (
-    <div className="mx-auto max-w-lg pb-4 pt-2 text-[#0F2D2F]">
+    <div className="mx-auto w-full max-w-lg pb-4 pt-1 text-[#0F2D2F] sm:max-w-xl md:max-w-2xl">
       <WalletSubpageHeader
         title={fr ? "Envoyer à un utilisateur" : "Send to a user"}
         subtitle={fr ? "Transfert interne e-AVEC · gratuit" : "Internal e-AVEC transfer · free"}

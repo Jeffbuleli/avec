@@ -97,7 +97,7 @@ export default function AvecHubPage() {
   const mineSlice = useMemo(() => minePag.slice, [minePag.slice]);
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-5 pb-8 md:max-w-3xl lg:max-w-5xl">
+    <div className="mx-auto w-full max-w-lg space-y-5 pb-8 sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
       <WalletSubpageHeader
         title={t("group_hub_title")}
         subtitle={t("group_hub_sub")}
@@ -124,7 +124,7 @@ export default function AvecHubPage() {
         href="/app/facilitateur"
         className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--fd-primary)]/15 bg-[#0F2D2F] px-4 py-3.5 text-[#F6E8CD] shadow-md shadow-[color:var(--fd-primary)]/20"
       >
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-extrabold">
             {locale === "fr" ? "Facilitateur ONG" : "NGO facilitator"}
           </p>
@@ -134,13 +134,13 @@ export default function AvecHubPage() {
               : "Multi-group · alerts · minutes export"}
           </p>
         </div>
-        <span className="rounded-full bg-[#C9A227] px-3 py-1.5 text-[10px] font-bold text-[#0F2D2F]">
+        <span className="shrink-0 rounded-full bg-[#C9A227] px-3 py-1.5 text-[10px] font-bold text-[#0F2D2F]">
           {locale === "fr" ? "Ouvrir" : "Open"}
         </span>
       </Link>
 
       <section className="space-y-2.5">
-        <div className="flex items-end justify-between gap-2 px-0.5">
+        <div className="flex items-end justify-between gap-2">
           <h2 className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
             {t("group_hub_mine_title")}
           </h2>
@@ -240,10 +240,10 @@ export default function AvecHubPage() {
       </section>
 
       <section className="space-y-2.5 border-t border-[color:var(--fd-border)] pt-5">
-        <h2 className="px-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
+        <h2 className="text-[10px] font-bold uppercase tracking-wide text-[color:var(--fd-muted)]">
           {t("group_discover_title")}
         </h2>
-        <p className="px-0.5 text-[11px] leading-snug text-[color:var(--fd-muted)]">
+        <p className="text-[11px] leading-snug text-[color:var(--fd-muted)]">
           {t("group_discover_sub")}
         </p>
 

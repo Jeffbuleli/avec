@@ -36,23 +36,23 @@ export function EavecWalletFundPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-lg pb-4 pt-2">
+    <div className="mx-auto w-full max-w-lg pb-4 pt-1 sm:max-w-xl md:max-w-2xl">
       <WalletSubpageHeader
         title="Wallet"
         subtitle={fr ? "Fc · Mobile Money · transferts" : "Fc · Mobile Money · transfers"}
         backHref="/app/home"
       />
 
-      <div className="mt-1 flex items-center gap-3 px-0.5">
+      <div className="mt-1 flex items-center gap-3">
         <Image
           src={BRAND_LOGO_MARK_256}
           alt=""
           width={40}
           height={40}
-          className="h-10 w-10 rounded-full"
+          className="h-10 w-10 shrink-0 rounded-full"
           unoptimized
         />
-        <p className="text-sm leading-relaxed text-[#0F2D2F]/70">
+        <p className="min-w-0 text-sm leading-relaxed text-[#0F2D2F]/70">
           {fr
             ? "Dépôt, retrait et envoi entre utilisateurs e-AVEC. Le Marché utilise ce solde."
             : "Deposit, withdraw and send between e-AVEC users. Market uses this balance."}

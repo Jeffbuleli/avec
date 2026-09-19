@@ -37,7 +37,7 @@ export default function WalletHistoryPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-lg pb-4 pt-2">
+    <div className="mx-auto w-full max-w-lg pb-4 pt-1 sm:max-w-xl md:max-w-2xl">
       <WalletSubpageHeader
         title={fr ? "Historique" : "History"}
         subtitle={fr ? "Fc · dépôts, retraits, transferts" : "Fc · deposits, withdrawals, transfers"}

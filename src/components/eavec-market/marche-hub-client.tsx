@@ -130,7 +130,7 @@ export function EavecMarcheHubClient() {
         />
       </div>
 
-      <div className="mt-3 space-y-3 px-0.5">
+      <div className="mt-3 space-y-3">
         <div className="mk-rise mk-rise-delay-2">
           <EavecMarketCategoryPills
             active={category}

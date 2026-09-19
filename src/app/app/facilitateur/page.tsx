@@ -50,7 +50,7 @@ export default function FacilitateurPage() {
   }, [load]);
 
   return (
-    <div className="space-y-3 pb-8">
+    <div className="mx-auto w-full max-w-lg space-y-3 pb-8 sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
       <WalletSubpageHeader
         title={fr ? "Facilitateur" : "Facilitator"}
         backHref="/app/home"

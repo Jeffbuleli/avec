@@ -45,12 +45,12 @@ export const avecCls = {
     "flex items-center justify-between gap-2 border-t border-[color:var(--fd-border)]/80 bg-gradient-to-r from-[color:var(--fd-mint)]/35 to-transparent px-3.5 py-2",
   hubAvatar:
     "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[color:var(--fd-primary)]/20 bg-gradient-to-br from-[color:var(--fd-mint)] to-white text-sm font-black text-[color:var(--fd-primary)] shadow-sm",
-  hubMosaic: "grid grid-cols-2 gap-2.5 sm:grid-cols-3",
+  hubMosaic: "grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-2.5 md:gap-3",
   hubTile:
-    "fd-card flex flex-col overflow-hidden rounded-[1.25rem] border border-[color:var(--fd-primary)]/12 bg-[color:var(--fd-card)] p-0 text-left shadow-sm transition active:scale-[0.98] hover:border-[color:var(--fd-primary)]/35 hover:shadow-md",
+    "fd-card flex min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[color:var(--fd-primary)]/12 bg-[color:var(--fd-card)] p-0 text-left shadow-sm transition active:scale-[0.98] hover:border-[color:var(--fd-primary)]/35 hover:shadow-md sm:rounded-[1.25rem]",
   hubTileHead:
     "relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-[color:var(--fd-mint)] to-[#F6E8CD]",
-  hubTileBody: "flex flex-1 flex-col gap-1.5 p-3",
+  hubTileBody: "flex flex-1 flex-col gap-1.5 p-2.5 sm:p-3",
 };
 
 export function AvecKpi({

@@ -51,8 +51,8 @@ export function EavecAppShell({
       </div>
       <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
         {showTopBar ? (
-          <div className="sticky top-0 z-40 border-b border-[color:var(--fd-border)] bg-[var(--fd-bg)] px-3 pt-2 md:px-4 lg:px-5 lg:pt-4">
-            <div className="fd-app-topbar px-2 py-1.5">
+          <div className="sticky top-0 z-40 border-b border-[color:var(--fd-border)] bg-[var(--fd-bg)] px-4 pt-2 sm:px-5 lg:px-6 lg:pt-4">
+            <div className="fd-app-topbar px-1 py-1.5 sm:px-2">
               <EavecTopBar
                 email={email}
                 avatarUrl={avatarUrl}
@@ -64,10 +64,10 @@ export function EavecAppShell({
         <main
           className={`min-w-0 flex-1 overflow-x-hidden ${
             onMarche
-              ? "px-3 pt-0 sm:px-4 md:px-5 lg:mx-auto lg:w-full lg:max-w-6xl lg:px-6 xl:max-w-7xl"
+              ? "px-4 pt-0 sm:px-5 lg:mx-auto lg:w-full lg:max-w-6xl lg:px-6 xl:max-w-7xl"
               : onAvecGroupFlow
-                ? "px-3 pt-0 sm:px-4 lg:px-6"
-                : "px-3 pt-2 sm:px-4 lg:px-6"
+                ? "px-4 pt-0 sm:px-5 lg:px-6"
+                : "px-4 pt-2 sm:px-5 lg:px-6"
           }`}
         >
           {showReturnToMcbuleli && !onMarche ? (
