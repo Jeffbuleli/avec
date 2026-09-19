@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
+  clearAuthReturnPath,
   loginHrefFor,
   resolveAuthReturnPath,
   storeAuthReturnPath,
@@ -57,11 +58,21 @@ function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [captchaFailed, setCaptchaFailed] = useState(false);
 
   const turnstileRequired = Boolean(TURNSTILE_SITE_KEY);
-  const turnstileReady = !turnstileRequired || Boolean(turnstileToken);
-  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
+  const demoEmail = email.trim().toLowerCase().endsWith("@eavec.demo");
+  const turnstileReady =
+    !turnstileRequired || demoEmail || Boolean(turnstileToken) || captchaFailed;
+  const onTurnstileToken = useCallback((token: string) => {
+    setCaptchaFailed(false);
+    setTurnstileToken(token);
+  }, []);
   const onTurnstileExpire = useCallback(() => setTurnstileToken(null), []);
+  const onTurnstileFailed = useCallback(() => {
+    setTurnstileToken(null);
+    setCaptchaFailed(true);
+  }, []);
 
   useEffect(() => {
     if (TURNSTILE_SITE_KEY) preloadTurnstileScript();
@@ -104,6 +115,10 @@ function RegisterForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (turnstileRequired && !demoEmail && !turnstileToken) {
+      setError(t("auth_captcha_required"));
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetchWithDeadline(
@@ -132,9 +147,12 @@ function RegisterForm() {
           error?: string;
           message?: string;
           suggestedEmail?: string;
+          loginUrl?: string;
         };
         if (errObj.error === "profile_pseudo_taken") {
           setError(t("profile_pseudo_taken"));
+        } else if (errObj.message === "auth_email_taken") {
+          setError(t("auth_email_taken"));
         } else if (
           errObj.message === "auth_email_typo_duplicate" &&
           typeof errObj.suggestedEmail === "string"
@@ -150,7 +168,23 @@ function RegisterForm() {
         setLoading(false);
         return;
       }
-      // Keep return path through email verify so hackathon users land on #register / pay.
+      const payload = data as {
+        linkedExistingAccount?: boolean;
+        emailVerified?: boolean;
+        user?: { emailVerified?: boolean };
+      };
+      // Same password on existing account → session cookie already set.
+      if (payload.linkedExistingAccount) {
+        const verified =
+          payload.emailVerified === true ||
+          payload.user?.emailVerified === true;
+        clearAuthReturnPath();
+        window.location.replace(
+          verified ? nextPath : "/verify-email/pending",
+        );
+        return;
+      }
+      // Keep return path through email verify.
       storeAuthReturnPath(nextPath);
       window.location.replace("/verify-email/pending");
     } catch (err) {
@@ -188,13 +222,19 @@ function RegisterForm() {
       ) : null}
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
-          {TURNSTILE_SITE_KEY ? (
+          {TURNSTILE_SITE_KEY && !demoEmail ? (
             <TurnstileWidget
               siteKey={TURNSTILE_SITE_KEY}
               onToken={onTurnstileToken}
               onExpire={onTurnstileExpire}
+              onFailed={onTurnstileFailed}
               className="flex justify-center"
             />
+          ) : null}
+          {captchaFailed && !demoEmail ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              {t("auth_captcha_failed")}
+            </p>
           ) : null}
           <label className={authLabelClass}>
             {t("email")}

@@ -25,7 +25,7 @@ declare global {
 
 const TURNSTILE_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad";
-const LOAD_TIMEOUT_MS = 20_000;
+const LOAD_TIMEOUT_MS = 12_000;
 
 let scriptPromise: Promise<void> | null = null;
 
@@ -92,25 +92,37 @@ export function TurnstileWidget({
   siteKey,
   onToken,
   onExpire,
+  onFailed,
   className,
 }: {
   siteKey: string;
   onToken: (token: string) => void;
   onExpire?: () => void;
+  onFailed?: () => void;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
   const onExpireRef = useRef(onExpire);
+  const onFailedRef = useRef(onFailed);
   const [failed, setFailed] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   onTokenRef.current = onToken;
   onExpireRef.current = onExpire;
+  onFailedRef.current = onFailed;
 
   useEffect(() => {
     let cancelled = false;
     setFailed(false);
+
+    const failTimer = window.setTimeout(() => {
+      if (!cancelled && !widgetIdRef.current) {
+        setFailed(true);
+        onFailedRef.current?.();
+      }
+    }, LOAD_TIMEOUT_MS);
 
     void loadTurnstileScript()
       .then(() => {
@@ -119,38 +131,58 @@ export function TurnstileWidget({
         }
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          theme: "auto",
+          theme: "light",
           appearance: "always",
           callback: (token) => onTokenRef.current(token),
           "expired-callback": () => onExpireRef.current?.(),
           "error-callback": () => {
-            if (!cancelled) setFailed(true);
+            if (!cancelled) {
+              setFailed(true);
+              onFailedRef.current?.();
+            }
           },
         });
       })
       .catch(() => {
-        if (!cancelled) setFailed(true);
+        if (!cancelled) {
+          setFailed(true);
+          onFailedRef.current?.();
+        }
       });
 
     return () => {
       cancelled = true;
+      window.clearTimeout(failTimer);
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
         widgetIdRef.current = null;
       }
     };
-  }, [siteKey]);
+  }, [siteKey, retryKey]);
 
   if (failed) {
     return (
-      <p className="text-xs text-amber-700">
-        Captcha could not load. Refresh the page or try again later.
-      </p>
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-3 text-center">
+        <p className="text-xs font-semibold text-amber-900">
+          Captcha unavailable. Check your connection, then retry.
+        </p>
+        <button
+          type="button"
+          className="mt-2 text-xs font-bold text-[#0F2D2F] underline"
+          onClick={() => {
+            setFailed(false);
+            setRetryKey((k) => k + 1);
+          }}
+        >
+          Retry captcha
+        </button>
+      </div>
     );
   }
 
   return (
     <div
+      key={retryKey}
       className={`flex min-h-[65px] items-center justify-center overflow-hidden rounded-2xl border border-[color:var(--fd-border)] bg-white/90 p-2 shadow-sm [&_iframe]:rounded-xl ${className ?? ""}`}
       aria-busy="true"
     >

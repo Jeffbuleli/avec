@@ -66,11 +66,21 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [piBusy, setPiBusy] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [captchaFailed, setCaptchaFailed] = useState(false);
 
   const turnstileRequired = Boolean(TURNSTILE_SITE_KEY);
-  const turnstileReady = !turnstileRequired || Boolean(turnstileToken);
-  const onTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
+  const demoEmail = email.trim().toLowerCase().endsWith("@eavec.demo");
+  const turnstileReady =
+    !turnstileRequired || demoEmail || Boolean(turnstileToken) || captchaFailed;
+  const onTurnstileToken = useCallback((token: string) => {
+    setCaptchaFailed(false);
+    setTurnstileToken(token);
+  }, []);
   const onTurnstileExpire = useCallback(() => setTurnstileToken(null), []);
+  const onTurnstileFailed = useCallback(() => {
+    setTurnstileToken(null);
+    setCaptchaFailed(true);
+  }, []);
 
   useEffect(() => {
     if (TURNSTILE_SITE_KEY) preloadTurnstileScript();
@@ -102,6 +112,10 @@ function LoginForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (turnstileRequired && !demoEmail && !turnstileToken) {
+      setError(t("auth_captcha_required"));
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetchWithDeadline(
@@ -260,13 +274,19 @@ function LoginForm() {
       }
     >
       <form onSubmit={onSubmit} className="auth-form flex flex-col gap-4">
-          {TURNSTILE_SITE_KEY ? (
+          {TURNSTILE_SITE_KEY && !demoEmail ? (
             <TurnstileWidget
               siteKey={TURNSTILE_SITE_KEY}
               onToken={onTurnstileToken}
               onExpire={onTurnstileExpire}
+              onFailed={onTurnstileFailed}
               className="flex justify-center"
             />
+          ) : null}
+          {captchaFailed && !demoEmail ? (
+            <p className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              {t("auth_captcha_failed")}
+            </p>
           ) : null}
           <label className={authLabelClass}>
             {t("email")}

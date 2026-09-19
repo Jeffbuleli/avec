@@ -5,21 +5,21 @@ export type Messages = typeof en;
 export const en = {
   lang_en: "EN",
   lang_fr: "FR",
-  brand: "McBuleli",
-  pwa_install_title: "Install McBuleli",
-  pwa_install_desktop_title: "Install McBuleli on this device",
+  brand: "e-AVEC",
+  pwa_install_title: "Install e-AVEC",
+  pwa_install_desktop_title: "Install e-AVEC on this device",
   pwa_install_body:
-    "Add McBuleli to your phone home screen for one-tap access and a full-screen app experience.",
+    "Add e-AVEC to your phone home screen for one-tap access and a full-screen app experience.",
   pwa_install_ios_body:
-    'Tap Share, then "Add to Home Screen" to install McBuleli like an app on your phone.',
+    'Tap Share, then "Add to Home Screen" to install e-AVEC like an app on your phone.',
   pwa_install_ios_tablet_body:
-    'Tap Share, then "Add to Home Screen" to install McBuleli like an app on this tablet.',
+    'Tap Share, then "Add to Home Screen" to install e-AVEC like an app on this tablet.',
   pwa_install_fallback_body:
     'Open your browser menu (⋮) and choose "Install app" or "Add to Home screen".',
   pwa_install_tablet_body:
-    "Install McBuleli on this tablet for a faster, full-screen experience - no app store needed.",
+    "Install e-AVEC on this tablet for a faster, full-screen experience - no app store needed.",
   pwa_install_desktop_body:
-    "Install McBuleli from your browser for a dedicated window and quicker access - or open mcbuleli.org on your phone and tap Install.",
+    "Install e-AVEC from your browser for a dedicated window and quicker access - or open e-avec.org on your phone and tap Install.",
   pwa_install_cta: "Install",
   pwa_install_later: "Later",
   pwa_install_got_it: "Got it",
@@ -29,13 +29,13 @@ export const en = {
   pwa_install_open_safari_body:
     "Installation does not work inside WhatsApp, Instagram or other in-app browsers. Copy the link, open Safari, paste it, then use Share - Add to Home Screen.",
   pwa_install_ios_use_safari_body:
-    "On iPhone, install McBuleli from Safari (not Chrome). Copy this link, open Safari, paste it, then tap Share - Add to Home Screen.",
+    "On iPhone, install e-AVEC from Safari (not Chrome). Copy this link, open Safari, paste it, then tap Share - Add to Home Screen.",
   pwa_install_ios_step1: "Tap Share at the bottom of Safari",
   pwa_install_ios_step2: 'Scroll and tap "Add to Home Screen"',
-  pwa_install_ios_step3: 'Tap "Add" - McBuleli appears on your home screen',
-  pwa_open_in_app_title: "Open in McBuleli app",
+  pwa_install_ios_step3: 'Tap "Add" - e-AVEC appears on your home screen',
+  pwa_open_in_app_title: "Open in e-AVEC app",
   pwa_open_in_app_body:
-    "You already installed McBuleli on this device. Open the app for the same session and faster access.",
+    "You already installed e-AVEC on this device. Open the app for the same session and faster access.",
   pwa_open_in_app_cta: "Open app",
   home_title: "Buy and sell crypto with mobile money in Africa",
   home_sub:
@@ -562,11 +562,11 @@ export const en = {
   auth_or: "Or",
   auth_login_headline: "Sign in",
   auth_register_headline: "Create account",
-  auth_shell_tagline: "USDT, Pi & mobile money.",
-  auth_benefit_1: "P2P escrow",
-  auth_benefit_2: "Multi-asset wallet",
-  auth_benefit_3: "Mobile money rails",
-  auth_benefit_4: "McB rewards program",
+  auth_shell_tagline: "Village savings · group credit · Passport.",
+  auth_benefit_1: "AVEC meetings",
+  auth_benefit_2: "Group treasury",
+  auth_benefit_3: "Member votes",
+  auth_benefit_4: "Financial Passport",
   auth_ref_toggle: "Have a referral code?",
   auth_google: "Continue with Google",
   auth_google_soon: "Google sign-in is coming soon - use email for now.",
@@ -577,9 +577,12 @@ export const en = {
   pi_uid_already_linked: "This Pi account is already linked to another user.",
   auth_pi_failed: "Pi sign-in failed. Please try again.",
   auth_pi_browser_required:
-    "Open https://mcbuleli.org/login in Pi Browser, then tap “Continue with Pi”.",
+    "Open https://e-avec.org/login in Pi Browser, then tap “Continue with Pi”.",
   auth_pi_timeout:
     "Pi sign-in took too long. Use email and password below, or open this page in Pi Browser and tap “Continue with Pi”.",
+  auth_captcha_failed:
+    "Security check could not load. Retry the captcha, or refresh the page.",
+  auth_captcha_required: "Complete the security check to continue.",
   pi_pay_section_title: "Pi payments",
   pi_pay_section_hint:
     "Test U2A payment (Pi Browser). Complete the approval steps in Pi Wallet.",
@@ -786,11 +789,11 @@ export const en = {
   register_ref_label: "Referral code (optional)",
   register_ref_ph: "Code from your invite link",
   register_ref_help: "If you were invited, paste the code here to make sure your referrer gets credit.",
-  register_display_name: "Nickname",
-  register_display_name_ph: "How others see you (not Trader)",
+  register_display_name: "Display name",
+  register_display_name_ph: "How members see you in the AVEC",
   register_country_label: "Country / region",
   register_country_ph: "Select your country",
-  register_country_help: "Optional - for local rails & compliance.",
+  register_country_help: "Optional - helps with local mobile money rails.",
   register_password_hint: "Use at least 8 characters.",
   registering: "Creating account…",
   has_account: "Have an account?",
@@ -4601,21 +4604,21 @@ export const en = {
 export const fr: Messages = {
   lang_en: "EN",
   lang_fr: "FR",
-  brand: "McBuleli",
-  pwa_install_title: "Installer McBuleli",
-  pwa_install_desktop_title: "Installer McBuleli sur cet appareil",
+  brand: "e-AVEC",
+  pwa_install_title: "Installer e-AVEC",
+  pwa_install_desktop_title: "Installer e-AVEC sur cet appareil",
   pwa_install_body:
-    "Ajoutez McBuleli à l'écran d'accueil du téléphone pour un accès en un tap et une expérience plein écran.",
+    "Ajoutez e-AVEC à l'écran d'accueil du téléphone pour un accès en un tap et une expérience plein écran.",
   pwa_install_ios_body:
-    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer McBuleli comme une app sur votre téléphone.',
+    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer e-AVEC comme une app sur votre téléphone.',
   pwa_install_ios_tablet_body:
-    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer McBuleli comme une app sur cette tablette.',
+    'Appuyez sur Partager, puis "Sur l\'écran d\'accueil" pour installer e-AVEC comme une app sur cette tablette.',
   pwa_install_fallback_body:
     'Ouvrez le menu du navigateur (⋮) et choisissez "Installer l\'application" ou "Ajouter à l\'écran d\'accueil".',
   pwa_install_tablet_body:
-    "Installez McBuleli sur cette tablette pour une expérience plus rapide en plein écran - sans passer par un store.",
+    "Installez e-AVEC sur cette tablette pour une expérience plus rapide en plein écran - sans passer par un store.",
   pwa_install_desktop_body:
-    "Installez McBuleli depuis le navigateur pour une fenêtre dédiée - ou ouvrez mcbuleli.org sur votre téléphone et touchez Installer.",
+    "Installez e-AVEC depuis le navigateur pour une fenêtre dédiée - ou ouvrez e-avec.org sur votre téléphone et touchez Installer.",
   pwa_install_cta: "Installer",
   pwa_install_later: "Plus tard",
   pwa_install_got_it: "Compris",
@@ -4625,13 +4628,13 @@ export const fr: Messages = {
   pwa_install_open_safari_body:
     "L'installation ne marche pas dans WhatsApp, Instagram ou les autres navigateurs intégrés. Copiez le lien, ouvrez Safari, collez-le, puis Partager - Sur l'écran d'accueil.",
   pwa_install_ios_use_safari_body:
-    "Sur iPhone, installez McBuleli depuis Safari (pas Chrome). Copiez ce lien, ouvrez Safari, collez-le, puis touchez Partager - Sur l'écran d'accueil.",
+    "Sur iPhone, installez e-AVEC depuis Safari (pas Chrome). Copiez ce lien, ouvrez Safari, collez-le, puis touchez Partager - Sur l'écran d'accueil.",
   pwa_install_ios_step1: "Touchez Partager en bas de Safari",
   pwa_install_ios_step2: 'Faites défiler et touchez "Sur l\'écran d\'accueil"',
-  pwa_install_ios_step3: 'Touchez "Ajouter" - McBuleli apparaît sur l\'écran d\'accueil',
-  pwa_open_in_app_title: "Ouvrir l'app McBuleli",
+  pwa_install_ios_step3: 'Touchez "Ajouter" - e-AVEC apparaît sur l\'écran d\'accueil',
+  pwa_open_in_app_title: "Ouvrir l'app e-AVEC",
   pwa_open_in_app_body:
-    "McBuleli est déjà installé sur cet appareil. Ouvrez l'application pour la même session et un accès plus rapide.",
+    "e-AVEC est déjà installé sur cet appareil. Ouvrez l'application pour la même session et un accès plus rapide.",
   pwa_open_in_app_cta: "Ouvrir l'app",
   home_title: "Achetez et vendez des cryptos avec le mobile money en Afrique",
   home_sub:
@@ -5164,11 +5167,11 @@ export const fr: Messages = {
   auth_or: "Ou",
   auth_login_headline: "Connexion",
   auth_register_headline: "Créer un compte",
-  auth_shell_tagline: "USDT, Pi et mobile money.",
-  auth_benefit_1: "Escrow P2P",
-  auth_benefit_2: "Wallet multi-actifs",
-  auth_benefit_3: "Rails mobile money",
-  auth_benefit_4: "Programme récompenses McB",
+  auth_shell_tagline: "Épargne villageoise · crédit de groupe · Passport.",
+  auth_benefit_1: "Réunions AVEC",
+  auth_benefit_2: "Caisse de groupe",
+  auth_benefit_3: "Votes membres",
+  auth_benefit_4: "Passport financier",
   auth_ref_toggle: "Vous avez un code parrain ?",
   auth_google: "Continuer avec Google",
   auth_google_soon:
@@ -5180,9 +5183,12 @@ export const fr: Messages = {
   pi_uid_already_linked: "Ce compte Pi est déjà lié à un autre utilisateur.",
   auth_pi_failed: "Connexion Pi impossible. Réessayez.",
   auth_pi_browser_required:
-    "Ouvrez https://mcbuleli.org/login dans Pi Browser, puis « Continuer avec Pi ».",
+    "Ouvrez https://e-avec.org/login dans Pi Browser, puis « Continuer avec Pi ».",
   auth_pi_timeout:
-    "La connexion Pi a expiré. Utilisez e-mail et mot de passe ci‑dessous, ou ouvrez cette page dans Pi Browser puis « Continuer avec Pi ».",
+    "La connexion Pi a pris trop longtemps. Utilisez e-mail et mot de passe, ou ouvrez cette page dans Pi Browser.",
+  auth_captcha_failed:
+    "Le contrôle de sécurité n’a pas pu charger. Réessayez le captcha ou actualisez la page.",
+  auth_captcha_required: "Complétez le contrôle de sécurité pour continuer.",
   pi_pay_section_title: "Paiements Pi",
   pi_pay_section_hint:
     "Test de paiement U2A (navigateur Pi). Valide les étapes dans le Wallet Pi.",
@@ -5394,11 +5400,11 @@ export const fr: Messages = {
   register_ref_ph: "Code du lien d’invitation",
   register_ref_help:
     "Si quelqu’un vous a invité, collez le code ici pour que le parrain reçoive la récompense.",
-  register_display_name: "Pseudo",
-  register_display_name_ph: "Comment les autres vous voient (pas Trader)",
+  register_display_name: "Nom affiché",
+  register_display_name_ph: "Comment les membres vous voient dans l’AVEC",
   register_country_label: "Pays / région",
   register_country_ph: "Choisissez votre pays",
-  register_country_help: "Facultatif - rails locaux et conformité.",
+  register_country_help: "Facultatif - aide pour le mobile money local.",
   register_password_hint: "Au moins 8 caractères.",
   registering: "Création du compte…",
   has_account: "Déjà un compte ?",

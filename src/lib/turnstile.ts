@@ -11,11 +11,22 @@ export function turnstileConfigured(): boolean {
   );
 }
 
+/** Jury / sandbox accounts seeded for demos — captcha skipped so /demo stays usable. */
+export function isTurnstileExemptEmail(email: string | null | undefined): boolean {
+  const e = email?.trim().toLowerCase() ?? "";
+  return e.endsWith("@eavec.demo");
+}
+
 /** Verify Cloudflare Turnstile token. Skips when unset (local dev); required in production. */
 export async function verifyTurnstileToken(
   token: string | undefined | null,
   req: Request,
+  opts?: { email?: string | null },
 ): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
+  if (isTurnstileExemptEmail(opts?.email)) {
+    return { ok: true };
+  }
+
   const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
   if (!secret) {
     if (process.env.NODE_ENV === "production") {

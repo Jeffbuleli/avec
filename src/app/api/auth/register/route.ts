@@ -45,16 +45,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const captcha = await verifyTurnstileToken(parsed.data.turnstileToken, req);
+    const { email, password, referralCode, countryCode, displayName, returnPath } =
+      parsed.data;
+    const captcha = await verifyTurnstileToken(parsed.data.turnstileToken, req, {
+      email,
+    });
     if (!captcha.ok) {
       return NextResponse.json(
         { message: captcha.message },
         { status: captcha.status },
       );
     }
-
-    const { email, password, referralCode, countryCode, displayName, returnPath } =
-      parsed.data;
     const db = getDb();
 
     const existingUser = await findUserByAuthEmail(email);

@@ -44,15 +44,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const captcha = await verifyTurnstileToken(parsed.data.turnstileToken, req);
+    const { email, password } = parsed.data;
+    const captcha = await verifyTurnstileToken(parsed.data.turnstileToken, req, {
+      email,
+    });
     if (!captcha.ok) {
       return NextResponse.json(
         { message: captcha.message },
         { status: captcha.status },
       );
     }
-
-    const { email, password } = parsed.data;
     const db = getDb();
     const user = await findUserByAuthEmail(email);
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
