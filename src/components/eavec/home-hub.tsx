@@ -50,42 +50,36 @@ export function EavecHomeHub({
     {
       href: "/app/wallet/groups",
       t: "AVEC",
-      d: fr ? "Groupes & réunions" : "Groups & meetings",
       bg: "bg-[#E8F5E9]",
       icon: "avec" as const,
     },
     {
       href: "/app/marche",
       t: fr ? "Marché" : "Market",
-      d: fr ? "Acheter & vendre" : "Buy & sell",
       bg: "bg-[#E3F2FD]",
       icon: "shop" as const,
     },
     {
       href: "/app/wallet",
       t: "Wallet",
-      d: fr ? "Fc · transferts" : "Fc · transfers",
       bg: "bg-[#FFF8E1]",
       icon: "wallet" as const,
     },
     {
       href: "/app/wallet/transfer?asset=CDF",
       t: fr ? "Envoyer" : "Send",
-      d: fr ? "Transfert interne" : "Internal transfer",
       bg: "bg-[#F3E5F5]",
       icon: "send" as const,
     },
     {
       href: "/app/profile",
       t: "Profile",
-      d: fr ? "Compte & sécurité" : "Account & security",
       bg: "bg-[#E0F7FA]",
       icon: "user" as const,
     },
     {
       href: "/app/facilitateur",
       t: fr ? "ONG" : "NGO",
-      d: fr ? "Facilitateur" : "Facilitator",
       bg: "bg-[#FCE4EC]",
       icon: "ong" as const,
     },
@@ -153,43 +147,22 @@ export function EavecHomeHub({
         </div>
       </section>
 
-      <Link
-        href="/app/wallet/groups"
-        className="flex items-center gap-3 rounded-2xl border border-[#0F2D2F]/12 bg-[#E8F5E9] px-4 py-3"
-      >
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white">
-          <ServiceIcon kind="avec" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-extrabold text-[#0F2D2F]">AVEC</p>
-          <p className="text-xs font-medium text-[#0F2D2F]/75">
-            {fr
-              ? "Réunion, parts, caisse, Passport"
-              : "Meeting, shares, treasury, Passport"}
-          </p>
-        </div>
-        <span className="rounded-full bg-[#0F2D2F] px-3 py-1.5 text-xs font-bold text-[#F6E8CD]">
-          {fr ? "Ouvrir" : "Open"}
-        </span>
-      </Link>
-
       <section>
         <h2 className="mb-3 text-sm font-extrabold text-[#0F2D2F]">
           {fr ? "Services" : "Services"}
         </h2>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-3 gap-2.5">
           {services.map((s) => (
             <Link
               key={s.href + s.t}
               href={s.href}
-              className={`rounded-2xl ${s.bg} px-4 py-3.5 transition active:scale-[0.98]`}
+              className={`flex flex-col items-center justify-center gap-2 rounded-[1.35rem] ${s.bg} px-2 py-4 text-center transition active:scale-[0.97]`}
             >
-              <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/80 shadow-sm">
                 <ServiceIcon kind={s.icon} />
-                <p className="text-sm font-extrabold text-[#0F2D2F]">{s.t}</p>
-              </div>
-              <p className="mt-1.5 pl-[40px] text-xs font-medium leading-snug text-[#0F2D2F]/75">
-                {s.d}
+              </span>
+              <p className="text-[11px] font-extrabold leading-tight text-[#0F2D2F]">
+                {s.t}
               </p>
             </Link>
           ))}
@@ -238,7 +211,7 @@ function ServiceIcon({
 }) {
   const stroke = "#0F2D2F";
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
       {kind === "avec" && (
         <>
           <circle cx="9" cy="9" r="2.4" stroke={stroke} strokeWidth="1.6" />

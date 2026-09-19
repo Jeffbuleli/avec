@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 export const avecCls = {
   hero:
     "fd-card flex items-center gap-4 rounded-2xl border border-[color:var(--fd-primary)]/15 bg-gradient-to-br from-[color:var(--fd-mint)]/50 to-white p-4",
-  /** Savings-app hero: large balance + progress */
+  /** Savings-app hero: large balance + buckets */
   heroBalance:
-    "relative overflow-hidden rounded-[1.35rem] border border-[color:var(--fd-primary)]/20 bg-gradient-to-br from-[color:var(--fd-primary)] to-[color:var(--fd-primary-dark,#244a27)] p-5 text-white shadow-lg shadow-[color:var(--fd-primary)]/25",
+    "relative overflow-hidden rounded-[1.35rem] border border-[color:var(--fd-primary)]/20 bg-[#0F2D2F] p-5 text-[#F6E8CD] shadow-lg shadow-[color:var(--fd-primary)]/25",
   kpiGrid: "grid grid-cols-3 gap-2",
   kpi:
     "rounded-xl border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] px-2.5 py-2 text-center",
@@ -30,10 +30,10 @@ export const avecCls = {
   alertChip:
     "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold ring-1",
   checkoutCard:
-    "rounded-[1.35rem] border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-4 shadow-sm",
+    "flex flex-col rounded-[1.35rem] border border-[color:var(--fd-border)] bg-[color:var(--fd-card)] p-4 shadow-sm",
   moneyNote: "text-[10px] leading-snug text-[color:var(--fd-muted)]",
   layoutVue:
-    "grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 md:items-start",
+    "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3 sm:items-stretch",
   hubCard:
     "fd-card block overflow-hidden rounded-2xl border border-[color:var(--fd-primary)]/12 p-0 shadow-sm transition active:scale-[0.99] hover:border-[color:var(--fd-primary)]/35 hover:shadow-md",
   hubCardBody: "flex items-center gap-3.5 p-3.5",
@@ -45,6 +45,12 @@ export const avecCls = {
     "flex items-center justify-between gap-2 border-t border-[color:var(--fd-border)]/80 bg-gradient-to-r from-[color:var(--fd-mint)]/35 to-transparent px-3.5 py-2",
   hubAvatar:
     "flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[color:var(--fd-primary)]/20 bg-gradient-to-br from-[color:var(--fd-mint)] to-white text-sm font-black text-[color:var(--fd-primary)] shadow-sm",
+  hubMosaic: "grid grid-cols-2 gap-2.5 sm:grid-cols-3",
+  hubTile:
+    "fd-card flex flex-col overflow-hidden rounded-[1.25rem] border border-[color:var(--fd-primary)]/12 bg-[color:var(--fd-card)] p-0 text-left shadow-sm transition active:scale-[0.98] hover:border-[color:var(--fd-primary)]/35 hover:shadow-md",
+  hubTileHead:
+    "relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-[color:var(--fd-mint)] to-[#F6E8CD]",
+  hubTileBody: "flex flex-1 flex-col gap-1.5 p-3",
 };
 
 export function AvecKpi({

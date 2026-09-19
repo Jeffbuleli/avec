@@ -10,7 +10,6 @@ import {
   AvecDiscoverSheet,
   type DiscoverGroup,
 } from "@/components/groups/avec-discover-sheet";
-import { AvecProgressRing } from "@/components/groups/avec-charts";
 import { avecCls } from "@/components/groups/avec-ui";
 import { WalletSubpageHeader } from "@/components/wallet/wallet-subpage-header";
 import { ListPagination, useListPagination } from "@/components/ui/list-pagination";
@@ -37,7 +36,7 @@ type Row = {
   isCreator?: boolean;
 };
 
-function HubAvatar({
+function HubTileAvatar({
   name,
   logoUrl,
 }: {
@@ -46,28 +45,14 @@ function HubAvatar({
 }) {
   if (logoUrl) {
     return (
-      <span className={avecCls.hubAvatar}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoUrl} alt="" className="h-full w-full object-cover" />
-      </span>
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={logoUrl} alt="" className="h-full w-full object-cover" />
     );
   }
   return (
-    <span className={avecCls.hubAvatar}>{name.slice(0, 2).toUpperCase()}</span>
-  );
-}
-
-function ChevronRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M9 6l6 6-6 6"
-        stroke="currentColor"
-        strokeWidth="2.25"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <span className="text-2xl font-black tracking-tight text-[color:var(--fd-primary)]">
+      {name.slice(0, 2).toUpperCase()}
+    </span>
   );
 }
 
@@ -106,9 +91,8 @@ export default function AvecHubPage() {
     })();
   }, []);
 
-  const minePag = useListPagination(rows ?? [], 10);
-  const discoverPag = useListPagination(discover ?? [], 10);
-  const loc = locale === "fr" ? "fr-FR" : "en-US";
+  const minePag = useListPagination(rows ?? [], 9);
+  const discoverPag = useListPagination(discover ?? [], 9);
 
   const mineSlice = useMemo(() => minePag.slice, [minePag.slice]);
 
@@ -138,20 +122,20 @@ export default function AvecHubPage() {
 
       <Link
         href="/app/facilitateur"
-        className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--fd-primary)]/20 bg-gradient-to-r from-[color:var(--fd-mint)]/50 to-[color:var(--fd-card)] px-4 py-3"
+        className="flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--fd-primary)]/15 bg-[#0F2D2F] px-4 py-3.5 text-[#F6E8CD] shadow-md shadow-[color:var(--fd-primary)]/20"
       >
         <div>
-          <p className="text-sm font-extrabold text-[color:var(--fd-text)]">
+          <p className="text-sm font-extrabold">
             {locale === "fr" ? "Facilitateur ONG" : "NGO facilitator"}
           </p>
-          <p className="text-[11px] text-[color:var(--fd-muted)]">
+          <p className="text-[11px] text-[#F6E8CD]/75">
             {locale === "fr"
               ? "Multi-groupes · alertes · export PV"
               : "Multi-group · alerts · minutes export"}
           </p>
         </div>
-        <span className="text-[color:var(--fd-primary)]">
-          <ChevronRight />
+        <span className="rounded-full bg-[#C9A227] px-3 py-1.5 text-[10px] font-bold text-[#0F2D2F]">
+          {locale === "fr" ? "Ouvrir" : "Open"}
         </span>
       </Link>
 
@@ -185,7 +169,7 @@ export default function AvecHubPage() {
           </div>
         ) : (
           <>
-            <ul className="space-y-3">
+            <ul className={avecCls.hubMosaic}>
               {mineSlice.map((r) => {
                 const region = r.countryCode
                   ? countryShortLabel(locale, r.countryCode)
@@ -205,57 +189,38 @@ export default function AvecHubPage() {
                   <li key={r.groupId}>
                     <Link
                       href={`/app/wallet/groups/${r.groupId}`}
-                      className={avecCls.hubCard}
+                      className={avecCls.hubTile}
                     >
-                      <div className={avecCls.hubCardBody}>
-                        <HubAvatar name={r.name} logoUrl={r.logoUrl} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <p className="truncate text-[15px] font-extrabold tracking-tight text-[color:var(--fd-text)]">
-                              {r.name}
-                            </p>
-                            {r.isCreator ? (
-                              <span className={avecCls.hubChip}>
-                                {t("group_hub_creator_badge")}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className={avecCls.hubCardMeta}>
-                            <span className={avecCls.hubChip}>
-                              {groupRoleLabel(t, r.role)}
-                            </span>
-                            {region ? <span>· {region}</span> : null}
-                            {r.nextBillingAt ? (
-                              <span>
-                                · {new Date(r.nextBillingAt).toLocaleDateString(loc)}
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 flex-col items-end gap-1.5">
-                          {membersLabel ? (
-                            <div className="flex flex-col items-center">
-                              <AvecProgressRing
-                                value={r.memberCount ?? 0}
-                                max={r.maxMembers ?? 1}
-                                size={40}
-                                strokeWidth={4}
-                              />
-                              <span className="mt-0.5 text-[8px] font-bold tabular-nums text-[color:var(--fd-muted)]">
-                                {membersLabel}
-                              </span>
-                            </div>
-                          ) : null}
+                      <div className={avecCls.hubTileHead}>
+                        <HubTileAvatar name={r.name} logoUrl={r.logoUrl} />
+                        <span className="absolute right-2 top-2">
                           <GroupStatusBadge status={r.status} />
-                        </div>
+                        </span>
                       </div>
-                      <div className={avecCls.hubCardFoot}>
-                        <span className="text-[11px] font-bold text-[color:var(--fd-primary)]">
-                          {actionLabel}
-                        </span>
-                        <span className="text-[color:var(--fd-primary)]">
-                          <ChevronRight />
-                        </span>
+                      <div className={avecCls.hubTileBody}>
+                        <p className="line-clamp-2 text-[13px] font-extrabold leading-snug tracking-tight text-[color:var(--fd-text)]">
+                          {r.name}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className={avecCls.hubChip}>
+                            {groupRoleLabel(t, r.role)}
+                          </span>
+                          {membersLabel ? (
+                            <span className="text-[9px] font-bold tabular-nums text-[color:var(--fd-muted)]">
+                              {membersLabel}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-auto flex items-center justify-between gap-1 pt-1">
+                          <span className="truncate text-[10px] font-bold text-[color:var(--fd-primary)]">
+                            {actionLabel}
+                          </span>
+                          {region ? (
+                            <span className="truncate text-[9px] font-semibold text-[color:var(--fd-muted)]">
+                              {region}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </Link>
                   </li>
@@ -290,7 +255,7 @@ export default function AvecHubPage() {
           </p>
         ) : (
           <>
-            <ul className="space-y-3">
+            <ul className={avecCls.hubMosaic}>
               {discoverPag.slice.map((g) => {
                 const region = g.countryCode
                   ? countryShortLabel(locale, g.countryCode)
@@ -305,22 +270,24 @@ export default function AvecHubPage() {
                     <button
                       type="button"
                       onClick={() => setSheetGroup(g)}
-                      className={`${avecCls.hubCard} w-full text-left`}
+                      className={`${avecCls.hubTile} w-full`}
                     >
-                      <div className={avecCls.hubCardBody}>
-                        <HubAvatar name={g.name} logoUrl={g.logoUrl} />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[15px] font-extrabold tracking-tight text-[color:var(--fd-text)]">
-                            {g.name}
-                          </p>
-                          <div className={avecCls.hubCardMeta}>
-                            <span>{region}</span>
-                            {membersLabel ? (
-                              <span className={avecCls.hubChip}>{membersLabel}</span>
-                            ) : null}
-                          </div>
+                      <div className={avecCls.hubTileHead}>
+                        <HubTileAvatar name={g.name} logoUrl={g.logoUrl} />
+                      </div>
+                      <div className={avecCls.hubTileBody}>
+                        <p className="line-clamp-2 text-[13px] font-extrabold leading-snug tracking-tight text-[color:var(--fd-text)]">
+                          {g.name}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[10px] font-semibold text-[color:var(--fd-muted)]">
+                            {region}
+                          </span>
+                          {membersLabel ? (
+                            <span className={avecCls.hubChip}>{membersLabel}</span>
+                          ) : null}
                         </div>
-                        <span className="shrink-0 rounded-full bg-[color:var(--fd-primary)] px-3.5 py-2 text-[10px] font-bold text-white shadow-sm">
+                        <span className="mt-auto inline-flex w-fit rounded-full bg-[color:var(--fd-primary)] px-3 py-1.5 text-[10px] font-bold text-white">
                           {t("group_discover_cta")}
                         </span>
                       </div>

@@ -172,41 +172,72 @@ export function AvecOverviewPanel({
 
   return (
     <div className="space-y-3">
-      <div className={avecCls.heroBalance}>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70">
-          {t("avec_vue_treasury")}
-        </p>
-        <p className="mt-1 text-3xl font-black tabular-nums tracking-tight">
-          {avecMoney(treasury)}
-        </p>
-      </div>
-
-      <div className={avecCls.checkoutCard}>
-        <p className={avecCls.sectionTitle}>{t("avec_vue_next_action")}</p>
-        <p className="mt-2 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
-          {avecMoney(nextMeetingTotal)}
-        </p>
-        <p className="mt-1 text-[11px] text-[color:var(--fd-muted)]">
-          {t("avec_vue_next_action_hint", {
-            share: avecMoney(shareValue),
-            social: avecMoney(socialPer),
-          })}
-        </p>
-        <button
-          type="button"
-          onClick={() => onNavigate("meeting")}
-          className={`${avecCls.btnPrimary} mt-3 min-h-[48px]`}
-        >
-          {t("avec_vue_cta_contribute")}
-        </button>
-        {myUserId ? (
-          <p className="mt-2 text-center text-[11px] text-[color:var(--fd-muted)]">
-            {myShares} {t("avec_vue_my_shares").toLowerCase()} ·{" "}
-            <span className="font-bold text-[color:var(--fd-primary)]">
-              {avecMoney(myShares * shareValue)}
-            </span>
+      <div className={avecCls.layoutVue}>
+        <div className={avecCls.heroBalance}>
+          <div className="pointer-events-none absolute -right-6 -top-8 h-28 w-28 rounded-full bg-[#C9A227]/25 blur-2xl" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#F6E8CD]/75">
+            {t("avec_vue_treasury")}
           </p>
-        ) : null}
+          <p className="mt-1 text-3xl font-black tabular-nums tracking-tight text-[#F6E8CD]">
+            {avecMoney(treasury)}
+          </p>
+          {funds ? (
+            <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/15 pt-3">
+              <div>
+                <p className="text-[8px] font-bold uppercase tracking-wide text-[#F6E8CD]/65">
+                  {locale === "fr" ? "Épargne" : "Savings"}
+                </p>
+                <p className="mt-0.5 text-xs font-extrabold tabular-nums text-[#F6E8CD]">
+                  {avecMoney(funds.savingsUsdt)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[8px] font-bold uppercase tracking-wide text-[#F6E8CD]/65">
+                  {locale === "fr" ? "Social" : "Social"}
+                </p>
+                <p className="mt-0.5 text-xs font-extrabold tabular-nums text-[#F6E8CD]">
+                  {avecMoney(funds.socialUsdt)}
+                </p>
+              </div>
+              <div>
+                <p className="text-[8px] font-bold uppercase tracking-wide text-[#F6E8CD]/65">
+                  {locale === "fr" ? "Prêté" : "Lent"}
+                </p>
+                <p className="mt-0.5 text-xs font-extrabold tabular-nums text-[#F6E8CD]">
+                  {avecMoney(funds.lentUsdt)}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className={avecCls.checkoutCard}>
+          <p className={avecCls.sectionTitle}>{t("avec_vue_next_action")}</p>
+          <p className="mt-2 text-2xl font-black tabular-nums text-[color:var(--fd-primary)]">
+            {avecMoney(nextMeetingTotal)}
+          </p>
+          <p className="mt-1 text-[11px] text-[color:var(--fd-muted)]">
+            {t("avec_vue_next_action_hint", {
+              share: avecMoney(shareValue),
+              social: avecMoney(socialPer),
+            })}
+          </p>
+          <button
+            type="button"
+            onClick={() => onNavigate("meeting")}
+            className={`${avecCls.btnPrimary} mt-auto mt-3 min-h-[48px]`}
+          >
+            {t("avec_vue_cta_contribute")}
+          </button>
+          {myUserId ? (
+            <p className="mt-2 text-center text-[11px] text-[color:var(--fd-muted)]">
+              {myShares} {t("avec_vue_my_shares").toLowerCase()} ·{" "}
+              <span className="font-bold text-[color:var(--fd-primary)]">
+                {avecMoney(myShares * shareValue)}
+              </span>
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {alerts.length > 0 ? (

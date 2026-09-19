@@ -62,42 +62,48 @@ export function EavecMarcheHubClient() {
 
   return (
     <div className="pb-10">
-      <div className="mk-rise flex items-center justify-between gap-2 px-0.5 pb-2 pt-2">
-        <Link
-          href="/app"
-          className="mk-icon-btn"
-          aria-label={fr ? "Retour à l’app" : "Back to app"}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M15 6l-6 6 6 6"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </Link>
-        <Link href="/app/marche/orders" className="mk-icon-btn" aria-label={fr ? "Commandes" : "Orders"}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path
-              d="M7 7h14l-1.4 10.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 4H2"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </Link>
-      </div>
-
       <section className="mk-hero mk-rise">
+        <div className="mk-hero-media" aria-hidden>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/marche/banner.png" alt="" />
+        </div>
+        <div className="mk-hero-scrim" aria-hidden />
+        <div className="absolute left-3 top-3 z-[3] flex w-[calc(100%-1.5rem)] items-center justify-between">
+          <Link
+            href="/app/home"
+            className="mk-icon-btn !border-white/20 !bg-white/15 !text-[#F6E8CD] backdrop-blur-md"
+            aria-label={fr ? "Retour" : "Back"}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M15 6l-6 6 6 6"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+          <Link
+            href="/app/marche/orders"
+            className="mk-icon-btn !border-white/20 !bg-white/15 !text-[#F6E8CD] backdrop-blur-md"
+            aria-label={fr ? "Commandes" : "Orders"}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M7 7h14l-1.4 10.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 4H2"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+        </div>
         <div className="mk-hero-inner">
           <h1 className="mk-brand">Marché</h1>
           <p className="mk-tagline">
-            {fr
-              ? "Achetez et vendez dans la communauté - paiement en Fc."
-              : "Buy and sell in the community - pay in Fc."}
+            {fr ? "Communauté · paiement en Fc" : "Community · pay in Fc"}
           </p>
           <Link href="/app/marche/new" className="mk-hero-cta">
             {fr ? "Vendre" : "Sell"}
@@ -124,7 +130,7 @@ export function EavecMarcheHubClient() {
         />
       </div>
 
-      <div className="mt-4 space-y-4 px-0.5">
+      <div className="mt-3 space-y-3 px-0.5">
         <div className="mk-rise mk-rise-delay-2">
           <EavecMarketCategoryPills
             active={category}
@@ -137,9 +143,6 @@ export function EavecMarcheHubClient() {
           <div className="mk-tools">
             <Link href="/app/marche/mine" className="mk-tool">
               {fr ? "Mes annonces" : "My listings"}
-            </Link>
-            <Link href="/app/marche/orders" className="mk-tool">
-              {fr ? "Commandes" : "Orders"}
             </Link>
             <Link href="/app/marche/merchant" className="mk-tool">
               {fr ? "Marchand" : "Merchant"}
