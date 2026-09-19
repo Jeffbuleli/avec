@@ -54,6 +54,16 @@ export default function FacilitateurPage() {
       <WalletSubpageHeader
         title={fr ? "Facilitateur" : "Facilitator"}
         backHref="/app/home"
+        action={
+          <button type="button" onClick={load} className={avecCls.btnGhost}>
+            {fr ? "Actualiser" : "Refresh"}
+          </button>
+        }
+      />
+
+      {err ? (
+        <div className={avecCls.section}>
+          <p className="text-sm text-rose-700">{err}</p>
           <button type="button" onClick={load} className={`${avecCls.btnGhost} mt-2`}>
             {fr ? "Réessayer" : "Retry"}
           </button>
