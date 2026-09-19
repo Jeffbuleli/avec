@@ -62,10 +62,10 @@ export function EavecWalletFundPage() {
       <div className="mt-5 overflow-hidden rounded-[1.75rem] bg-[#0F2D2F] p-5 text-[#F6E8CD]">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#F6E8CD]/90">
               {fr ? "Solde Fc" : "Fc balance"}
             </p>
-            <p className="mt-2 text-3xl font-black tabular-nums">
+            <p className="mt-2 text-3xl font-black tabular-nums text-[#F6E8CD]">
               {err
                 ? "-"
                 : hidden
@@ -78,7 +78,7 @@ export function EavecWalletFundPage() {
           <button
             type="button"
             onClick={() => setHidden((v) => !v)}
-            className="rounded-full bg-white/10 p-2"
+            className="rounded-full bg-white/15 p-2"
             aria-label="Toggle"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -101,7 +101,7 @@ export function EavecWalletFundPage() {
           </Link>
           <Link
             href="/app/wallet/fiat/withdraw?asset=CDF"
-            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#C9A227]/25 text-sm font-extrabold text-[#F6E8CD] ring-1 ring-[#C9A227]/4"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#E8C96A] text-sm font-extrabold text-[#0F2D2F]"
           >
             {fr ? "Retrait" : "Withdraw"}
           </Link>
@@ -110,7 +110,7 @@ export function EavecWalletFundPage() {
 
       <Link
         href="/app/wallet/transfer?asset=CDF"
-        className="mt-4 flex items-center gap-3 rounded-2xl border border-[#0F2D2F]/1 bg-[#E8F5E9] px-4 py-4"
+        className="mt-4 flex items-center gap-3 rounded-2xl border border-[#0F2D2F]/15 bg-[#E8F5E9] px-4 py-4"
       >
         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -127,7 +127,7 @@ export function EavecWalletFundPage() {
           <p className="text-sm font-extrabold text-[#0F2D2F]">
             {fr ? "Envoyer à un utilisateur" : "Send to a user"}
           </p>
-          <p className="text-xs text-[#0F2D2F]/6">
+          <p className="text-xs font-medium text-[#0F2D2F]/75">
             {fr
               ? "Transfert interne instantané · gratuit"
               : "Instant internal transfer · free"}
@@ -135,16 +135,26 @@ export function EavecWalletFundPage() {
         </div>
       </Link>
 
+      <Link
+        href="/app/wallet/history"
+        className="mt-3 flex min-h-[48px] items-center justify-between rounded-2xl border border-[#0F2D2F]/15 bg-white px-4 py-3"
+      >
+        <span className="text-sm font-extrabold text-[#0F2D2F]">
+          {fr ? "Historique" : "History"}
+        </span>
+        <span className="text-xs font-bold text-[#0F2D2F]/70">→</span>
+      </Link>
+
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <Link
           href="/app/marche"
-          className="rounded-2xl border border-[#0F2D2F]/1 bg-white px-4 py-3 text-sm font-bold text-[#0F2D2F]"
+          className="rounded-2xl border border-[#0F2D2F]/15 bg-white px-4 py-3 text-sm font-extrabold text-[#0F2D2F]"
         >
           {fr ? "Marché" : "Market"}
         </Link>
         <Link
           href="/app/wallet/groups"
-          className="rounded-2xl border border-[#0F2D2F]/1 bg-white px-4 py-3 text-sm font-bold text-[#0F2D2F]"
+          className="rounded-2xl border border-[#0F2D2F]/15 bg-white px-4 py-3 text-sm font-extrabold text-[#0F2D2F]"
         >
           AVEC
         </Link>

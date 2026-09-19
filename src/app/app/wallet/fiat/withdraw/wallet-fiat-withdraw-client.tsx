@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { FIAT_FEE_RATE } from "@/lib/wallet-fees";
@@ -38,10 +38,9 @@ export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatP
   const { t, locale } = useI18n();
   const router = useRouter();
   const { online, refresh, userId } = useOfflineState();
-  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [mobileOk, setMobileOk] = useState<boolean | null>(null);
-  const [asset, setAsset] = useState<"USD" | "CDF">("USD");
+  const [asset] = useState<"CDF">("CDF");
   const [gross, setGross] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [provider, setProvider] = useState("");
@@ -61,13 +60,8 @@ export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatP
   );
 
   useEffect(() => {
-    const a = searchParams.get("asset");
-    if (a === "USD" || a === "CDF") setAsset(a);
-  }, [searchParams]);
-
-  useEffect(() => {
     let cancelled = false;
-    void fetch(`/api/wallet/${asset}/activity?page=1&pageSize=10`, { cache: "no-store" })
+    void fetch(`/api/wallet/CDF/activity?page=1&pageSize=10`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -229,23 +223,14 @@ export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatP
       {step === 0 ? (
         <>
           <WalletFieldLabel label={t("wallet_transfer_asset")}>
-            <div className="mb-2 flex gap-2">
-              {(["USD", "CDF"] as const).map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  disabled={locked}
-                  onClick={() => setAsset(a)}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2 ${
-                    asset === a
-                      ? "border-[color:var(--fd-primary)] bg-[color:var(--fd-mint)]"
-                      : "border-[color:var(--fd-border)] bg-white"
-                  }`}
-                >
-                  <WalletAssetIcon asset={a} size={24} />
-                  <span className="text-sm font-bold">{a}</span>
-                </button>
-              ))}
+            <div className="mb-2 flex items-center gap-2 rounded-xl border border-[color:var(--fd-primary)] bg-[color:var(--fd-mint)] px-3 py-2.5">
+              <WalletAssetIcon asset="CDF" size={24} />
+              <span className="text-sm font-extrabold text-[color:var(--fd-text)]">
+                Fc
+              </span>
+              <span className="text-xs font-semibold text-[color:var(--fd-muted)]">
+                (CDF)
+              </span>
             </div>
           </WalletFieldLabel>
           <WalletFieldLabel label={t("wallet_fiat_gross")}>
@@ -264,7 +249,7 @@ export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatP
           </WalletFieldLabel>
           {summary ? (
             <WalletStatusBanner tone="info">
-              {t("wallet_fiat_net")}: {summary.net.toLocaleString(loc)} {asset} · {t("wallet_fiat_fee", { pct })}
+              {t("wallet_fiat_net")}: {summary.net.toLocaleString(loc)} Fc · {t("wallet_fiat_fee", { pct })}
             </WalletStatusBanner>
           ) : null}
           <button type="button" className={walletPrimaryBtnClass} disabled={locked || !summary} onClick={() => setStep(1)}>
@@ -320,7 +305,7 @@ export default function WalletFiatWithdrawClient({ fiatPaused = false }: { fiatP
         <>
           <WalletStatusBanner tone="success">
             <p className="font-bold tabular-nums">
-              {summary.g.toLocaleString(loc)} {asset}
+              {summary.g.toLocaleString(loc)} Fc
             </p>
             <p className="text-[11px] opacity-90">{providers.find((p) => p.provider === provider)?.label}</p>
             <p className="text-[11px] opacity-90">{normalizeCodPhoneNumber(phoneNumber)}</p>

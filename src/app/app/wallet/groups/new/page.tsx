@@ -334,7 +334,7 @@ export default function AvecCreatePage() {
               {
                 label: t("service_fee_line_mcbuleli"),
                 amount: String(GROUP_SUBSCRIPTION_FEE_USDT),
-                asset: "USD/mo",
+                asset: "/mois",
               },
             ]}
             totalLabel={t("service_fee_total")}

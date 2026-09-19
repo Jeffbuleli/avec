@@ -99,7 +99,7 @@ export function WalletHistoryRow({
             />
           ) : isFiat ? (
             <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-2 ring-white">
-              <WalletAssetIcon asset={item.asset as "USD" | "CDF"} size={16} />
+              <WalletAssetIcon asset="CDF" size={16} />
             </span>
           ) : null}
         </span>
@@ -113,7 +113,7 @@ export function WalletHistoryRow({
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <p className="font-mono text-sm font-bold tabular-nums text-[color:var(--fd-text)]">
-            {signed} {item.asset}
+            {signed} {item.asset === "CDF" || item.asset === "USD" ? "Fc" : item.asset}
           </p>
           <StatusPill variant={pillVariant(item.status)} label={pillLabel} />
         </div>

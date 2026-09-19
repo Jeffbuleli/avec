@@ -6,8 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/components/i18n-provider";
 import { WalletAssetIcon } from "@/components/wallet/wallet-asset-icon";
 import {
-  cryptoDepositHref,
-  cryptoWithdrawHref,
   fiatDepositHref,
   fiatWithdrawHref,
   type WalletMoneyMode,
@@ -53,33 +51,12 @@ export function WalletMoneySheet({
     if (mode === "deposit") {
       return [
         {
-          title: t("wallet_section_crypto"),
+          title: locale === "fr" ? "Francs congolais" : "Congolese francs",
           options: [
-            {
-              href: cryptoDepositHref("USDT"),
-              label: "USDT",
-              hint: "Tether · TRC20",
-              icon: <WalletAssetIcon asset="USDT" size={36} className="h-9 w-9" />,
-            },
-            {
-              href: cryptoDepositHref("PI"),
-              label: t("pi_manual_title"),
-              hint: t("pi_manual_hint"),
-              icon: <WalletAssetIcon asset="PI" size={36} className="h-9 w-9" />,
-            },
-          ],
-        },
-        {
-          title: t("wallet_section_fiat"),
-          options: [
-            {
-              href: fiatDepositHref("USD"),
-              label: `USD · ${t("wallet_fiat_rail_momo")}`,
-              icon: <WalletAssetIcon asset="USD" size={36} className="h-9 w-9" />,
-            },
             {
               href: fiatDepositHref("CDF"),
-              label: `CDF · ${t("wallet_fiat_rail_momo")}`,
+              label: `Fc · ${t("wallet_fiat_rail_momo")}`,
+              hint: locale === "fr" ? "Dépôt Mobile Money en Fc uniquement" : "Mobile Money deposit in Fc only",
               icon: <WalletAssetIcon asset="CDF" size={36} className="h-9 w-9" />,
             },
             {
@@ -99,40 +76,12 @@ export function WalletMoneySheet({
 
     return [
       {
-        title: t("wallet_section_crypto"),
+        title: locale === "fr" ? "Francs congolais" : "Congolese francs",
         options: [
-          {
-            href: cryptoWithdrawHref("USDT"),
-            label: "USDT",
-            hint: "Tether · TRC20",
-            icon: <WalletAssetIcon asset="USDT" size={36} className="h-9 w-9" />,
-          },
-          {
-            href: cryptoWithdrawHref("PI"),
-            label: t("pi_manual_title"),
-            hint: t("pi_manual_hint"),
-            icon: <WalletAssetIcon asset="PI" size={36} className="h-9 w-9" />,
-          },
-        ],
-      },
-      {
-        title: t("wallet_section_fiat"),
-        options: [
-          {
-            href: fiatWithdrawHref("USD"),
-            label: `USD · ${t("wallet_fiat_rail_momo")}`,
-            icon: (
-              <span className="relative">
-                <WalletAssetIcon asset="USD" size={36} className="h-9 w-9" />
-                <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[color:var(--fd-primary)] text-white">
-                  <IconMobileMoney className="h-2.5 w-2.5" />
-                </span>
-              </span>
-            ),
-          },
           {
             href: fiatWithdrawHref("CDF"),
-            label: `CDF · ${t("wallet_fiat_rail_momo")}`,
+            label: `Fc · ${t("wallet_fiat_rail_momo")}`,
+            hint: locale === "fr" ? "Retrait Mobile Money en Fc uniquement" : "Mobile Money withdraw in Fc only",
             icon: (
               <span className="relative">
                 <WalletAssetIcon asset="CDF" size={36} className="h-9 w-9" />
@@ -145,7 +94,7 @@ export function WalletMoneySheet({
         ],
       },
     ];
-  }, [mode, t]);
+  }, [mode, t, locale]);
 
   if (!open || !mounted) return null;
 

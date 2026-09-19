@@ -92,7 +92,7 @@ export function EavecHomeHub({
   ];
 
   return (
-    <div className="home-theme space-y-4 pb-2 pt-1">
+    <div className="home-theme space-y-4 pb-2 pt-1 text-[#0F2D2F]">
       <header className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Image
@@ -104,11 +104,10 @@ export function EavecHomeHub({
             unoptimized
           />
           <div className="min-w-0">
-            <p className="text-sm font-bold text-[#0F2D2F]">
-              {greeting(fr, hour)},{" "}
-              <span className="truncate">{displayName}</span>
+            <p className="truncate text-sm font-extrabold text-[#0F2D2F]">
+              {greeting(fr, hour)}, {displayName}
             </p>
-            <p className="text-xs text-[#0F2D2F]/55">e-AVEC</p>
+            <p className="text-xs font-semibold text-[#0F2D2F]/80">e-AVEC</p>
           </div>
         </div>
       </header>
@@ -116,10 +115,10 @@ export function EavecHomeHub({
       <section className="overflow-hidden rounded-[1.75rem] bg-[#0F2D2F] p-5 text-[#F6E8CD] shadow-[0_16px_40px_-18px_rgba(15,45,47,0.55)]">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold text-[#F6E8CD]/70">
+            <p className="text-xs font-bold text-[#F6E8CD]/90">
               {fr ? "Solde Wallet" : "Wallet balance"}
             </p>
-            <p className="mt-2 text-3xl font-black tabular-nums tracking-tight">
+            <p className="mt-2 text-3xl font-black tabular-nums tracking-tight text-[#F6E8CD]">
               {hidden
                 ? "••••"
                 : cdf != null
@@ -130,7 +129,7 @@ export function EavecHomeHub({
           <button
             type="button"
             onClick={() => setHidden((v) => !v)}
-            className="rounded-full bg-white/10 p-2"
+            className="rounded-full bg-white/15 p-2"
             aria-label={hidden ? "Show" : "Hide"}
           >
             <EyeIcon crossed={hidden} />
@@ -146,7 +145,7 @@ export function EavecHomeHub({
           </Link>
           <Link
             href="/app/wallet/transfer?asset=CDF"
-            className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-2xl bg-[#C9A227]/25 text-sm font-extrabold text-[#F6E8CD] ring-1 ring-[#C9A227]/45"
+            className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-2xl bg-[#E8C96A] text-sm font-extrabold text-[#0F2D2F]"
           >
             <SendIcon />
             {fr ? "Envoyer" : "Send"}
@@ -156,14 +155,14 @@ export function EavecHomeHub({
 
       <Link
         href="/app/wallet/groups"
-        className="flex items-center gap-3 rounded-2xl border border-[#0F2D2F]/08 bg-[#E8F5E9] px-4 py-3"
+        className="flex items-center gap-3 rounded-2xl border border-[#0F2D2F]/12 bg-[#E8F5E9] px-4 py-3"
       >
         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white">
           <ServiceIcon kind="avec" />
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-extrabold text-[#0F2D2F]">AVEC</p>
-          <p className="text-xs text-[#0F2D2F]/6">
+          <p className="text-xs font-medium text-[#0F2D2F]/75">
             {fr
               ? "Réunion, parts, caisse, Passport"
               : "Meeting, shares, treasury, Passport"}
@@ -175,21 +174,21 @@ export function EavecHomeHub({
       </Link>
 
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-extrabold text-[#0F2D2F]">
-            {fr ? "Services" : "Services"}
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <h2 className="mb-3 text-sm font-extrabold text-[#0F2D2F]">
+          {fr ? "Services" : "Services"}
+        </h2>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {services.map((s) => (
             <Link
               key={s.href + s.t}
               href={s.href}
-              className={`rounded-2xl ${s.bg} p-4 transition active:scale-[0.98]`}
+              className={`rounded-2xl ${s.bg} px-4 py-3.5 transition active:scale-[0.98]`}
             >
-              <ServiceIcon kind={s.icon} />
-              <p className="mt-3 text-sm font-extrabold text-[#0F2D2F]">{s.t}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-[#0F2D2F]/55">
+              <div className="flex items-center gap-3">
+                <ServiceIcon kind={s.icon} />
+                <p className="text-sm font-extrabold text-[#0F2D2F]">{s.t}</p>
+              </div>
+              <p className="mt-1.5 pl-[40px] text-xs font-medium leading-snug text-[#0F2D2F]/75">
                 {s.d}
               </p>
             </Link>
@@ -239,7 +238,7 @@ function ServiceIcon({
 }) {
   const stroke = "#0F2D2F";
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0">
       {kind === "avec" && (
         <>
           <circle cx="9" cy="9" r="2.4" stroke={stroke} strokeWidth="1.6" />

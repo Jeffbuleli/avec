@@ -26,7 +26,7 @@ const CHANNEL_STYLE: Record<FiatChannelId, { bg: string; fg: string; mark: strin
   mpesa: { bg: "#E60000", fg: "#fff", mark: "M" },
   africell: { bg: "#C4007A", fg: "#fff", mark: "Af" },
   card: { bg: "#1A1F71", fg: "#fff", mark: "V" },
-  momo: { bg: "var(--fd-brown)", fg: "#fff", mark: "₣" },
+  momo: { bg: "#0F2D2F", fg: "#F6E8CD", mark: "₣" },
 };
 
 export function FiatChannelIcon({
@@ -38,17 +38,20 @@ export function FiatChannelIcon({
 }) {
   const logo = channelLogoPath(channel);
   const [logoFailed, setLogoFailed] = useState(false);
-  if (logo && !logoFailed) {
+
+  // Prefer letter mark for "momo" generic (no dedicated asset).
+  if (logo && !logoFailed && channel !== "momo") {
     return (
       <span
-        className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[color:var(--fd-border)] ${className}`}
+        className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-[color:var(--fd-border)] ${className}`}
         aria-hidden
       >
         <Image
           src={logo}
           alt=""
-          fill
-          className="object-contain p-0.5"
+          width={32}
+          height={32}
+          className="h-full w-full object-contain p-0.5"
           unoptimized
           onError={() => setLogoFailed(true)}
         />
@@ -59,7 +62,13 @@ export function FiatChannelIcon({
   return (
     <span
       className={`inline-flex shrink-0 items-center justify-center rounded-full font-bold ${className}`}
-      style={{ backgroundColor: s.bg, color: s.fg, fontSize: channel === "africell" ? "0.45rem" : "0.55rem" }}
+      style={{
+        backgroundColor: s.bg,
+        color: s.fg,
+        fontSize: channel === "africell" ? "0.45rem" : "0.55rem",
+        minWidth: "2rem",
+        minHeight: "2rem",
+      }}
       aria-hidden
     >
       {s.mark}

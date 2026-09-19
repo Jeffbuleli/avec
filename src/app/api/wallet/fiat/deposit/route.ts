@@ -20,7 +20,7 @@ import { isFiatDepositWithdrawPaused } from "@/lib/fiat-deposit-withdraw-paused"
 import { logFiatApiError } from "@/lib/fiat-api-errors";
 
 const bodyZ = z.object({
-  asset: z.enum(["USD", "CDF"]),
+  asset: z.enum(["CDF"]),
   grossAmount: z.string().min(1),
   phoneNumber: z.string().min(6),
   provider: z.string().min(2),

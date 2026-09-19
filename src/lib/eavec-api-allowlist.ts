@@ -10,6 +10,7 @@ const ALLOWED_PREFIXES = [
   "/api/wallet/summary",
   "/api/wallet/fiat",
   "/api/wallet/transfer",
+  "/api/wallet/CDF",
   "/api/config/mobile-money",
   "/api/config/deposit-routes",
   "/api/config/withdraw-quote",

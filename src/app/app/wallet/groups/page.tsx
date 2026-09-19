@@ -117,7 +117,7 @@ export default function AvecHubPage() {
       <WalletSubpageHeader
         title={t("group_hub_title")}
         subtitle={t("group_hub_sub")}
-        backHref="/app/profile"
+        backHref="/app/home"
         badge={<AvecHelpTrigger onClick={() => setHelpOpen(true)} />}
         action={
           <Link

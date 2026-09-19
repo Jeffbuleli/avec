@@ -26,7 +26,7 @@ import { enforceApiRateLimit } from "@/lib/api-rate-limit";
 import { recordFinancialAudit } from "@/lib/financial-audit";
 
 const bodyZ = z.object({
-  asset: z.enum(["USD", "CDF"]),
+  asset: z.enum(["CDF"]),
   grossAmount: z.string().min(1),
   phoneNumber: z.string().min(6),
   provider: z.string().min(2),
@@ -35,7 +35,7 @@ const bodyZ = z.object({
 
 async function refundIfNotYet(args: {
   userId: string;
-  asset: "USD" | "CDF";
+  asset: "CDF";
   batchId: string;
   grossAmountStr: string;
   fiatPayoutRef: string;

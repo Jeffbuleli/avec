@@ -10,7 +10,7 @@ const bodyZ = z
   .object({
     recipientEmail: z.string().email().optional(),
     recipientUserId: z.string().uuid().optional(),
-    asset: z.enum(["USDT", "PI", "USD", "CDF"]),
+    asset: z.enum(["CDF"]),
     amount: z.string().min(1),
     memo: z.string().optional(),
     totpCode: z.string().optional(),

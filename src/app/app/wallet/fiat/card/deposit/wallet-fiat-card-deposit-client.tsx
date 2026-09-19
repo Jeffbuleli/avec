@@ -26,7 +26,7 @@ export default function WalletFiatCardDepositClient({ fiatPaused = false }: { fi
   const { t, locale } = useI18n();
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [asset, setAsset] = useState<"USD" | "CDF">("USD");
+  const [asset] = useState<"CDF">("CDF");
   const [gross, setGross] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -91,30 +91,21 @@ export default function WalletFiatCardDepositClient({ fiatPaused = false }: { fi
       {step === 0 ? (
         <>
           <WalletFieldLabel label={t("wallet_transfer_asset")}>
-            <div className="mb-1 flex gap-2">
-              {(["USD", "CDF"] as const).map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  disabled={locked}
-                  onClick={() => setAsset(a)}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2 ${
-                    asset === a
-                      ? "border-[color:var(--fd-brown)] bg-[color:var(--fd-sand)]/40"
-                      : "border-[color:var(--fd-border)] bg-white"
-                  }`}
-                >
-                  <WalletAssetIcon asset={a} size={24} />
-                  <span className="text-sm font-bold">{a}</span>
-                </button>
-              ))}
+            <div className="mb-1 flex items-center gap-2 rounded-xl border border-[color:var(--fd-primary)] bg-[color:var(--fd-mint)] px-3 py-2.5">
+              <WalletAssetIcon asset="CDF" size={24} />
+              <span className="text-sm font-extrabold text-[color:var(--fd-text)]">
+                Fc
+              </span>
+              <span className="text-xs font-semibold text-[color:var(--fd-muted)]">
+                (CDF)
+              </span>
             </div>
           </WalletFieldLabel>
           <WalletFieldLabel label={t("wallet_fiat_gross")}>
             <input
               value={gross}
               onChange={(e) => setGross(e.target.value)}
-              inputMode={asset === "CDF" ? "numeric" : "decimal"}
+              inputMode="numeric"
               disabled={locked}
               placeholder="0"
               className={`${walletInputClass} text-lg font-bold tabular-nums disabled:opacity-60`}
@@ -122,7 +113,7 @@ export default function WalletFiatCardDepositClient({ fiatPaused = false }: { fi
           </WalletFieldLabel>
           {summary ? (
             <WalletStatusBanner tone="info">
-              {t("wallet_fiat_net")}: {summary.net.toLocaleString(loc)} {asset} · {t("wallet_fiat_fee", { pct })}
+              {t("wallet_fiat_net")}: {summary.net.toLocaleString(loc)} Fc · {t("wallet_fiat_fee", { pct })}
             </WalletStatusBanner>
           ) : null}
           <p className="text-[10px] text-[color:var(--fd-muted)]">{t("wallet_fiat_card_checkout_hint")}</p>
@@ -136,7 +127,7 @@ export default function WalletFiatCardDepositClient({ fiatPaused = false }: { fi
         <>
           <WalletStatusBanner tone="success">
             <p className="font-bold tabular-nums">
-              {summary.g.toLocaleString(loc)} {asset}
+              {summary.g.toLocaleString(loc)} Fc
             </p>
             <p className="text-[11px] opacity-90">Visa · Mastercard</p>
           </WalletStatusBanner>

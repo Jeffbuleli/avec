@@ -13,6 +13,7 @@ export const PARTNER_LOGO: Record<string, string> = {
   okx: "/assets/partners/okx.svg",
   pi: "/assets/crypto/pi.png",
   "pi-network": "/assets/crypto/pi.png",
+  /** Generic MoMo fallback uses letter mark in FiatChannelIcon when null. */
 };
 
 export const LANDING_PARTNERS: {

@@ -53,12 +53,7 @@ export default function FacilitateurPage() {
     <div className="space-y-3 pb-8">
       <WalletSubpageHeader
         title={fr ? "Facilitateur" : "Facilitator"}
-        backHref="/app/wallet/groups"
-      />
-
-      {err ? (
-        <div className={avecCls.section}>
-          <p className="text-sm text-rose-700">{err}</p>
+        backHref="/app/home"
           <button type="button" onClick={load} className={`${avecCls.btnGhost} mt-2`}>
             {fr ? "Réessayer" : "Retry"}
           </button>
