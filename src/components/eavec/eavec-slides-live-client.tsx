@@ -46,26 +46,26 @@ export function EavecSlidesLiveClient() {
       className={`hackathon-theme ${HK_SLIDES_LIGHT_CLASS} flex min-h-dvh flex-col bg-[var(--hk-page,#0c1210)] text-white`}
       data-hk-theme="light"
     >
-      <header className="flex items-center justify-between gap-3 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55">
-        <span>e-AVEC · LIVE</span>
+      <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 sm:px-6">
+        <span className="text-[#C9A227]">e-AVEC · LIVE</span>
         <span className={live ? "text-emerald-400" : "text-amber-300"}>
           {live ? "On Air" : "En attente MC"}
         </span>
         <Link href="/" className="normal-case tracking-normal text-white/40 underline">
-          e-AVEC
+          Accueil
         </Link>
       </header>
 
-      <main className="flex flex-1 flex-col px-3 pb-4 sm:px-6">
+      <main className="flex flex-1 flex-col px-3 pb-4 pt-3 sm:px-6">
         {live && data.slide ? (
           <>
             <AnimatePresence mode="wait">
               <motion.div
                 key={data.slide.id}
-                initial={{ opacity: 0.4, scale: 0.985 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0.35, y: 8, scale: 0.99 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: 0.28 }}
                 className="flex flex-1"
               >
                 <HackathonSlideFrame
@@ -80,16 +80,16 @@ export function EavecSlidesLiveClient() {
             </p>
           </>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/5 px-6 text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400/90">
+          <div className="flex flex-1 flex-col items-center justify-center rounded-[28px] border border-dashed border-white/15 bg-white/5 px-6 text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#C9A227]">
               Projecteur
             </p>
-            <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
-              En attente de la télécommande
-            </h1>
-            <p className="mt-3 max-w-md text-sm text-white/60">
-              Ouvrez <span className="font-semibold text-white">/mc</span> sur le
-              téléphone du speaker, puis appuyez sur <strong>Passer On Air</strong>.
+            <p className="mt-3 max-w-md text-lg font-extrabold text-white/90">
+              En attente de la télécommande MC
+            </p>
+            <p className="mt-2 max-w-sm text-sm text-white/50">
+              Ouvrez <span className="font-semibold text-[#C9A227]">/mc</span> sur
+              le téléphone speaker, puis passez On Air.
             </p>
           </div>
         )}

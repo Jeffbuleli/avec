@@ -8,7 +8,8 @@ export type SlideLayout =
   | "quiz"
   | "homework"
   | "agenda"
-  | "closing";
+  | "closing"
+  | "team";
 
 /** Accent palette keyed per lesson / module for visual variation. */
 export type SlidePalette =
@@ -42,7 +43,7 @@ export type SlideIllustrationId =
   | "agenda"
   | "tools-grid"
   | "limits"
-  /** e-AVEC / VUK’AFRIK professional SVGs */
+  /** e-AVEC / VUK’AFRIK professional SVGs (legacy fallback) */
   | "avec-circle"
   | "avec-cashbox"
   | "avec-opaque"
@@ -82,6 +83,20 @@ export type SlideStep = {
   body: string;
 };
 
+/** Photo media for immersion slides (replaces SVG illustration when set). */
+export type SlideMedia = {
+  src: string;
+  alt: string;
+  caption?: string;
+};
+
+export type SlideTeamMember = {
+  name: string;
+  role: string;
+  src: string;
+  alt: string;
+};
+
 export type HackathonSlide = {
   id: string;
   layout: SlideLayout;
@@ -94,6 +109,10 @@ export type HackathonSlide = {
   /** Always rendered with leading "- ". */
   bullets?: SlideBullet[];
   illustration?: SlideIllustrationId;
+  /** Regenerated photo for immersion narrative (preferred over SVG). */
+  media?: SlideMedia;
+  /** Team grid (layout: "team"). */
+  team?: SlideTeamMember[];
   tools?: SlideToolCard[];
   agenda?: SlideAgendaItem[];
   steps?: SlideStep[];

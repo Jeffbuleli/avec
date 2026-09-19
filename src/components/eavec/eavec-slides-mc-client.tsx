@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { HackathonSlideFrame } from "@/components/hackathon/hackathon-slide-frame";
 import type { HackathonSlide } from "@/lib/hackathon/slides/types";
 import { vukafrikEavecJ1Deck } from "@/lib/hackathon/slides/decks/vukafrik-eavec-j1";
 
@@ -12,6 +11,7 @@ type Session = {
   speakerLabel: string | null;
 };
 
+/** Télécommande uniquement — le contenu immersif est sur /live. */
 export function EavecSlidesMcClient({
   initialLoggedIn,
 }: {
@@ -95,7 +95,7 @@ export function EavecSlidesMcClient({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- remote keys bind once per mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!initialLoggedIn) {
@@ -121,48 +121,54 @@ export function EavecSlidesMcClient({
   const onAir = session.status === "live";
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-[#071210] px-4 py-5 text-white">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-[#0F2D2F] px-4 py-5 text-[#F6E8CD]">
       <header className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400/90">
-            e-AVEC · MC
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C9A227]">
+            Télécommande
           </p>
-          <p className="text-sm font-extrabold">{deck.titleFr}</p>
+          <p className="text-sm font-extrabold text-[#F6E8CD]">e-AVEC · MC</p>
         </div>
         <Link
           href="/live"
           target="_blank"
-          className="rounded-full border border-white/20 px-3 py-1.5 text-[10px] font-bold uppercase"
+          className="rounded-full border border-[#C9A227]/40 px-3 py-1.5 text-[10px] font-bold uppercase text-[#C9A227]"
         >
           Ouvrir LIVE
         </Link>
       </header>
 
-      <div className="mt-4 overflow-hidden rounded-2xl bg-white">
-        <HackathonSlideFrame slide={slide} compact className="w-full" />
+      <div className="mt-6 rounded-2xl border border-[#F6E8CD]/15 bg-black/25 p-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#C9A227]/90">
+          Slide {session.slideIndex + 1} / {deck.slides.length}
+        </p>
+        <p className="mt-2 text-lg font-black leading-snug text-[#F6E8CD]">
+          {slide.title}
+        </p>
+        {slide.eyebrow ? (
+          <p className="mt-1 text-xs font-semibold text-[#F6E8CD]/55">
+            {slide.eyebrow}
+          </p>
+        ) : null}
+        {slide.notes ? (
+          <p className="mt-3 border-t border-[#F6E8CD]/10 pt-3 text-[12px] leading-relaxed text-[#F6E8CD]/75">
+            {slide.notes}
+          </p>
+        ) : null}
       </div>
 
-      <p className="mt-3 text-center text-xs text-white/55">
-        Slide {session.slideIndex + 1} / {deck.slides.length}
-        {slide.notes ? (
-          <span className="mt-1 block text-left text-[11px] leading-snug text-white/70">
-            {slide.notes}
-          </span>
-        ) : null}
-      </p>
-
       {err ? (
-        <p className="mt-2 rounded-xl bg-rose-500/20 px-3 py-2 text-xs text-rose-100">
+        <p className="mt-3 rounded-xl bg-rose-500/20 px-3 py-2 text-xs text-rose-100">
           {err}
         </p>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-5 grid grid-cols-2 gap-2">
         <button
           type="button"
           disabled={busy}
           onClick={() => void act({ action: "prev" })}
-          className="rounded-2xl border border-white/20 py-4 text-sm font-bold active:scale-[0.98] disabled:opacity-40"
+          className="rounded-2xl border border-[#F6E8CD]/25 py-4 text-sm font-bold active:scale-[0.98] disabled:opacity-40"
         >
           ← Préc.
         </button>
@@ -170,7 +176,7 @@ export function EavecSlidesMcClient({
           type="button"
           disabled={busy}
           onClick={() => void act({ action: "next" })}
-          className="rounded-2xl border border-white/20 py-4 text-sm font-bold active:scale-[0.98] disabled:opacity-40"
+          className="rounded-2xl border border-[#F6E8CD]/25 py-4 text-sm font-bold active:scale-[0.98] disabled:opacity-40"
         >
           Suiv. →
         </button>
@@ -186,10 +192,8 @@ export function EavecSlidesMcClient({
               : { action: "go_live", speakerLabel: "e-AVEC" },
           )
         }
-        className={`mt-3 rounded-2xl py-4 text-sm font-black active:scale-[0.98] disabled:opacity-40 ${
-          onAir
-            ? "bg-amber-400 text-black"
-            : "bg-emerald-500 text-black"
+        className={`mt-3 rounded-2xl py-4 text-sm font-black text-[#0F2D2F] active:scale-[0.98] disabled:opacity-40 ${
+          onAir ? "bg-[#E8C96A]" : "bg-[#C9A227]"
         }`}
       >
         {onAir ? "Couper On Air" : "Passer On Air"}
@@ -204,8 +208,8 @@ export function EavecSlidesMcClient({
             onClick={() => void act({ action: "set_index", slideIndex: i })}
             className={`h-9 min-w-9 rounded-lg px-2 text-[11px] font-bold ${
               i === session.slideIndex
-                ? "bg-emerald-400 text-black"
-                : "bg-white/10 text-white/80"
+                ? "bg-[#C9A227] text-[#0F2D2F]"
+                : "bg-[#F6E8CD]/10 text-[#F6E8CD]/80"
             }`}
           >
             {i + 1}
@@ -213,7 +217,7 @@ export function EavecSlidesMcClient({
         ))}
       </div>
 
-      <Link href="/" className="mt-6 text-center text-xs text-white/40 underline">
+      <Link href="/" className="mt-8 text-center text-xs text-[#F6E8CD]/40 underline">
         ← e-AVEC
       </Link>
     </div>

@@ -1,12 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import type { HackathonSlide } from "@/lib/hackathon/slides/types";
 import { slidePaletteStyle } from "@/lib/hackathon/slides/palette";
 import { SlideIllustration } from "@/components/hackathon/slide-illustrations";
 import { HackathonAtmosphere } from "@/components/hackathon/hackathon-atmosphere";
+import { LivePortraitFrame } from "@/components/hackathon/live-portrait-frame";
 
 function BulletList({ items }: { items: Array<{ text: string }> }) {
   return (
@@ -74,21 +76,26 @@ export function HackathonSlideFrame({
   className?: string;
 }) {
   const isHero = slide.layout === "title" || slide.layout === "section";
+  const isTeam = slide.layout === "team";
   const pad = compact
     ? "p-5 sm:p-6"
-    : isHero
+    : isHero || isTeam
       ? "p-7 sm:p-11 lg:p-12"
       : "p-6 sm:p-9 lg:p-11";
   const titleSize = compact
     ? "text-xl sm:text-2xl"
-    : isHero
+    : isHero || isTeam
       ? "text-[clamp(1.85rem,4.6vw,3.5rem)]"
       : "text-[clamp(1.55rem,3.8vw,2.9rem)]";
 
+  const showMedia = Boolean(slide.media);
   const showSideArt =
+    !showMedia &&
     Boolean(slide.illustration) &&
     slide.layout !== "agenda" &&
-    slide.layout !== "tools";
+    slide.layout !== "tools" &&
+    slide.layout !== "team";
+  const showSide = showMedia || showSideArt;
 
   return (
     <div
@@ -142,10 +149,32 @@ export function HackathonSlideFrame({
 
         <div
           className={`mt-7 grid gap-6 ${
-            showSideArt ? "lg:grid-cols-[1.15fr_0.85fr] lg:items-center" : ""
+            showSide ? "lg:grid-cols-[1.15fr_0.85fr] lg:items-center" : ""
           }`}
         >
           <div className="min-w-0 space-y-4">
+            {isTeam && slide.team?.length ? (
+              <div className="grid gap-5 sm:grid-cols-3">
+                {slide.team.map((m, i) => (
+                  <motion.article
+                    key={m.name}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.06 * i, duration: 0.4 }}
+                    className="flex flex-col items-center text-center"
+                  >
+                    <LivePortraitFrame src={m.src} alt={m.alt} size="sm" />
+                    <h3 className="mt-3 text-sm font-black tracking-tight text-[color:var(--hk-text)] sm:text-base">
+                      {m.name}
+                    </h3>
+                    <p className="mt-1 text-[11px] font-semibold leading-snug text-[color:var(--slide-accent)] sm:text-xs">
+                      {m.role}
+                    </p>
+                  </motion.article>
+                ))}
+              </div>
+            ) : null}
+
             {slide.body?.map((p, i) => (
               <motion.p
                 key={p}
@@ -350,6 +379,38 @@ export function HackathonSlideFrame({
               </div>
             ) : null}
           </div>
+
+          {showMedia && slide.media ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className={
+                compact
+                  ? "mx-auto w-full max-w-[280px]"
+                  : "mx-auto w-full max-w-md lg:mx-0 lg:justify-self-end"
+              }
+            >
+              <figure className="overflow-hidden rounded-[22px] border border-[color:var(--hk-border)] bg-[color:var(--hk-surface)] shadow-[0_16px_40px_-20px_var(--hk-shadow)]">
+                <div className="relative aspect-[4/3] w-full">
+                  <Image
+                    src={slide.media.src}
+                    alt={slide.media.alt}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 1024px) 90vw, 420px"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+                {slide.media.caption ? (
+                  <figcaption className="border-t border-[color:var(--hk-border)] px-3 py-2 text-center text-[11px] font-semibold text-[color:var(--hk-muted)]">
+                    {slide.media.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            </motion.div>
+          ) : null}
 
           {showSideArt && slide.illustration ? (
             <motion.div
