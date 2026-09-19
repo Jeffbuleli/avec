@@ -63,7 +63,7 @@ export function EavecWalletFundPage() {
           Fc
         </p>
         <p className="mt-2 text-3xl font-black tabular-nums">
-          {err ? "—" : cdf != null ? avecCdf(cdf) : "…"}
+          {err ? "-" : cdf != null ? avecCdf(cdf) : "…"}
         </p>
       </div>
 

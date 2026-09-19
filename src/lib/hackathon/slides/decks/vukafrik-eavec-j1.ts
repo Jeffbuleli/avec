@@ -5,7 +5,7 @@ function s(partial: HackathonSlide): HackathonSlide {
 }
 
 /**
- * VUK’AFRIK 2026 — Jour 1 théorique (e-avec.org/live + /mc).
+ * VUK’AFRIK 2026 - Jour 1 théorique (e-avec.org/live + /mc).
  * Narratif ancré VSLA/AVEC (CARE, TechnoServe, AIR) : caisse opaque,
  * tenue de livres fragile, faible lien au formalisme financier.
  */
@@ -40,13 +40,13 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       layout: "content",
       palette: "forest",
       eyebrow: "Contexte RDC",
-      title: "Les AVEC existent déjà — le système les voit mal",
+      title: "Les AVEC existent déjà - le système les voit mal",
       body: [
-        "Des millions de membres en Afrique épargnent en cercle (VSLA / AVEC). En RDC, c’est un pilier d’inclusion — encore largement hors radar des banques et du régulateur.",
+        "Des millions de membres en Afrique épargnent en cercle (VSLA / AVEC). En RDC, c’est un pilier d’inclusion - encore largement hors radar des banques et du régulateur.",
       ],
       bullets: [
         { text: "Réunions hebdomadaires · parts · crédits internes · fonds social" },
-        { text: "Modèle prouvé (CARE et pairs) — mais cahier + cash" },
+        { text: "Modèle prouvé (CARE et pairs) - mais cahier + cash" },
         { text: "Village VUK’AFRIK : Finance, Fintech & Assurance" },
       ],
       illustration: "avec-cashbox",
@@ -62,8 +62,8 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
         "Les rapports terrain (CARE, TechnoServe, AIR…) convergent : vol de caisse, mauvaises écritures, pouvoir concentré chez les « lettrés », peu de lien au crédit formel.",
       ],
       bullets: [
-        { text: "Cash physique — risque de détournement" },
-        { text: "Cahier fragile — soldes contestables hors réunion" },
+        { text: "Cash physique - risque de détournement" },
+        { text: "Cahier fragile - soldes contestables hors réunion" },
         { text: "Crédits sans vote traçable pour tous" },
         { text: "Aucun historique portable pour FOGEC / banque / ONG" },
       ],
@@ -108,7 +108,7 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
         { text: "Eux : tours / likelemba · coach IA grand public" },
         { text: "Nous : parts, prêts votés, fonds social, clôture" },
         { text: "Nous : OS de groupe + Passport + facilitateur ONG" },
-        { text: "Phrase : ils digitalisent la tontine — nous l’AVEC" },
+        { text: "Phrase : ils digitalisent la tontine - nous l’AVEC" },
       ],
       illustration: "avec-ledger",
       notes:
@@ -120,7 +120,7 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       palette: "mint",
       eyebrow: "Solution",
       title: "e-AVEC",
-      subtitle: "Le même rituel AVEC — une confiance vérifiable",
+      subtitle: "Le même rituel AVEC - une confiance vérifiable",
       illustration: "avec-ledger",
     }),
     s({
@@ -130,13 +130,13 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       eyebrow: "Produit",
       title: "Quatre piliers",
       bullets: [
-        { text: "Réunion — parts 1–5 + solidarité (Fc / Mobile Money)" },
-        { text: "Caisse — épargne, prêts, aide, clôture de cycle" },
-        { text: "Gouvernance — votes membres (crédits, règles)" },
-        { text: "Passport — historique portable + consentement partenaires" },
+        { text: "Réunion - parts 1-5 + solidarité (Fc / Mobile Money)" },
+        { text: "Caisse - épargne, prêts, aide, clôture de cycle" },
+        { text: "Gouvernance - votes membres (crédits, règles)" },
+        { text: "Passport - historique portable + consentement partenaires" },
       ],
       illustration: "avec-vote",
-      notes: "Ne pas ouvrir l’app ici — renvoyer à la pratique sur e-avec.org.",
+      notes: "Ne pas ouvrir l’app ici - renvoyer à la pratique sur e-avec.org.",
     }),
     s({
       id: "digital",
@@ -148,7 +148,7 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
         "La digitalisation VSLA échoue souvent sur le réseau, la littératie et le téléphone. e-AVEC reste simple : Fc, rituel connu, offline-aware.",
       ],
       bullets: [
-        { text: "Montants en Fc — pas de jargon ledger" },
+        { text: "Montants en Fc - pas de jargon ledger" },
         { text: "Parcours réunion = réunion physique" },
         { text: "Réseau faible anticipé" },
         { text: "Facilitateur multi-groupes pour les ONG" },
@@ -160,14 +160,14 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       layout: "content",
       palette: "indigo",
       eyebrow: "Différenciation",
-      title: "Passport — de l’informel au formel",
+      title: "Passport - de l’informel au formel",
       body: [
-        "Sans historique, l’AVEC reste invisible pour le crédit institutionnel. Le Passport porte le parcours du membre — avec consentement.",
+        "Sans historique, l’AVEC reste invisible pour le crédit institutionnel. Le Passport porte le parcours du membre - avec consentement.",
       ],
       bullets: [
         { text: "Score / historique de fiabilité de groupe" },
         { text: "Consentement explicite (ex. FOGEC démo)" },
-        { text: "Porte d’entrée formalisation — sans se dire banque" },
+        { text: "Porte d’entrée formalisation - sans se dire banque" },
       ],
       illustration: "avec-passport",
     }),
@@ -180,7 +180,7 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       bullets: [
         { text: "Inclusion financière là où la banque n’arrive pas" },
         { text: "Transparence anti-détournement pour membres & ONG" },
-        { text: "Données utiles aux institutions — avec consentement" },
+        { text: "Données utiles aux institutions - avec consentement" },
         { text: "Ancré RDC : pratique AVEC déjà massive" },
       ],
       illustration: "avec-impact",
@@ -195,7 +195,7 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
         {
           num: 1,
           title: "Groupe AVEC",
-          body: "Abonnement par cycle / mois — caisse digitale.",
+          body: "Abonnement par cycle / mois - caisse digitale.",
         },
         {
           num: 2,
@@ -205,11 +205,11 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
         {
           num: 3,
           title: "Institution",
-          body: "Lecture Passport (API / partenariat) — FOGEC, MFI…",
+          body: "Lecture Passport (API / partenariat) - FOGEC, MFI…",
         },
       ],
       illustration: "project",
-      notes: "Rappeler : pas de float bancaire — infrastructure logicielle.",
+      notes: "Rappeler : pas de float bancaire - infrastructure logicielle.",
     }),
     s({
       id: "disclaimer",
@@ -230,7 +230,7 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       layout: "closing",
       palette: "mint",
       eyebrow: "VUK’AFRIK 2026",
-      title: "On ne remplace pas la confiance — on la rend vérifiable",
+      title: "On ne remplace pas la confiance - on la rend vérifiable",
       subtitle: "Produit live · e-avec.org",
       bullets: [
         { text: "Village : Finance / Fintech" },

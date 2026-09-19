@@ -23,15 +23,15 @@ const poppins = Poppins({
 const metadataBaseUrl = getMetadataOrigin() || undefined;
 
 const desc =
-  "e-AVEC est l’OS des associations villageoises d’épargne et de crédit (AVEC/VSLA) : parts, votes, caisse sociale, Passport — en Fc. Pas une tontine digitale. Pas une banque.";
+  "e-AVEC est l’OS des associations villageoises d’épargne et de crédit (AVEC/VSLA) : parts, votes, caisse sociale, Passport - en Fc. Pas une tontine digitale. Pas une banque.";
 
-const ogImageAlt = "e-AVEC — digital village savings groups";
+const ogImageAlt = "e-AVEC - digital village savings groups";
 
 export const metadata: Metadata = {
   ...(metadataBaseUrl ? { metadataBase: new URL(metadataBaseUrl) } : {}),
   other: { google: "notranslate" },
   title: {
-    default: "e-AVEC — épargne et crédit de groupe",
+    default: "e-AVEC - épargne et crédit de groupe",
     template: "%s · e-AVEC",
   },
   description: desc,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "e-AVEC",
-    title: "e-AVEC — digital village savings groups",
+    title: "e-AVEC - digital village savings groups",
     description: desc,
     url: CANONICAL_PRODUCTION_ORIGIN,
     locale: "fr_CD",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "e-AVEC — digital village savings groups",
+    title: "e-AVEC - digital village savings groups",
     description: desc,
     images: [{ url: "/opengraph-image", alt: ogImageAlt }],
   },

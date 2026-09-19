@@ -14,7 +14,7 @@ Soubassement méthodologique : guides AVEC/VSLA ([ICI Cocoa](https://www.cocoain
 
 | Pilier AVEC (méthodologie) | e-AVEC |
 |---|---|
-| Épargne cumulative + crédit interne | Parts 1–5, prêts, cycle, clôture |
+| Épargne cumulative + crédit interne | Parts 1-5, prêts, cycle, clôture |
 | Fonds social | Solidarité par réunion |
 | Gouvernance collective | Votes crédits / règles |
 | Facilitateur / ONG | Portefeuille + alertes intégrité |
@@ -22,7 +22,7 @@ Soubassement méthodologique : guides AVEC/VSLA ([ICI Cocoa](https://www.cocoain
 | Ancrage RDC | Fc · MoMo · BCC disclaimer |
 
 **Phrase jury :**  
-> Les autres digitalisent la *tontine*. Nous digitalisons la *méthodologie AVEC* — pour que la caisse soit visible, gouvernée et bancable.
+> Les autres digitalisent la *tontine*. Nous digitalisons la *méthodologie AVEC* - pour que la caisse soit visible, gouvernée et bancable.
 
 ## Ne pas dire
 

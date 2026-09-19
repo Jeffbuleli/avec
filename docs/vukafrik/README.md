@@ -1,4 +1,4 @@
-# VUK’AFRIK — Slides e-AVEC
+# VUK’AFRIK - Slides e-AVEC
 
 | | |
 |---|---|
@@ -11,6 +11,7 @@
 2. Ouvrir **MC** sur le téléphone → **Passer On Air**  
 3. Suiv. / Préc. depuis MC  
 
-Pratique produit : [e-avec.org](https://e-avec.org) (pas `/demo`).
+Pratique produit : [e-avec.org](https://e-avec.org)  
+Sandbox jury : [/demo](https://e-avec.org/demo) (Umoja) - voir [DEMO-UMOJA.md](../DEMO-UMOJA.md)
 
 **Phrase :** Les autres digitalisent la tontine. Nous digitalisons la méthodologie AVEC.

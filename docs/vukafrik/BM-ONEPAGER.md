@@ -1,4 +1,4 @@
-# Business model — 1 page (jury)
+# Business model - 1 page (jury)
 
 ## Qui paie ?
 
@@ -10,15 +10,15 @@
 
 ## Pourquoi ça marche
 
-1. **Besoin déjà là** — AVEC existent ; le pain = transparence + formalisation  
-2. **Canal ONG** — 1 facilitateur = N groupes (B2B2C)  
-3. **Upsell naturel** — du cahier numérique → Passport → crédit institutionnel  
+1. **Besoin déjà là** - AVEC existent ; le pain = transparence + formalisation  
+2. **Canal ONG** - 1 facilitateur = N groupes (B2B2C)  
+3. **Upsell naturel** - du cahier numérique → Passport → crédit institutionnel  
 
 ## Unité économique (simplifié)
 
 - Coût : hébergement + support + MoMo rails  
 - Revenu : abo groupes + licences facilitateurs  
-- Marge : logiciel (pas de float bancaire — on n’est pas banque)
+- Marge : logiciel (pas de float bancaire - on n’est pas banque)
 
 ## Différenciation
 
