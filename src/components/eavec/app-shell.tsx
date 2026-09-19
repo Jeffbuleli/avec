@@ -10,7 +10,7 @@ import { EavecBottomNav } from "@/components/eavec/bottom-nav";
 import { EavecSideNav } from "@/components/eavec/side-nav";
 import { EavecTopBar } from "@/components/eavec/top-bar";
 
-const MCBULELI_RETURN_PATH = "/app/wallet/groups";
+const MCBULELI_RETURN_PATH = "/app/home";
 
 export function EavecAppShell({
   email,
@@ -29,12 +29,13 @@ export function EavecAppShell({
   const { locale } = useI18n();
   const onProfile = pathname.startsWith("/app/profile");
   const onMarche = pathname.startsWith("/app/marche");
+  const onHome = pathname === "/app/home" || pathname === "/app";
   const onAvecGroupFlow =
     pathname.startsWith("/app/wallet/groups/") &&
     pathname !== "/app/wallet/groups" &&
     !pathname.endsWith("/new") &&
     !pathname.endsWith("/join");
-  const showTopBar = !onProfile && !onAvecGroupFlow && !onMarche;
+  const showTopBar = !onProfile && !onAvecGroupFlow && !onMarche && !onHome;
   const returnLabel = locale === "fr" ? "Retour vers McBuleli" : "Back to McBuleli";
 
   return (

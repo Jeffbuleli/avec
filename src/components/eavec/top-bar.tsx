@@ -16,7 +16,7 @@ export function EavecTopBar({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <Link href="/app/wallet/groups" className="flex items-center gap-2">
+      <Link href="/app/home" className="flex items-center gap-2">
         <Image
           src={BRAND_LOGO_MARK_256}
           alt="e-AVEC"

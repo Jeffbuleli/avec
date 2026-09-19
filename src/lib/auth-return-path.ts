@@ -35,7 +35,7 @@ export function clearAuthReturnPath(): void {
 /** Resolve post-auth path from `?next=`, sessionStorage, or fallback. */
 export function resolveAuthReturnPath(
   fromUrl: string | null | undefined,
-  fallback = "/app/wallet/groups",
+  fallback = "/app/home",
 ): string {
   const trimmed = fromUrl?.trim();
   if (trimmed) {

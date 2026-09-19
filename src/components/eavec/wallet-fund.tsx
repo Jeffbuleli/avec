@@ -18,6 +18,7 @@ export function EavecWalletFundPage() {
   const fr = locale === "fr";
   const [cdf, setCdf] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -37,9 +38,9 @@ export function EavecWalletFundPage() {
   return (
     <div className="mx-auto max-w-lg pb-4 pt-2">
       <WalletSubpageHeader
-        title={fr ? "Caisse personnelle" : "Personal wallet"}
-        subtitle={fr ? "Fc · Mobile Money" : "Fc · Mobile Money"}
-        backHref="/app/wallet/groups"
+        title="Wallet"
+        subtitle={fr ? "Fc · Mobile Money · transferts" : "Fc · Mobile Money · transfers"}
+        backHref="/app/home"
       />
 
       <div className="mt-1 flex items-center gap-3 px-0.5">
@@ -53,32 +54,99 @@ export function EavecWalletFundPage() {
         />
         <p className="text-sm leading-relaxed text-[#0F2D2F]/70">
           {fr
-            ? "Dépôt et retrait en francs congolais via Mobile Money. Le Marché utilise ce solde."
-            : "Deposit and withdraw Congolese francs via Mobile Money. Market uses this balance."}
+            ? "Dépôt, retrait et envoi entre utilisateurs e-AVEC. Le Marché utilise ce solde."
+            : "Deposit, withdraw and send between e-AVEC users. Market uses this balance."}
         </p>
       </div>
 
-      <div className="mt-5 rounded-3xl bg-[#0F2D2F] p-5 text-[#F6E8CD]">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
-          Fc
-        </p>
-        <p className="mt-2 text-3xl font-black tabular-nums">
-          {err ? "-" : cdf != null ? avecCdf(cdf) : "…"}
-        </p>
+      <div className="mt-5 overflow-hidden rounded-[1.75rem] bg-[#0F2D2F] p-5 text-[#F6E8CD]">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#F6E8CD]/60">
+              {fr ? "Solde Fc" : "Fc balance"}
+            </p>
+            <p className="mt-2 text-3xl font-black tabular-nums">
+              {err
+                ? "-"
+                : hidden
+                  ? "••••"
+                  : cdf != null
+                    ? avecCdf(cdf)
+                    : "…"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setHidden((v) => !v)}
+            className="rounded-full bg-white/10 p-2"
+            aria-label="Toggle"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"
+                stroke="#F6E8CD"
+                strokeWidth="1.7"
+              />
+              <circle cx="12" cy="12" r="2.5" stroke="#F6E8CD" strokeWidth="1.7" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <Link
+            href="/app/wallet/fiat/deposit?asset=CDF"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#F6E8CD] text-sm font-extrabold text-[#0F2D2F]"
+          >
+            {fr ? "Dépôt" : "Deposit"}
+          </Link>
+          <Link
+            href="/app/wallet/fiat/withdraw?asset=CDF"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#C9A227]/25 text-sm font-extrabold text-[#F6E8CD] ring-1 ring-[#C9A227]/4"
+          >
+            {fr ? "Retrait" : "Withdraw"}
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <Link
+        href="/app/wallet/transfer?asset=CDF"
+        className="mt-4 flex items-center gap-3 rounded-2xl border border-[#0F2D2F]/1 bg-[#E8F5E9] px-4 py-4"
+      >
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M4 12h14M12 6l6 6-6 6"
+              stroke="#0F2D2F"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-extrabold text-[#0F2D2F]">
+            {fr ? "Envoyer à un utilisateur" : "Send to a user"}
+          </p>
+          <p className="text-xs text-[#0F2D2F]/6">
+            {fr
+              ? "Transfert interne instantané · gratuit"
+              : "Instant internal transfer · free"}
+          </p>
+        </div>
+      </Link>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <Link
-          href="/app/wallet/fiat/deposit?asset=CDF"
-          className="flex min-h-[52px] items-center justify-center rounded-2xl bg-[#0F2D2F] px-5 text-sm font-extrabold text-[#F6E8CD]"
+          href="/app/marche"
+          className="rounded-2xl border border-[#0F2D2F]/1 bg-white px-4 py-3 text-sm font-bold text-[#0F2D2F]"
         >
-          {fr ? "Dépôt Mobile Money" : "Mobile Money deposit"}
+          {fr ? "Marché" : "Market"}
         </Link>
         <Link
-          href="/app/wallet/fiat/withdraw?asset=CDF"
-          className="flex min-h-[52px] items-center justify-center rounded-2xl border border-[#0F2D2F]/20 px-5 text-sm font-bold text-[#0F2D2F]"
+          href="/app/wallet/groups"
+          className="rounded-2xl border border-[#0F2D2F]/1 bg-white px-4 py-3 text-sm font-bold text-[#0F2D2F]"
         >
-          {fr ? "Retrait Mobile Money" : "Mobile Money withdraw"}
+          AVEC
         </Link>
       </div>
 

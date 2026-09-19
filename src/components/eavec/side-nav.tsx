@@ -4,7 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
-import { APP_NAV_ITEMS, isAppNavActive } from "@/lib/app-nav-items";
+import {
+  APP_NAV_ITEMS,
+  type AppNavId,
+  isAppNavActive,
+} from "@/lib/app-nav-items";
 import { BRAND_LOGO_MARK_256 } from "@/lib/brand-logo";
 
 export function EavecSideNav() {
@@ -12,15 +16,24 @@ export function EavecSideNav() {
   const { locale } = useI18n();
   const fr = locale === "fr";
 
-  const labelFor = (href: string) => {
-    if (href === "/app/wallet/groups") return "AVEC";
-    if (href === "/app/marche") return fr ? "Marché" : "Market";
-    return fr ? "Moi" : "Me";
+  const labelFor = (id: AppNavId) => {
+    switch (id) {
+      case "home":
+        return "Home";
+      case "marche":
+        return fr ? "Marché" : "Market";
+      case "avec":
+        return "AVEC";
+      case "wallet":
+        return "Wallet";
+      case "profile":
+        return "Profile";
+    }
   };
 
   return (
     <aside className="sticky top-0 flex h-dvh w-56 shrink-0 flex-col border-r border-[color:var(--fd-border)] bg-[color:var(--fd-card)] px-3 py-5">
-      <Link href="/app/wallet/groups" className="mb-8 flex items-center gap-2 px-2">
+      <Link href="/app/home" className="mb-8 flex items-center gap-2 px-2">
         <Image
           src={BRAND_LOGO_MARK_256}
           alt="e-AVEC"
@@ -38,7 +51,7 @@ export function EavecSideNav() {
           const active = isAppNavActive(pathname, p.href);
           return (
             <Link
-              key={p.href}
+              key={p.id}
               href={p.href}
               className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
                 active
@@ -46,16 +59,10 @@ export function EavecSideNav() {
                   : "text-[#0F2D2F]/80 hover:bg-[#F6E8CD]"
               }`}
             >
-              {labelFor(p.href)}
+              {labelFor(p.id)}
             </Link>
           );
         })}
-        <Link
-          href="/app/wallet"
-          className="mt-2 rounded-xl px-3 py-2 text-xs font-semibold text-[#0F2D2F]/60 hover:bg-[#F6E8CD]"
-        >
-          {fr ? "Caisse (Fc)" : "Wallet (Fc)"}
-        </Link>
       </nav>
     </aside>
   );

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function AppHomePage() {
-  redirect("/app/wallet/groups");
+export default function AppIndexPage() {
+  redirect("/app/home");
 }
