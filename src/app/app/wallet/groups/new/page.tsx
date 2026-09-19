@@ -18,7 +18,6 @@ import {
   AVEC_DEFAULT_MIN_MEMBERS,
   AVEC_DEFAULT_SHARE_VALUE_USDT,
   AVEC_MAX_SHARES_PER_MEETING,
-  GROUP_SUBSCRIPTION_FEE_USDT,
 } from "@/lib/group-savings-types";
 
 const FETCH_TIMEOUT_MS = 45_000;
@@ -333,12 +332,13 @@ export default function AvecCreatePage() {
             lines={[
               {
                 label: t("service_fee_line_mcbuleli"),
-                amount: String(GROUP_SUBSCRIPTION_FEE_USDT),
-                asset: "/mois",
+                amount: "1 000",
+                asset: "Fc/mois",
               },
             ]}
             totalLabel={t("service_fee_total")}
-            totalAmount={String(GROUP_SUBSCRIPTION_FEE_USDT)}
+            totalAmount="1 000"
+            totalAsset="Fc/mois"
             note={feeWaived ? undefined : t("service_fee_note_treasury")}
             waived={feeWaived}
             checked={feeChecked}

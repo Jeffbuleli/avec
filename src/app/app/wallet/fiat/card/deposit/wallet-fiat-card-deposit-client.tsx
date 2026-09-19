@@ -31,7 +31,7 @@ export default function WalletFiatCardDepositClient({ fiatPaused = false }: { fi
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const pct = Math.round(FIAT_FEE_RATE * 100);
+  const pct = Math.round(FIAT_FEE_RATE * 1000) / 10;
   const summary = useMemo(() => {
     const g = Number(gross);
     if (!Number.isFinite(g) || g <= 0) return null;

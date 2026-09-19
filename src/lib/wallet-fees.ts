@@ -1,7 +1,8 @@
 import type { WalletAsset } from "@/lib/wallet-types";
+import { FIAT_DEPOSIT_WITHDRAW_FEE_RATE } from "@/lib/eavec-pricing";
 
 /** Mobile money fiat deposit / withdrawal — platform fee (shown to user). */
-export const FIAT_FEE_RATE = 0.05;
+export const FIAT_FEE_RATE = FIAT_DEPOSIT_WITHDRAW_FEE_RATE;
 
 /** USDT ↔ USD/CDF and other standard pairs. */
 export const SWAP_FEE_RATE_STANDARD = 0.01;

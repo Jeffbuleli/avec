@@ -13,46 +13,66 @@ export default function BusinessPage() {
   const rows = fr
     ? [
         {
-          t: "AVEC / coopérative",
-          d: "OS groupe : parts, caisse, votes, clôture.",
-          p: "À partir de 5 USD / mois / groupe",
+          t: "Transfert interne",
+          d: "Envoi Fc entre utilisateurs e-AVEC — gratuit pour faire grandir le réseau.",
+          p: "0 Fc",
         },
         {
-          t: "ONG / projet (FAO, COOPI…)",
-          d: "Console facilitateur multi-groupes + export PV.",
-          p: "Licence zone / projet",
+          t: "AVEC / coopérative",
+          d: "OS groupe : parts, caisse, votes, clôture, Passport.",
+          p: "1 000 Fc / mois / groupe",
+        },
+        {
+          t: "ONG / facilitateur",
+          d: "Console multi-groupes + alertes intégrité + export PV.",
+          p: "10 000 Fc / mois / ONG",
+        },
+        {
+          t: "Dépôt / retrait MoMo",
+          d: "Fc via partenaires (PawaPay…). Rails agréés — pas d’agrément BCC revendiqué.",
+          p: "3,5 %",
+        },
+        {
+          t: "Marché",
+          d: "Achat communauté — commission facturée à l’acheteur.",
+          p: "1 % / transaction",
         },
         {
           t: "Partenaire crédit (FOGEC, IMF…)",
           d: "Passport avec consentement + score fiabilité.",
           p: "API / consultation",
         },
-        {
-          t: "Mobile Money",
-          d: "Dépôts / retraits Fc via partenaires (PawaPay…).",
-          p: "Commission corridor",
-        },
       ]
     : [
         {
-          t: "AVEC / cooperative",
-          d: "Group OS: shares, treasury, votes, share-out.",
-          p: "From 5 USD / month / group",
+          t: "Internal transfer",
+          d: "Send Fc between e-AVEC users — free to grow the network.",
+          p: "0 Fc",
         },
         {
-          t: "NGO / project (FAO, COOPI…)",
-          d: "Multi-group facilitator console + minutes export.",
-          p: "Zone / project license",
+          t: "AVEC / cooperative",
+          d: "Group OS: shares, treasury, votes, share-out, Passport.",
+          p: "1,000 Fc / month / group",
+        },
+        {
+          t: "NGO / facilitator",
+          d: "Multi-group console + integrity alerts + minutes export.",
+          p: "10,000 Fc / month / NGO",
+        },
+        {
+          t: "MoMo deposit / withdraw",
+          d: "Fc via partners (PawaPay…). Licensed rails — no BCC banking license claimed.",
+          p: "3.5%",
+        },
+        {
+          t: "Market",
+          d: "Community purchases — fee charged to the buyer.",
+          p: "1% / transaction",
         },
         {
           t: "Credit partner (FOGEC, MFI…)",
           d: "Passport with consent + reliability score.",
-          p: "API / lookup fee",
-        },
-        {
-          t: "Mobile Money",
-          d: "Fc deposits / withdrawals via partners (PawaPay…).",
-          p: "Corridor commission",
+          p: "API / lookup",
         },
       ];
 
@@ -91,9 +111,31 @@ export default function BusinessPage() {
         </h1>
         <p className="mt-4 text-sm leading-relaxed text-[#F6E8CD]/80">
           {fr
-            ? "Infrastructure numérique pour AVEC et ONG. Les flux fiat passent par partenaires agréés. Pas d’agrément BCC revendiqué."
-            : "Digital infrastructure for AVEC groups and NGOs. Fiat rails via licensed partners. No BCC banking license claimed."}
+            ? "Infrastructure numérique pour AVEC et ONG. Transferts internes à 0 Fc pour la viralité ; abo + MoMo + Marché pour la marge. Rails fiat via partenaires agréés — pas d’agrément BCC revendiqué."
+            : "Digital infrastructure for AVEC groups and NGOs. Free internal transfers for growth; subscription + MoMo + Market for margin. Fiat rails via licensed partners — no BCC banking license claimed."}
         </p>
+
+        <div className="mt-6 rounded-2xl border border-[#C9A227]/35 bg-[#C9A227]/10 p-4 text-sm leading-relaxed text-[#F6E8CD]/90">
+          {fr ? (
+            <>
+              <p className="font-extrabold text-[#C9A227]">Scénario jury (ordre de grandeur)</p>
+              <p className="mt-2">
+                100 AVEC × 1 000 Fc + 5 ONG × 10 000 Fc + MoMo 50 M Fc × 3,5 % + Marché 20 M Fc × 1 % ≈{" "}
+                <span className="font-black text-[#F6E8CD]">2,1 M Fc / mois</span>
+                {" "}— transferts internes à 0 Fc comme carburant d’usage.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-extrabold text-[#C9A227]">Jury scenario (order of magnitude)</p>
+              <p className="mt-2">
+                100 AVEC × 1,000 Fc + 5 NGOs × 10,000 Fc + MoMo 50M Fc × 3.5% + Market 20M Fc × 1% ≈{" "}
+                <span className="font-black text-[#F6E8CD]">2.1M Fc / month</span>
+                {" "}— internal transfers at 0 Fc as growth fuel.
+              </p>
+            </>
+          )}
+        </div>
 
         <div className="mt-8 space-y-3">
           {rows.map((r) => (

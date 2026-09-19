@@ -12,7 +12,11 @@ import { debitUserAsset, creditUserAsset } from "@/lib/wallet-move-assets";
 import { insertWalletLedgerLines } from "@/lib/wallet-ledger";
 import { fmtWalletAmount, numFromNumeric } from "@/lib/wallet-types";
 import type { WalletAsset } from "@/lib/wallet-types";
-import { FIAT_FEE_RATE } from "@/lib/wallet-fees";
+import {
+  MARKET_BUYER_FEE_RATE,
+  marketBuyerChargeCdf,
+  marketBuyerFeeCdf,
+} from "@/lib/eavec-pricing";
 import { hasPawapayKeys } from "@/lib/env";
 import { pawapayPayIn } from "@/lib/pawapay/provider";
 import { resolvePawapayProvider, toPawapayProviderId } from "@/lib/cod-mobile-providers";
@@ -74,7 +78,7 @@ function mapOrder(
   const total = Number(o.totalAmount);
   const momoGross =
     o.paymentMethod === "momo" && Number.isFinite(total)
-      ? fmtWalletAmount(total / (1 - FIAT_FEE_RATE))
+      ? fmtWalletAmount(marketBuyerChargeCdf(total))
       : null;
   const resolution =
     o.disputeResolution === "refund" || o.disputeResolution === "release"
@@ -199,10 +203,14 @@ export async function createEavecMarketOrder(args: {
       const unit = Number(listing.price);
       if (!Number.isFinite(unit) || unit <= 0) throw new Error("eavec_market_bad_price");
       const total = Number((unit * qty).toFixed(2));
+      const fee = marketBuyerFeeCdf(total);
+      const charge = marketBuyerChargeCdf(total);
       const totalStr = fmtWalletAmount(total);
-      const asset = await pickEscrowAsset(tx, args.buyerUserId, "CDF", total);
+      const feeStr = fmtWalletAmount(fee);
+      const chargeStr = fmtWalletAmount(charge);
+      const asset = await pickEscrowAsset(tx, args.buyerUserId, "CDF", charge);
 
-      await debitUserAsset(tx, args.buyerUserId, asset, totalStr);
+      await debitUserAsset(tx, args.buyerUserId, asset, chargeStr);
       const batchId = randomUUID();
       await insertWalletLedgerLines(tx, [
         {
@@ -217,8 +225,27 @@ export async function createEavecMarketOrder(args: {
             listingId: listing.id,
             quantity: qty,
             currency: listing.currency,
+            buyerFeeCdf: fee,
+            buyerFeeRate: MARKET_BUYER_FEE_RATE,
           },
         },
+        ...(fee > 0
+          ? [
+              {
+                batchId,
+                userId: args.buyerUserId,
+                entryType: "eavec_market_buyer_fee" as const,
+                asset,
+                amount: `-${feeStr}`,
+                feeUsdEquivalent: feeStr,
+                counterpartyUserId: null as string | null,
+                meta: {
+                  listingId: listing.id,
+                  rate: MARKET_BUYER_FEE_RATE,
+                },
+              },
+            ]
+          : []),
       ]);
 
       const now = new Date();
@@ -309,7 +336,9 @@ async function createMomoMarketOrder(args: {
       const unit = Number(listing.price);
       if (!Number.isFinite(unit) || unit <= 0) throw new Error("eavec_market_bad_price");
       const total = Number((unit * args.quantity).toFixed(2));
-      const gross = Number((total / (1 - FIAT_FEE_RATE)).toFixed(currency === "CDF" ? 0 : 2));
+      const gross = Number(
+        marketBuyerChargeCdf(total).toFixed(currency === "CDF" ? 0 : 2),
+      );
       if (!Number.isFinite(gross) || gross <= 0) throw new Error("eavec_market_bad_price");
 
       const now = new Date();

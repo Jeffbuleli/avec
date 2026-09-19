@@ -55,7 +55,7 @@ export default function WalletFiatDepositClient({ fiatPaused = false }: { fiatPa
     [t],
   );
 
-  const pct = Math.round(FIAT_FEE_RATE * 100);
+  const pct = Math.round(FIAT_FEE_RATE * 1000) / 10;
   const summary = useMemo(() => {
     const g = Number(gross);
     if (!Number.isFinite(g) || g <= 0) return null;

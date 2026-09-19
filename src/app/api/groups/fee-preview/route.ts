@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/session";
 import { userHasAvecSubscriptionWaiver } from "@/lib/group-savings-subscription-waiver";
-import { GROUP_SUBSCRIPTION_FEE_USDT } from "@/lib/group-savings-types";
+import {
+  GROUP_SUBSCRIPTION_FEE_CDF,
+  GROUP_SUBSCRIPTION_FEE_USDT,
+} from "@/lib/group-savings-types";
 
 export async function GET() {
   const userId = await getSessionUserId();
@@ -11,8 +14,10 @@ export async function GET() {
   const feeWaived = await userHasAvecSubscriptionWaiver(userId);
   return NextResponse.json({
     ok: true,
+    feeCdf: GROUP_SUBSCRIPTION_FEE_CDF,
     feeUsdt: GROUP_SUBSCRIPTION_FEE_USDT,
     feeWaived,
     billingSource: "group_treasury",
+    currency: "CDF",
   });
 }

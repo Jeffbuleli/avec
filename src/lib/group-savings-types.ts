@@ -1,3 +1,6 @@
+import { AVEC_SUBSCRIPTION_FEE_CDF } from "@/lib/eavec-pricing";
+import { cdfPerOneUsd } from "@/lib/fx";
+
 /** McBuleli supports AVEC (village savings & credit associations) only. */
 export type GroupSavingsType = "avec";
 
@@ -25,5 +28,9 @@ export type GroupSubscriptionStatus = "active" | "overdue" | "suspended";
 export type GroupMembershipRole = "admin" | "co_admin" | "committee" | "member";
 export type GroupMembershipStatus = "pending" | "approved" | "rejected" | "left";
 
-export const GROUP_SUBSCRIPTION_FEE_USDT = 5;
+/** Canonical public price: 1 000 Fc / mois / AVEC. */
+export const GROUP_SUBSCRIPTION_FEE_CDF = AVEC_SUBSCRIPTION_FEE_CDF;
 
+/** Monthly AVEC fee in ledger USDT units (UI shows Fc via avecMoney). */
+export const GROUP_SUBSCRIPTION_FEE_USDT =
+  GROUP_SUBSCRIPTION_FEE_CDF / cdfPerOneUsd();
