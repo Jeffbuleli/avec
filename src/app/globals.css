@@ -350,6 +350,45 @@ html {
   }
 }
 
+@keyframes eavec-landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes eavec-landing-orb {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(-24px, 18px) scale(1.08);
+  }
+}
+
+.eavec-landing-rise {
+  animation: eavec-landing-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.eavec-landing-rise-delay {
+  animation-delay: 0.12s;
+}
+
+.eavec-landing-orb {
+  animation: eavec-landing-orb 10s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eavec-landing-rise,
+  .eavec-landing-orb {
+    animation: none;
+  }
+}
+
 .landing-eco-line {
   animation: landing-eco-pulse 3s ease-in-out infinite;
 }

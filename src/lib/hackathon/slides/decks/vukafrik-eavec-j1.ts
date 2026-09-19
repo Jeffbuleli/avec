@@ -96,6 +96,25 @@ export const vukafrikEavecJ1Deck: HackathonDeck = {
       illustration: "workspace",
     }),
     s({
+      id: "vs-tontine",
+      layout: "split",
+      palette: "violet",
+      eyebrow: "Différenciation",
+      title: "Pas une tontine digitale de plus",
+      body: [
+        "Djangui, Likelemba, Maman Tontine digitalisent tours et cagnottes. e-AVEC digitalise la méthodologie AVEC/VSLA documentée par CARE, FAO, ICI Cocoa, World Bank.",
+      ],
+      bullets: [
+        { text: "Eux : tours / likelemba · coach IA grand public" },
+        { text: "Nous : parts, prêts votés, fonds social, clôture" },
+        { text: "Nous : OS de groupe + Passport + facilitateur ONG" },
+        { text: "Phrase : ils digitalisent la tontine — nous l’AVEC" },
+      ],
+      illustration: "avec-ledger",
+      notes:
+        "Insister : ROSCA ≠ VSLA. Jury Fintech = différenciation nette.",
+    }),
+    s({
       id: "solution",
       layout: "section",
       palette: "mint",

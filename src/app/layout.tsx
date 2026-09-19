@@ -23,7 +23,7 @@ const poppins = Poppins({
 const metadataBaseUrl = getMetadataOrigin() || undefined;
 
 const desc =
-  "e-AVEC sécurise la caisse des associations villageoises d’épargne et de crédit (AVEC) : parts, votes, crédits et historique portable — en Fc, avec Mobile Money. Pas une banque.";
+  "e-AVEC est l’OS des associations villageoises d’épargne et de crédit (AVEC/VSLA) : parts, votes, caisse sociale, Passport — en Fc. Pas une tontine digitale. Pas une banque.";
 
 const ogImageAlt = "e-AVEC — digital village savings groups";
 
