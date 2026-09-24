@@ -97,6 +97,6 @@ export function getEavecLivePresentation(): {
     session,
     slide,
     total,
-    deckTitleFr: deck?.titleFr ?? "e-AVEC",
+    deckTitleFr: deck?.titleFr ?? "Yekola",
   };
 }

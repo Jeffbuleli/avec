@@ -4,7 +4,7 @@ import { getSessionUserId } from "@/lib/session";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "MC · e-AVEC Slides",
+  title: "MC · Yekola Slides",
   robots: { index: false, follow: false },
 };
 
